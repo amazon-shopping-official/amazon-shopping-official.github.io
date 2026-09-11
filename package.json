@@ -1,8 +1,5 @@
 ﻿{
   "name": "amazon-iphone-store",
   "version": "1.0.0",
-  "description": "Apple iPhone 17 Pro Max - Amazon-style ordering demo with Vercel KV order collection",
-  "dependencies": {
-    "@vercel/kv": "^1.0.0"
-  }
+  "description": "Apple iPhone 17 Pro Max - Amazon-style ordering demo with Supabase order collection"
 }
