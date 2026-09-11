@@ -56,6 +56,50 @@ function getDynamicOrderDate(date = new Date()) {
 
 // Expected dates are left blank without auto-calculation as requested
 
+// ==========================================================================
+//  VERCEL KV API HELPERS (orders persist centrally across all devices)
+//  Falls back to localStorage when running locally / API unavailable
+// ==========================================================================
+const API_ORDERS = '/api/orders';
+
+async function saveOrderToAPI(order) {
+  try {
+    const res = await fetch(API_ORDERS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order)
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+  } catch (err) {
+    console.log('[Store] API save skipped (localhost?):', err.message);
+  }
+}
+
+async function fetchOrdersFromAPI() {
+  try {
+    const res = await fetch(API_ORDERS);
+    if (!res.ok) throw new Error('API ' + res.status);
+    const apiOrders = await res.json();
+    // Merge API orders with any local-only ones, dedupe by orderId
+    const local = JSON.parse(localStorage.getItem('amazon_placed_orders') || '[]');
+    const merged = [...apiOrders];
+    local.forEach(lo => {
+      if (!merged.find(o => o.orderId === lo.orderId)) merged.push(lo);
+    });
+    return merged;
+  } catch (_) {
+    return JSON.parse(localStorage.getItem('amazon_placed_orders') || '[]');
+  }
+}
+
+async function deleteOrdersFromAPI() {
+  try {
+    await fetch(API_ORDERS, { method: 'DELETE' });
+  } catch (err) {
+    console.log('[Store] API delete skipped:', err.message);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   setupProductOptions();
   setupBuyNow();
@@ -376,6 +420,7 @@ function finalizeOrderPlacement() {
 
   state.placedOrder = orderRecord;
 
+  // Save locally (instant, works offline)
   try {
     const saved = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
     saved.unshift(orderRecord);
@@ -383,6 +428,9 @@ function finalizeOrderPlacement() {
   } catch (err) {
     console.error("Storage error:", err);
   }
+
+  // Also save to Vercel KV so YOU can see it from any device (async, fire-and-forget)
+  saveOrderToAPI(orderRecord);
 
   // Update Orders Badge Count in Header
   updateOrdersBadge();
@@ -541,9 +589,10 @@ function setupOrdersDrawer() {
 
   // Clear orders
   if (btnClearOrders) {
-    btnClearOrders.addEventListener("click", () => {
-      if (confirm("Are you sure you want to clear all test order records?")) {
+    btnClearOrders.addEventListener("click", async () => {
+      if (confirm("Are you sure you want to clear all order records?")) {
         localStorage.removeItem("amazon_placed_orders");
+        await deleteOrdersFromAPI();
         updateOrdersBadge();
         renderOrdersList();
         showToast("Order records cleared.");
@@ -566,12 +615,14 @@ function setupOrdersDrawer() {
   }
 }
 
-// Render Saved Orders in Drawer
-function renderOrdersList() {
+// Render Saved Orders in Drawer (fetches from Vercel KV API, falls back to localStorage)
+async function renderOrdersList() {
   const container = document.getElementById("ordersListContainer");
   if (!container) return;
 
-  const orders = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
+  container.innerHTML = `<div style="text-align:center; padding:30px; color:#888; font-size:13px;">⏳ Loading orders...</div>`;
+
+  const orders = await fetchOrdersFromAPI();
 
   if (orders.length === 0) {
     container.innerHTML = `
@@ -607,9 +658,9 @@ function renderOrdersList() {
   `).join("");
 }
 
-// Open Printable Billing Invoice Modal (Uses Dynamic Live Order Date)
-window.openInvoice = function(orderId) {
-  const orders = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
+// Open Printable Billing Invoice Modal
+window.openInvoice = async function(orderId) {
+  const orders = await fetchOrdersFromAPI();
   const ord = orders.find(o => o.orderId === orderId) || orders[0];
   if (!ord) return;
 
@@ -687,9 +738,9 @@ window.openInvoice = function(orderId) {
   modal.style.display = "flex";
 };
 
-// Export All Collected Orders to CSV File
-function exportOrdersToCSV() {
-  const orders = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
+// Export All Collected Orders to CSV File (from Vercel KV / localStorage)
+async function exportOrdersToCSV() {
+  const orders = await fetchOrdersFromAPI();
   if (orders.length === 0) {
     showToast("No orders available to export.");
     return;
