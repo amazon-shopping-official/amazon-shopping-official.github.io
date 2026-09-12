@@ -1,5 +1,13 @@
 [
   {
+    "name": "Alex Morgan",
+    "address": "456 Ocean Drive, Miami, Florida 33139",
+    "phoneNumber": "305-555-0188",
+    "email": "alex@example.com",
+    "item": "Apple iPhone 17 Pro Max (256 GB) - Deep Blue",
+    "price": "$1,699.00"
+  },
+  {
     "name": "Michael Scott",
     "address": "edfb",
     "phoneNumber": "fdbv",
