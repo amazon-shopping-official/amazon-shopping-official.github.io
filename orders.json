@@ -1,5 +1,13 @@
 [
   {
+    "name": "Chris Evans",
+    "address": "100 Main St, Boston, MA 02108",
+    "phoneNumber": "617-555-0144",
+    "email": "chris@example.com",
+    "item": "Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange",
+    "price": "$1,699.00"
+  },
+  {
     "name": "Alex Morgan",
     "address": "456 Ocean Drive, Miami, Florida 33139",
     "phoneNumber": "305-555-0188",
