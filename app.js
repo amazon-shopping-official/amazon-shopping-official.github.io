@@ -232,8 +232,18 @@ function setupProductOptions() {
 
     const colorData = PRODUCT.colors[state.color];
     if (colorData && colorData.img) {
-      mainPhoto.src = colorData.img;
-      mainPhoto.alt = `${PRODUCT.title} in ${state.color}`;
+      if (!mainPhoto.src.endsWith(colorData.img)) {
+        mainPhoto.style.opacity = '0.35';
+        mainPhoto.style.transform = 'scale(0.97)';
+        setTimeout(() => {
+          mainPhoto.src = colorData.img;
+          mainPhoto.alt = `${PRODUCT.title} in ${state.color}`;
+          mainPhoto.style.opacity = '1';
+          mainPhoto.style.transform = 'scale(1)';
+        }, 110);
+      } else {
+        mainPhoto.alt = `${PRODUCT.title} in ${state.color}`;
+      }
     }
 
     // Sync active swatch button
@@ -265,7 +275,15 @@ function setupProductOptions() {
         state.color = t.dataset.color;
         refreshPricingAndImages();
       } else if (t.dataset.img) {
-        mainPhoto.src = t.dataset.img;
+        if (!mainPhoto.src.endsWith(t.dataset.img)) {
+          mainPhoto.style.opacity = '0.35';
+          mainPhoto.style.transform = 'scale(0.97)';
+          setTimeout(() => {
+            mainPhoto.src = t.dataset.img;
+            mainPhoto.style.opacity = '1';
+            mainPhoto.style.transform = 'scale(1)';
+          }, 110);
+        }
       }
     });
   });
@@ -445,7 +463,19 @@ function setupCheckoutAccordion() {
       btnEditAddress.click();
       return;
     }
-    finalizeOrderPlacement();
+    btnFinalPlaceOrder.disabled = true;
+    btnSummaryPlaceOrder.disabled = true;
+    const origFinalText = btnFinalPlaceOrder.innerHTML;
+    const origSummaryText = btnSummaryPlaceOrder.innerHTML;
+    btnFinalPlaceOrder.innerHTML = 'Placing your order...';
+    btnSummaryPlaceOrder.innerHTML = 'Placing your order...';
+    setTimeout(() => {
+      finalizeOrderPlacement();
+      btnFinalPlaceOrder.disabled = false;
+      btnSummaryPlaceOrder.disabled = false;
+      btnFinalPlaceOrder.innerHTML = origFinalText;
+      btnSummaryPlaceOrder.innerHTML = origSummaryText;
+    }, 400);
   }
 
   btnFinalPlaceOrder.addEventListener("click", triggerPlaceOrder);
