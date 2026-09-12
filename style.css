@@ -30,10 +30,17 @@
   --radius-card: 8px;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -43,6 +50,22 @@ body {
   font-size: 14px;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  touch-action: manipulation;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+button, .btn-buy-now, .btn-continue-step, .cs-btn-place-order, .btn-track-package, .btn-conf-secondary, .swatch-btn, .storage-choice {
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  touch-action: manipulation;
+}
+
+button:active, .btn-buy-now:active, .btn-continue-step:active, .cs-btn-place-order:active, .btn-track-package:active, .btn-conf-secondary:active {
+  transform: scale(0.97);
 }
 
 /* ==========================================================================
@@ -367,11 +390,12 @@ header {
   max-width: 96%;
   max-height: 96%;
   object-fit: contain;
-  transition: transform 0.25s ease;
+  transition: opacity 0.22s ease-in-out, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
 }
 
 .main-image-viewer:hover img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 /* Center Details */
@@ -729,6 +753,15 @@ header {
   border-radius: var(--radius-card);
   padding: 20px;
   transition: all 0.2s ease;
+}
+
+#stepAddressBody, #stepPaymentBody, #stepReviewBody {
+  animation: stepFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes stepFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .step-card.completed {
@@ -1308,31 +1341,388 @@ footer {
   color: #999;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
+/* ==========================================================================
+   COMPREHENSIVE RESPONSIVE DESIGN & MOBILE OPTIMIZATION
+   ========================================================================== */
+
+/* 1. Tablet Landscape & Small Laptops (<= 1100px) */
+@media (max-width: 1100px) {
   .product-grid {
-    grid-template-columns: 380px minmax(0, 1fr);
+    grid-template-columns: 380px minmax(0, 1fr) 270px;
+    gap: 20px;
+    padding: 20px;
+  }
+  .main-image-viewer {
+    height: 390px;
+  }
+  .checkout-grid {
+    grid-template-columns: 1fr 310px;
+    gap: 20px;
+  }
+}
+
+/* 2. Tablet Portrait (<= 920px) */
+@media (max-width: 920px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px;
+  }
+  .gallery-column {
+    flex-direction: column-reverse;
+    align-items: center;
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .thumbnail-strip {
+    flex-direction: row;
+    overflow-x: auto;
+    width: 100%;
+    justify-content: center;
+    padding: 6px;
+  }
+  .main-image-viewer {
+    width: 100%;
+    height: 380px;
+  }
+  .details-column {
+    padding-right: 0;
   }
   .buy-box {
-    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 10px;
   }
   .checkout-grid {
     grid-template-columns: 1fr;
   }
+  .checkout-summary-box {
+    position: static;
+    margin-top: 20px;
+  }
 }
 
+/* 3. Mobile Devices (<= 768px) */
 @media (max-width: 768px) {
-  .product-grid {
-    grid-template-columns: 1fr;
-    padding: 14px;
+  /* Authentic Amazon Mobile Header */
+  .nav-main {
+    flex-wrap: wrap;
+    padding: 8px 12px 10px 12px;
+    gap: 8px 12px;
   }
-  .gallery-column {
-    flex-direction: column-reverse;
+  .amazon-logo-wrap {
+    order: 1;
+    padding: 4px 0;
+  }
+  .amazon-svg {
+    width: 84px;
+    height: 26px;
+  }
+  .nav-actions {
+    order: 2;
+    margin-left: auto;
+    gap: 10px;
+  }
+  .nav-actions .nav-item:not(#navOrdersBtn):not(.nav-cart) {
+    display: none;
+  }
+  .nav-item {
+    padding: 4px 6px;
+  }
+  .nav-line-small {
+    font-size: 11px;
+  }
+  .nav-line-bold {
+    font-size: 13px;
+  }
+  .nav-search {
+    order: 3;
+    width: 100%;
+    height: 40px;
+    margin: 2px 0 0 0;
+  }
+  .search-dept {
+    display: none;
+  }
+  .search-input {
+    font-size: 16px; /* Prevents auto-zoom on mobile */
+  }
+  
+  /* Location Bar beneath Header */
+  .nav-location {
+    order: 4;
+    width: calc(100% + 24px);
+    margin: 4px -12px -10px -12px;
+    padding: 9px 14px;
+    background: var(--amazon-subnav);
+    border: none;
+    border-radius: 0;
+    font-size: 12px;
+  }
+  .nav-location svg {
+    width: 16px;
+    height: 16px;
+  }
+  .nav-location div {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .nav-location .loc-line1 {
+    font-size: 12px;
+    color: #ccc;
+  }
+  .nav-location .loc-line2 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* Subnav Horizontal Momentum Scroll */
+  .subnav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .subnav::-webkit-scrollbar {
+    display: none;
+  }
+  .sub-links {
+    padding: 0 12px;
+    gap: 14px;
+    white-space: nowrap;
+  }
+  .sub-link {
+    font-size: 13px;
+    padding: 8px 0;
+    display: inline-block;
+  }
+
+  /* Main Container */
+  .main-container {
+    padding: 10px 10px 30px 10px;
+  }
+  .breadcrumb-bar {
+    font-size: 11px;
+    margin-bottom: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .breadcrumb-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Product View */
+  .product-grid {
+    padding: 16px 12px;
+    border-radius: 6px;
+    gap: 16px;
+  }
+  .main-image-viewer {
+    height: clamp(260px, 70vw, 350px);
+    padding: 12px;
   }
   .thumbnail-strip {
-    flex-direction: row;
+    gap: 8px;
+    justify-content: center;
   }
-  .nav-location, .sub-links .sub-link:not(:first-child) {
-    display: none;
+  .thumb-item {
+    width: 48px;
+    height: 48px;
+  }
+  #productTitle {
+    font-size: 19px;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .price-dollars {
+    font-size: 28px;
+  }
+
+  /* Touch-friendly Selection Pills */
+  .swatch-group {
+    gap: 8px;
+  }
+  .swatch-btn {
+    padding: 8px 12px;
+    min-height: 44px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+  .storage-grid {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .storage-choice {
+    padding: 10px 14px;
+    min-height: 44px;
+    flex: 1 1 calc(50% - 8px);
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  /* Buy Box */
+  .buy-box {
+    padding: 16px 14px;
+    border-radius: 6px;
+  }
+  .bb-price {
+    font-size: 24px;
+  }
+  .btn-buy-now {
+    height: 48px;
+    font-size: 16px;
+    border-radius: 24px;
+    margin-top: 6px;
+  }
+
+  /* Checkout Flow */
+  .checkout-wrapper {
+    padding: 0 8px;
+    margin: 10px auto;
+  }
+  .checkout-header-bar {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    border-radius: 6px;
+  }
+  .ch-title {
+    font-size: 18px;
+  }
+  .step-card {
+    padding: 16px 14px;
+    border-radius: 6px;
+  }
+  .step-header {
+    margin-bottom: 12px;
+  }
+  .step-title {
+    font-size: 15px;
+  }
+
+  /* Inputs (Silky Smooth, No iOS Auto-Zoom) */
+  .form-field input, .form-field textarea, .form-field select {
+    font-size: 16px !important;
+    padding: 12px;
+    border-radius: 6px;
+  }
+  .btn-continue-step {
+    width: 100%;
+    justify-content: center;
+    height: 46px;
+    font-size: 15px;
+    border-radius: 23px;
+    margin-top: 14px;
+  }
+  .payment-option {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 6px;
+  }
+  .pay-title {
+    font-size: 14px;
+  }
+  .cs-btn-place-order {
+    height: 48px;
+    font-size: 16px;
+    border-radius: 24px;
+  }
+
+  /* Order Confirmation Screen */
+  .order-confirmation-screen {
+    padding: 16px 14px;
+    border-radius: 6px;
+  }
+  .conf-top-banner {
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
+  .conf-check-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+  .conf-h2 {
+    font-size: 19px;
+  }
+  .conf-subtitle {
+    font-size: 13px;
+  }
+  .conf-summary-card {
+    padding: 16px 14px;
+    margin-bottom: 20px;
+  }
+  .conf-grid-details {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .conf-friend-alert {
+    padding: 14px 14px;
+    gap: 10px;
+  }
+  .conf-actions-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-track-package, .btn-conf-secondary {
+    width: 100%;
+    justify-content: center;
+    height: 46px;
+    border-radius: 23px;
+  }
+
+  /* Secret Admin Drawer */
+  .orders-drawer {
+    width: 92vw;
+    max-width: 440px;
+  }
+  .od-header {
+    padding: 14px 16px;
+  }
+  .od-body {
+    padding: 14px 12px;
+  }
+
+  /* Printable invoice modal */
+  #invoiceModalBackdrop > div {
+    max-height: 94vh;
+    width: 96vw;
+    margin: 8px;
+    border-radius: 6px;
+  }
+
+  /* Toast Notification */
+  .amazon-toast {
+    bottom: 16px;
+    right: 14px;
+    left: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  /* Footer */
+  .footer-content {
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+    padding: 24px 16px;
+  }
+}
+
+/* 4. Small Mobile Phones (<= 380px) */
+@media (max-width: 380px) {
+  .amazon-svg {
+    width: 76px;
+    height: 24px;
+  }
+  .storage-choice {
+    flex: 1 1 100%;
+  }
+  .main-image-viewer {
+    height: 250px;
   }
 }
