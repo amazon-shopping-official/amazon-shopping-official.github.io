@@ -308,14 +308,16 @@ function setupProductOptions() {
   refreshPricingAndImages();
 }
 
-// 2. Single "Buy Now" Action
+// 2. Navigation & Single "Buy Now" Action
 function setupBuyNow() {
   const btnBuyNow = document.getElementById("btnBuyNow");
   const viewProduct = document.getElementById("viewProductPage");
   const viewCheckout = document.getElementById("viewCheckout");
   const logoHomeLink = document.getElementById("logoHomeLink");
+  const btnBackToProduct = document.getElementById("btnBackToProduct");
+  const btnBackToProductPage = document.getElementById("btnBackToProductPage");
 
-  btnBuyNow.addEventListener("click", () => {
+  function openCheckout(pushState = true) {
     const unit = PRODUCT.storagePrices[state.storage] || 1699;
     const total = unit * state.qty;
 
@@ -329,17 +331,69 @@ function setupBuyNow() {
     document.getElementById("csTotalPrice").textContent = formatMoney(total);
 
     // Transition smoothly
+    document.getElementById("orderConfirmationScreen").classList.remove("active");
+    document.getElementById("checkoutGridArea").style.display = "grid";
     viewProduct.style.display = "none";
     viewCheckout.classList.add("active");
     window.scrollTo({ top: 0, behavior: "smooth" });
-  });
 
-  logoHomeLink.addEventListener("click", (e) => {
-    e.preventDefault();
+    if (pushState) {
+      history.pushState({ view: "checkout" }, "", "#checkout");
+    }
+  }
+
+  function returnToProduct(pushState = true) {
+    document.getElementById("orderConfirmationScreen").classList.remove("active");
+    document.getElementById("checkoutGridArea").style.display = "grid";
     viewCheckout.classList.remove("active");
     viewProduct.style.display = "block";
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    if (pushState && window.location.hash !== "") {
+      history.pushState({ view: "product" }, "", window.location.pathname + window.location.search);
+    }
+  }
+
+  btnBuyNow.addEventListener("click", () => openCheckout(true));
+
+  if (btnBackToProduct) {
+    btnBackToProduct.addEventListener("click", () => {
+      if (window.history.length > 1 && window.location.hash === "#checkout") {
+        window.history.back();
+      } else {
+        returnToProduct(true);
+      }
+    });
+  }
+
+  if (btnBackToProductPage) {
+    btnBackToProductPage.addEventListener("click", () => returnToProduct(true));
+  }
+
+  logoHomeLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    returnToProduct(true);
   });
+
+  // Listen for browser back / forward buttons and mobile swipe gestures
+  window.addEventListener("popstate", (e) => {
+    const view = e.state?.view || (window.location.hash === "#checkout" ? "checkout" : (window.location.hash === "#confirmation" ? "confirmation" : "product"));
+    if (view === "checkout") {
+      openCheckout(false);
+    } else if (view === "confirmation") {
+      document.getElementById("checkoutGridArea").style.display = "none";
+      document.getElementById("orderConfirmationScreen").classList.add("active");
+      viewProduct.style.display = "none";
+      viewCheckout.classList.add("active");
+    } else {
+      returnToProduct(false);
+    }
+  });
+
+  // Handle initial page load with hash
+  if (window.location.hash === "#checkout") {
+    openCheckout(false);
+  }
 }
 
 // 3. Multi-Step Checkout Accordion
@@ -456,6 +510,22 @@ function setupCheckoutAccordion() {
     stepCardPayment.classList.remove("completed");
   });
 
+  // Back to step 1 from step 2
+  const btnBackToAddress = document.getElementById("btnBackToAddress");
+  if (btnBackToAddress) {
+    btnBackToAddress.addEventListener("click", () => {
+      btnEditAddress.click();
+    });
+  }
+
+  // Back to step 2 from step 3
+  const btnBackToPayment = document.getElementById("btnBackToPayment");
+  if (btnBackToPayment) {
+    btnBackToPayment.addEventListener("click", () => {
+      btnEditPayment.click();
+    });
+  }
+
   // 3. Place Order Triggers
   function triggerPlaceOrder() {
     if (!state.address) {
@@ -555,6 +625,8 @@ function finalizeOrderPlacement() {
   checkoutGrid.style.display = "none";
   confScreen.classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
+
+  history.pushState({ view: "confirmation" }, "", "#confirmation");
 
   showToast("Order placed, thank you!");
 }
@@ -695,6 +767,9 @@ function setupOrdersDrawer() {
       document.getElementById("viewCheckout").classList.remove("active");
       document.getElementById("viewProductPage").style.display = "block";
       window.scrollTo({ top: 0, behavior: "smooth" });
+      if (window.location.hash !== "") {
+        history.pushState({ view: "product" }, "", window.location.pathname + window.location.search);
+      }
     });
   }
 
