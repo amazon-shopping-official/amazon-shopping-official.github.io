@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "orderId": "114-601258-4192036",
+    "date": "Saturday, September 12, 2026",
+    "time": "11:05 AM",
+    "deliveryRange": "",
+    "fullName": "Jane Smith",
+    "deliveryAddress": "123 Maple Street, Apt 4B, Seattle, Washington 98101",
+    "phone": "206-555-0123",
+    "email": "jane.smith@example.com",
+    "item": "Apple iPhone 17 Pro Max (256 GB) - Silver",
+    "qty": 1,
+    "unitPrice": "$1,699.00",
+    "total": "$1,699.00",
+    "paymentMethod": "Ask a Friend to Pay"
+  }
+]
