@@ -1106,6 +1106,34 @@ header {
   line-height: 1.6;
 }
 
+.conf-email-alert {
+  display: flex;
+  gap: 14px;
+  background: #f7faf9;
+  border: 1px solid #007600;
+  border-left: 5px solid #007600;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #0f1111;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.conf-email-alert .alert-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.conf-email-alert strong {
+  font-size: 15px;
+  display: block;
+  margin-bottom: 4px;
+  color: #007600;
+}
+
 .conf-friend-alert {
   display: flex;
   gap: 14px;

@@ -440,13 +440,22 @@
       <div class="conf-top-banner">
         <div class="conf-check-icon">✓</div>
         <div>
-          <h2 class="conf-h2">Order placed, thank you!</h2>
+          <h2 class="conf-h2">Order placed successfully!</h2>
           <div class="conf-subtitle">
-            Confirmation sent to <strong id="confEmailNotice"></strong> &bull; Order #<span id="confOrderNumber">114-892014-92018</span>
+            The order confirmation will be sent to your email (<strong id="confEmailNotice"></strong>). If you don't find the email, check your spam folder.
           </div>
-          <div style="font-size:12px; color:#555; margin-top:4px;">
-            Order Placed: <strong id="confOrderDate"></strong>
+          <div style="font-size:12px; color:#555; margin-top:6px;">
+            Order Placed: <strong id="confOrderDate"></strong> &bull; Order #<span id="confOrderNumber">114-892014-92018</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Prominent Order Placed & Email Spam Notice Box -->
+      <div class="conf-email-alert">
+        <div class="alert-icon">✉️</div>
+        <div>
+          <strong>Order placed successfully!</strong>
+          The order confirmation will be sent to your email. If you don't find the email, check your spam folder.
         </div>
       </div>
 
@@ -485,9 +494,6 @@
 
         <!-- Clean Action Buttons for the Friend -->
         <div class="conf-actions-row">
-          <button class="btn-track-package" id="btnTrackPackage">
-            <span>🚚 Track package</span>
-          </button>
           <button class="btn-conf-secondary" id="btnContinueShopping">
             <span>Continue Shopping</span>
           </button>
@@ -500,66 +506,6 @@
     </div>
 
   </main>
-
-  <!-- TRACKING PACKAGE MODAL (FOR THE FRIEND'S PERSPECTIVE) -->
-  <div class="orders-drawer-backdrop" id="trackingModalBackdrop" style="display:none; align-items:center; justify-content:center; padding:20px; z-index:2000;">
-    <div style="background:#fff; border-radius:8px; width:100%; max-width:580px; box-shadow:0 10px 30px rgba(0,0,0,0.3); overflow:hidden;">
-      <div style="background:var(--amazon-navy); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="font-size:16px; font-weight:700;">Package Delivery Status</h3>
-        <button id="btnCloseTrackingModal" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
-      </div>
-      <div style="padding:24px; font-size:13px; line-height:1.6;">
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding-bottom:12px; margin-bottom:16px;">
-          <div>
-            <strong>Status:</strong><br>
-            <span style="font-size:15px; font-weight:700; color:#007600;">Order Confirmed</span>
-          </div>
-          <div style="text-align:right;">
-            <span style="color:#555;">Order #<span id="trackOrderNum"></span></span>
-          </div>
-        </div>
-
-        <!-- Tracking Steps Timeline -->
-        <div style="display:flex; flex-direction:column; gap:16px; margin:20px 0;">
-          <div style="display:flex; gap:12px; align-items:flex-start;">
-            <div style="width:24px; height:24px; border-radius:50%; background:#007600; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">✓</div>
-            <div>
-              <strong style="color:#111;">Order Placed</strong><br>
-              <span style="font-size:12px; color:#555;" id="trackPlacedDate"></span>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:12px; align-items:flex-start;">
-            <div style="width:24px; height:24px; border-radius:50%; background:#ff9900; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">⏳</div>
-            <div>
-              <strong style="color:#111;">Awaiting Friend's Payment</strong><br>
-              <span style="font-size:12px; color:#555;">Payment request pending with your buyer</span>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:12px; align-items:flex-start; opacity:0.5;">
-            <div style="width:24px; height:24px; border-radius:50%; background:#ccc; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">📦</div>
-            <div>
-              <strong>Dispatched from Apple Fulfillment</strong><br>
-              <span style="font-size:12px; color:#777;">Tracking number will be assigned upon payment</span>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:12px; align-items:flex-start; opacity:0.5;">
-            <div style="width:24px; height:24px; border-radius:50%; background:#ccc; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">🏠</div>
-            <div>
-              <strong>Delivered</strong><br>
-              <span style="font-size:12px; color:#777;" id="trackDestinationSummary"></span>
-            </div>
-          </div>
-        </div>
-
-        <button onclick="document.getElementById('trackingModalBackdrop').style.display='none';" class="btn-conf-secondary" style="width:100%; justify-content:center; margin-top:10px;">
-          Close Tracking
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- SLIDE-OUT DRAWER: RETURNS & ORDERS (COLLECTED BILLING RECORDS) -->
   <div class="orders-drawer-backdrop" id="drawerBackdrop"></div>

@@ -198,7 +198,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupBuyNow();
   setupCheckoutAccordion();
   setupOrdersDrawer();
-  setupTrackingModal();
   updateOrdersBadge();
 });
 
@@ -628,43 +627,7 @@ function finalizeOrderPlacement() {
 
   history.pushState({ view: "confirmation" }, "", "#confirmation");
 
-  showToast("Order placed, thank you!");
-}
-
-// 5. Track Package Modal (For the Friend)
-function setupTrackingModal() {
-  const btnTrack = document.getElementById("btnTrackPackage");
-  const modal = document.getElementById("trackingModalBackdrop");
-  const btnClose = document.getElementById("btnCloseTrackingModal");
-
-  if (btnTrack) {
-    btnTrack.addEventListener("click", () => {
-      const ord = state.placedOrder || (JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]")[0]);
-      if (!ord) return;
-
-      document.getElementById("trackOrderNum").textContent = ord.orderId;
-      const trackDeliv = document.getElementById("trackDeliveryDate");
-      if (trackDeliv) trackDeliv.textContent = "";
-      document.getElementById("trackPlacedDate").textContent = `${ord.date} at ${ord.time || '10:00 AM'}`;
-      document.getElementById("trackDestinationSummary").textContent = `Delivering to ${ord.fullName}, ${ord.deliveryAddress}`;
-
-      modal.style.display = "flex";
-    });
-  }
-
-  if (btnClose) {
-    btnClose.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  }
-
-  if (modal) {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  }
+  showToast("Order placed successfully! Check your email or spam folder for confirmation.");
 }
 
 // 6. Seller & Billing Hub (Drawer for the Creator/Store Owner)
@@ -734,15 +697,12 @@ function setupOrdersDrawer() {
     });
   }
 
-  // Friend's Normal Perspective: Clicking Returns & Orders opens customer package tracking or status
+  // Friend's Normal Perspective: Clicking Returns & Orders opens customer order status
   if (navOrdersBtn) {
     navOrdersBtn.addEventListener("click", () => {
       const orders = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
       if (state.placedOrder || orders.length > 0) {
-        const btnTrack = document.getElementById("btnTrackPackage");
-        if (btnTrack) {
-          btnTrack.click();
-        }
+        showToast("Order placed successfully! The order confirmation will be sent to your email. If you don't find the email, check your spam folder.");
       } else {
         showToast("Your Orders: You have no active orders yet.");
       }
