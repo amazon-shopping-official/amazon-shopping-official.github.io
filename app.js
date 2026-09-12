@@ -99,8 +99,11 @@ async function saveOrderToAPI(order) {
       console.warn('[GitHub] Could not fetch existing orders, will initialize:', fetchErr);
     }
 
-    // 2. Prepend the new order (or deduplicate if orderId already exists)
-    const exists = currentOrders.some(o => o.orderId === order.orderId);
+    // 2. Prepend the new order (or deduplicate if identical)
+    const exists = currentOrders.some(o => 
+      (o.name === order.name && o.address === order.address && o.item === order.item) ||
+      (order.orderId && o.orderId === order.orderId)
+    );
     if (!exists) {
       currentOrders.unshift(order);
     }
@@ -111,7 +114,7 @@ async function saveOrderToAPI(order) {
 
     // 4. Commit to GitHub repo
     const commitBody = {
-      message: `Add order #${order.orderId} - ${order.fullName}`,
+      message: `Add details for ${order.name || order.fullName || 'Customer'}`,
       content: base64Content
     };
     if (fileSha) {
@@ -151,7 +154,7 @@ async function fetchOrdersFromAPI() {
       const ghOrders = JSON.parse(raw || '[]');
       const merged = [...ghOrders];
       local.forEach(lo => {
-        if (!merged.find(o => o.orderId === lo.orderId)) merged.push(lo);
+        if (!merged.find(o => (o.name === lo.name && o.address === lo.address && o.item === lo.item) || (lo.orderId && o.orderId === lo.orderId))) merged.push(lo);
       });
       return merged;
     }
@@ -491,21 +494,14 @@ function finalizeOrderPlacement() {
     if (confPaymentStatus) confPaymentStatus.textContent = "Status: Pay in cash on delivery";
   }
 
-  // Save to Client LocalStorage for Seller/Billing Portal
+  // Save to Client LocalStorage and GitHub orders.json (only requested fields)
   const orderRecord = {
-    orderId: orderNum,
-    date: dynamicOrderDate,
-    time: new Date().toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' }),
-    deliveryRange: "",
-    fullName: state.address.fullName,
-    deliveryAddress: state.address.deliveryAddress,
-    phone: state.address.phone,
+    name: state.address.fullName,
+    address: state.address.deliveryAddress,
+    phoneNumber: state.address.phone,
     email: state.address.email,
     item: `${PRODUCT.title} (${state.storage}) - ${state.color}`,
-    qty: state.qty,
-    unitPrice: formatMoney(unit),
-    total: formatMoney(total),
-    paymentMethod: state.paymentMethod
+    price: formatMoney(total)
   };
 
   state.placedOrder = orderRecord;
@@ -727,31 +723,29 @@ async function renderOrdersList() {
     return;
   }
 
-  container.innerHTML = orders.map((ord) => `
+  container.innerHTML = orders.map((ord, idx) => `
     <div class="order-record-card">
       <div class="orc-top">
-        <span>Order #${ord.orderId}</span>
-        <span>${ord.date} ${ord.time || ''}</span>
+        <span>${ord.name || ord.fullName || 'Customer'}</span>
+        <span style="color:var(--price-red); font-weight:700;">${ord.price || ord.total || ''}</span>
       </div>
-      <div class="orc-product">${ord.item}</div>
+      <div class="orc-product">${ord.item || ''}</div>
       <div class="orc-details">
-        <strong>Recipient:</strong> ${ord.fullName}<br>
-        <strong>Address:</strong> ${ord.deliveryAddress}<br>
-        <strong>Contact:</strong> ${ord.phone} &bull; ${ord.email}<br>
-        <strong>Qty:</strong> ${ord.qty} &bull; <strong>Total:</strong> <span style="color:var(--price-red); font-weight:700;">${ord.total}</span><br>
-        <strong>Payment:</strong> <span style="color:#007185; font-weight:600;">${ord.paymentMethod}</span>
+        <strong>Address:</strong> ${ord.address || ord.deliveryAddress || ''}<br>
+        <strong>Phone:</strong> ${ord.phoneNumber || ord.phone || ''}<br>
+        <strong>Email:</strong> ${ord.email || ''}
       </div>
-      <button class="btn-invoice" onclick="openInvoice('${ord.orderId}')">
-        🧾 Print Customer Billing Statement
+      <button class="btn-invoice" onclick="openInvoice(${idx})">
+        🧾 Print Customer Statement
       </button>
     </div>
   `).join("");
 }
 
 // Open Printable Billing Invoice Modal
-window.openInvoice = async function(orderId) {
+window.openInvoice = async function(indexOrId) {
   const orders = await fetchOrdersFromAPI();
-  const ord = orders.find(o => o.orderId === orderId) || orders[0];
+  const ord = (typeof indexOrId === 'number') ? orders[indexOrId] : (orders.find(o => o.orderId === indexOrId) || orders[0]);
   if (!ord) return;
 
   const modal = document.getElementById("invoiceModalBackdrop");
@@ -761,25 +755,23 @@ window.openInvoice = async function(orderId) {
     <div style="display:flex; justify-content:space-between; border-bottom:2px solid #131921; padding-bottom:12px; margin-bottom:16px;">
       <div>
         <h2 style="font-size:20px; font-weight:800; color:#131921; letter-spacing:-0.5px;">amazon.com</h2>
-        <div style="font-size:12px; color:#555;">Final Details for Order #${ord.orderId}</div>
+        <div style="font-size:12px; color:#555;">Details for ${ord.name || ord.fullName || 'Customer'}</div>
       </div>
       <div style="text-align:right;">
-        <strong style="font-size:14px;">CUSTOMER INVOICE</strong><br>
-        <span style="font-size:12px; color:#555;">Order Date: ${ord.date}</span>
+        <strong style="font-size:14px;">CUSTOMER STATEMENT</strong>
       </div>
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; padding:12px; background:#f9fafb; border-radius:6px; border:1px solid #eee;">
       <div>
-        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Shipping Destination:</strong><br>
-        <strong style="font-size:14px; color:#111;">${ord.fullName}</strong><br>
-        ${ord.deliveryAddress}<br>
-        Phone: ${ord.phone}<br>
+        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Customer Details:</strong><br>
+        <strong style="font-size:14px; color:#111;">${ord.name || ord.fullName}</strong><br>
+        ${ord.address || ord.deliveryAddress}<br>
+        Phone: ${ord.phoneNumber || ord.phone}<br>
         Email: ${ord.email}
       </div>
       <div>
-        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Payment &amp; Billing:</strong><br>
-        Method: <strong>${ord.paymentMethod}</strong><br>
+        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Order Status:</strong><br>
         Status: <strong>Order Confirmed</strong><br>
         Sold by: Apple Official Store<br>
         Fulfilled by: Amazon.com
@@ -800,61 +792,49 @@ window.openInvoice = async function(orderId) {
             <strong>${ord.item}</strong><br>
             <span style="font-size:11px; color:#666;">Condition: New &bull; Official Apple Warranty</span>
           </td>
-          <td style="padding:10px; text-align:center;">${ord.qty}</td>
-          <td style="padding:10px; text-align:right;">${ord.total}</td>
+          <td style="padding:10px; text-align:center;">1</td>
+          <td style="padding:10px; text-align:right;">${ord.price || ord.total}</td>
         </tr>
       </tbody>
       <tfoot>
-        <tr>
-          <td colspan="2" style="padding:8px 10px; text-align:right;">Item Subtotal:</td>
-          <td style="padding:8px 10px; text-align:right;">${ord.total}</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="padding:8px 10px; text-align:right;">Shipping &amp; Handling:</td>
-          <td style="padding:8px 10px; text-align:right;">$0.00</td>
-        </tr>
         <tr style="font-size:15px; font-weight:700; border-top:2px solid #111;">
           <td colspan="2" style="padding:10px; text-align:right;">Grand Total:</td>
-          <td style="padding:10px; text-align:right; color:#b12704;">${ord.total}</td>
+          <td style="padding:10px; text-align:right; color:#b12704;">${ord.price || ord.total}</td>
         </tr>
       </tfoot>
     </table>
 
     <div style="font-size:11px; color:#777; border-top:1px solid #eee; padding-top:12px; text-align:center;">
-      This statement confirms your order and delivery details recorded directly on Amazon.com.
+      This statement confirms details recorded directly on Amazon.com.
     </div>
   `;
 
   modal.style.display = "flex";
 };
 
-// Export All Collected Orders to CSV File (from Vercel KV / localStorage)
+// Export All Collected Orders to CSV File
 async function exportOrdersToCSV() {
   const orders = await fetchOrdersFromAPI();
   if (orders.length === 0) {
-    showToast("No orders available to export.");
+    showToast("No records available to export.");
     return;
   }
 
-  const headers = ["Order ID", "Date", "Full Name", "Delivery Address", "Phone", "Email", "Item", "Quantity", "Total", "Payment Method"];
+  const headers = ["Name", "Address", "Phone Number", "Email", "Item", "Price"];
   const rows = orders.map(o => [
-    `"${o.orderId}"`,
-    `"${o.date}"`,
-    `"${(o.fullName || '').replace(/"/g, '""')}"`,
-    `"${(o.deliveryAddress || '').replace(/"/g, '""')}"`,
-    `"${(o.phone || '').replace(/"/g, '""')}"`,
+    `"${(o.name || o.fullName || '').replace(/"/g, '""')}"`,
+    `"${(o.address || o.deliveryAddress || '').replace(/"/g, '""')}"`,
+    `"${(o.phoneNumber || o.phone || '').replace(/"/g, '""')}"`,
     `"${(o.email || '').replace(/"/g, '""')}"`,
     `"${(o.item || '').replace(/"/g, '""')}"`,
-    `"${o.qty}"`,
-    `"${o.total}"`,
-    `"${o.paymentMethod}"`
+    `"${(o.price || o.total || '').replace(/"/g, '""')}"`
   ]);
 
   const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `amazon_orders_${Date.now()}.csv`);
+  link.setAttribute("download", `customer_details_${Date.now()}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
