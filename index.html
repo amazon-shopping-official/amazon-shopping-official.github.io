@@ -230,8 +230,16 @@
   <main class="checkout-wrapper" id="viewCheckout">
     
     <div class="checkout-header-bar">
-      <div class="ch-title">
-        <span>Checkout</span>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button type="button" id="btnBackToProduct" class="btn-back-nav" aria-label="Back to product">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+          </svg>
+          <span>Back to product</span>
+        </button>
+        <div class="ch-title">
+          <span>Checkout</span>
+        </div>
       </div>
       <div class="ch-secure-badge">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="#007600"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
@@ -353,9 +361,14 @@
 
             </div>
 
-            <button class="btn-continue-step" id="btnContinueToReview">
-              Use this payment method
-            </button>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap;">
+              <button class="btn-continue-step" id="btnContinueToReview" style="margin-top:0;">
+                Use this payment method
+              </button>
+              <button type="button" class="btn-change-step" id="btnBackToAddress" style="padding:6px 12px; font-size:13px;">
+                &larr; Back to address
+              </button>
+            </div>
           </div>
 
           <!-- Summary shown once completed -->
@@ -382,9 +395,14 @@
               </div>
             </div>
 
-            <button class="cs-btn-place-order" id="btnFinalPlaceOrder">
-              Place your order
-            </button>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:14px; flex-wrap:wrap;">
+              <button class="cs-btn-place-order" id="btnFinalPlaceOrder" style="margin-bottom:0; flex:1; min-width:200px;">
+                Place your order
+              </button>
+              <button type="button" class="btn-change-step" id="btnBackToPayment" style="padding:6px 12px; font-size:13px;">
+                &larr; Back to payment
+              </button>
+            </div>
           </div>
         </section>
 
@@ -472,6 +490,9 @@
           </button>
           <button class="btn-conf-secondary" id="btnContinueShopping">
             <span>Continue Shopping</span>
+          </button>
+          <button class="btn-conf-secondary" id="btnBackToProductPage">
+            <span>&larr; Back to product</span>
           </button>
         </div>
       </div>
