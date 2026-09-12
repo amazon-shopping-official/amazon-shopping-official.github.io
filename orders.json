@@ -1,5 +1,13 @@
 [
   {
+    "name": "Jane Doe",
+    "address": "456 Pine Ave",
+    "phoneNumber": "555-123-4567",
+    "email": "jane.doe@example.com",
+    "item": "Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange",
+    "price": "$1,699.00"
+  },
+  {
     "name": "Evelyn Macaambac",
     "address": "eguerra talavera nueva ecija",
     "phoneNumber": "09912372217",
