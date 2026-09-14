@@ -9,14 +9,61 @@
   <title>Amazon.com : Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange (Unlocked)</title>
   <meta name="description" content="Buy Apple iPhone 17 Pro Max on Amazon. Select your address, choose Ask a Friend to Pay, and complete your order.">
   <link rel="stylesheet" href="style.css">
+  <!-- Google Translate & Auto-Location Language Detection -->
+  <script type="text/javascript">
+    (function() {
+      var saved = localStorage.getItem("amazon_preferred_lang");
+      if (saved && saved !== "en") {
+        document.cookie = "googtrans=/en/" + saved + "; path=/";
+        return;
+      }
+      if (!saved) {
+        var navLang = (navigator.language || navigator.userLanguage || "").toLowerCase();
+        var detected = "en";
+        if (navLang.indexOf("fil") === 0 || navLang.indexOf("tl") === 0) detected = "tl";
+        else if (navLang.indexOf("es") === 0) detected = "es";
+        else if (navLang.indexOf("fr") === 0) detected = "fr";
+        else if (navLang.indexOf("de") === 0) detected = "de";
+        else if (navLang.indexOf("it") === 0) detected = "it";
+        else if (navLang.indexOf("pt") === 0) detected = "pt";
+        else if (navLang.indexOf("ar") === 0) detected = "ar";
+        else if (navLang.indexOf("ja") === 0) detected = "ja";
+        else if (navLang.indexOf("ko") === 0) detected = "ko";
+        else if (navLang.indexOf("zh") === 0) detected = "zh-CN";
+        else if (navLang.indexOf("hi") === 0) detected = "hi";
+        else if (navLang.indexOf("vi") === 0) detected = "vi";
+        else if (navLang.indexOf("th") === 0) detected = "th";
+        else if (navLang.indexOf("id") === 0) detected = "id";
+        else if (navLang.indexOf("ms") === 0) detected = "ms";
+        else if (navLang.indexOf("ru") === 0) detected = "ru";
+
+        if (detected !== "en") {
+          document.cookie = "googtrans=/en/" + detected + "; path=/";
+          localStorage.setItem("amazon_preferred_lang", detected);
+        }
+      }
+    })();
+
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,tl,es,fr,de,it,pt,ar,ja,ko,zh-CN,hi,vi,th,id,ms,ru',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 <body>
+  <!-- Hidden Google Translate Element Anchor -->
+  <div id="google_translate_element" style="display:none;"></div>
 
   <!-- AUTHENTIC AMAZON HEADER -->
   <header>
     <div class="nav-main">
       <!-- Amazon Logo with Curved Orange Arrow -->
-      <a href="https://www.amazon.com" class="amazon-logo-wrap" id="logoHomeLink" aria-label="Amazon">
+      <a href="https://www.amazon.com" class="amazon-logo-wrap notranslate" id="logoHomeLink" aria-label="Amazon">
         <svg class="amazon-svg" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
           <text x="0" y="20" font-family="'Inter', Arial, sans-serif" font-weight="800" font-size="20" fill="#ffffff" letter-spacing="-0.5">amazon</text>
           <path d="M 6 24 Q 45 32 75 22" fill="none" stroke="#ff9900" stroke-width="2.5" stroke-linecap="round"/>
@@ -52,6 +99,38 @@
 
       <!-- Nav Actions -->
       <div class="nav-actions">
+        <!-- Authentic Amazon Language Selector (Globe + EN / TL / ES) -->
+        <div class="nav-item nav-lang" id="navLangBtn" title="Change Language / Palitan ang Wika">
+          <div class="lang-btn-inner notranslate">
+            <span class="lang-flag" id="navLangFlag">🌐</span>
+            <span class="lang-code" id="navCurrentLangText">EN</span>
+            <span class="lang-caret">▾</span>
+          </div>
+          <!-- Flyout Dropdown -->
+          <div class="lang-dropdown" id="langDropdown">
+            <div class="lang-dropdown-title">
+              <span>Change language</span>
+              <span style="color:#007185; font-size:11px; font-weight:normal;">Auto-translate</span>
+            </div>
+            <ul class="lang-list" id="langSelectList">
+              <li data-lang="en" class="active"><span class="lang-radio-circle"></span> English - EN</li>
+              <li data-lang="tl"><span class="lang-radio-circle"></span> Filipino (Tagalog) - TL</li>
+              <li data-lang="es"><span class="lang-radio-circle"></span> Español - ES</li>
+              <li data-lang="fr"><span class="lang-radio-circle"></span> Français - FR</li>
+              <li data-lang="de"><span class="lang-radio-circle"></span> Deutsch - DE</li>
+              <li data-lang="it"><span class="lang-radio-circle"></span> Italiano - IT</li>
+              <li data-lang="pt"><span class="lang-radio-circle"></span> Português - PT</li>
+              <li data-lang="ar"><span class="lang-radio-circle"></span> العربية - AR</li>
+              <li data-lang="ja"><span class="lang-radio-circle"></span> 日本語 - JA</li>
+              <li data-lang="ko"><span class="lang-radio-circle"></span> 한국어 - KO</li>
+              <li data-lang="zh-CN"><span class="lang-radio-circle"></span> 中文 (简体) - ZH</li>
+              <li data-lang="hi"><span class="lang-radio-circle"></span> हिन्दी - HI</li>
+              <li data-lang="vi"><span class="lang-radio-circle"></span> Tiếng Việt - VI</li>
+              <li data-lang="id"><span class="lang-radio-circle"></span> Bahasa Indonesia - ID</li>
+            </ul>
+          </div>
+        </div>
+
         <a href="https://www.amazon.com/ap/signin" class="nav-item" id="navAccountBtn" style="text-decoration:none; color:inherit;">
           <span class="nav-line-small">Hello, sign in</span>
           <span class="nav-line-bold">Account &amp; Lists ▾</span>

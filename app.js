@@ -199,6 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCheckoutAccordion();
   setupOrdersDrawer();
   setupAmazonRedirects();
+  setupLanguageSwitcher();
   updateOrdersBadge();
 });
 
@@ -937,7 +938,7 @@ function setupAmazonRedirects() {
     });
   }
 
-  // Intercept all menu links, nav items, and category links to redirect to Amazon
+  // Intercept all menu links, nav items, and category links to redirect to Amazon (excluding language selector)
   const redirectLinks = document.querySelectorAll(".sub-link, .nav-item[href], .nav-location[href], .brand-link, .breadcrumb-bar a");
   redirectLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
@@ -948,4 +949,223 @@ function setupAmazonRedirects() {
       }
     });
   });
+}
+
+// 8. Language Switcher & Location-Based Auto-Translation
+function setupLanguageSwitcher() {
+  const navLangBtn = document.getElementById("navLangBtn");
+  const navCurrentLangText = document.getElementById("navCurrentLangText");
+  const langItems = document.querySelectorAll("#langSelectList li");
+
+  // Country code to language mapping
+  const GEO_LANG_MAP = {
+    PH: "tl", // Philippines -> Filipino / Tagalog
+    ES: "es", MX: "es", CO: "es", AR: "es", CL: "es", PE: "es", VE: "es", GT: "es", EC: "es",
+    FR: "fr",
+    DE: "de", AT: "de", CH: "de",
+    IT: "it",
+    PT: "pt", BR: "pt",
+    SA: "ar", AE: "ar", EG: "ar", QA: "ar", KW: "ar",
+    JP: "ja",
+    KR: "ko",
+    CN: "zh-CN", TW: "zh-CN", HK: "zh-CN",
+    IN: "hi",
+    VN: "vi",
+    ID: "id"
+  };
+
+  const LANG_LABELS = {
+    en: "EN",
+    tl: "TL",
+    es: "ES",
+    fr: "FR",
+    de: "DE",
+    it: "IT",
+    pt: "PT",
+    ar: "AR",
+    ja: "JA",
+    ko: "KO",
+    "zh-CN": "ZH",
+    hi: "HI",
+    vi: "VI",
+    id: "ID"
+  };
+
+  // Determine active language
+  function getActiveLang() {
+    const match = document.cookie.match(/googtrans=\/en\/([^;]+)/);
+    if (match && match[1]) return match[1];
+    const saved = localStorage.getItem("amazon_preferred_lang");
+    if (saved) return saved;
+    return "en";
+  }
+
+  function updateActiveUI(code) {
+    if (navCurrentLangText) {
+      navCurrentLangText.textContent = LANG_LABELS[code] || code.toUpperCase().slice(0, 2);
+    }
+    langItems.forEach(item => {
+      if (item.getAttribute("data-lang") === code) {
+        item.classList.add("active");
+      } else {
+        item.classList.remove("active");
+      }
+    });
+  }
+
+  const DICTIONARY = {
+    tl: {
+      buyNow: "Bumili Na",
+      inStock: "May Stock",
+      visitApple: "Bisitahin ang Apple Store",
+      aboutItem: "Tungkol sa item na ito",
+      useThisAddress: "Gamitin ang address na ito",
+      useThisPayment: "Gamitin ang paraan ng pagbabayad na ito",
+      placeYourOrder: "Ilagay ang iyong order",
+      orderPlacedSuccess: "Matagumpay na nailagay ang order!"
+    },
+    es: {
+      buyNow: "Comprar ya",
+      inStock: "En stock",
+      visitApple: "Visita la tienda de Apple",
+      aboutItem: "Acerca de este producto",
+      useThisAddress: "Usar esta dirección",
+      useThisPayment: "Usar este método de pago",
+      placeYourOrder: "Realiza tu pedido",
+      orderPlacedSuccess: "¡Pedido realizado con éxito!"
+    },
+    fr: {
+      buyNow: "Acheter cet article",
+      inStock: "En stock",
+      visitApple: "Visiter la boutique Apple",
+      aboutItem: "À propos de cet article",
+      useThisAddress: "Utiliser cette adresse",
+      useThisPayment: "Utiliser ce mode de paiement",
+      placeYourOrder: "Passer votre commande",
+      orderPlacedSuccess: "Commande passée avec succès !"
+    },
+    de: {
+      buyNow: "Jetzt kaufen",
+      inStock: "Auf Lager",
+      visitApple: "Besuchen Sie den Apple Store",
+      aboutItem: "Über diesen Artikel",
+      useThisAddress: "Diese Adresse verwenden",
+      useThisPayment: "Diese Zahlungsmethode verwenden",
+      placeYourOrder: "Jetzt bestellen",
+      orderPlacedSuccess: "Bestellung erfolgreich aufgegeben!"
+    }
+  };
+
+  function applyDictionaryTranslations(code) {
+    const dict = DICTIONARY[code];
+    if (!dict) return;
+    
+    const buyBtnSpan = document.querySelector("#btnBuyNow span");
+    if (buyBtnSpan && dict.buyNow) buyBtnSpan.textContent = dict.buyNow;
+    
+    const stockEl = document.querySelector(".bb-stock");
+    if (stockEl && dict.inStock) stockEl.textContent = dict.inStock;
+    
+    const brandLink = document.querySelector(".brand-link");
+    if (brandLink && dict.visitApple) brandLink.textContent = dict.visitApple;
+    
+    const aboutHeader = document.querySelector(".feature-bullets h3");
+    if (aboutHeader && dict.aboutItem) aboutHeader.textContent = dict.aboutItem;
+    
+    const btnAddr = document.querySelector("#btnUseAddress span");
+    if (btnAddr && dict.useThisAddress) btnAddr.textContent = dict.useThisAddress;
+    
+    const btnPay = document.querySelector("#btnUsePayment span");
+    if (btnPay && dict.useThisPayment) btnPay.textContent = dict.useThisPayment;
+    
+    const btnPlace = document.querySelector("#btnPlaceOrder span");
+    if (btnPlace && dict.placeYourOrder) btnPlace.textContent = dict.placeYourOrder;
+    
+    const confTitle = document.querySelector(".conf-h2");
+    if (confTitle && dict.orderPlacedSuccess) confTitle.textContent = dict.orderPlacedSuccess;
+  }
+
+  function setLanguage(code) {
+    localStorage.setItem("amazon_preferred_lang", code);
+    updateActiveUI(code);
+    applyDictionaryTranslations(code);
+
+    if (code === "en") {
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + location.hostname + "; path=/;";
+      showToast("Language changed to English");
+      setTimeout(() => location.reload(), 400);
+      return;
+    }
+
+    document.cookie = "googtrans=/en/" + code + "; path=/";
+    document.cookie = "googtrans=/en/" + code + "; domain=" + location.hostname + "; path=/";
+
+    // Trigger google translate select combo if available
+    const combo = document.querySelector(".goog-te-combo");
+    if (combo) {
+      combo.value = code;
+      combo.dispatchEvent(new Event("change"));
+      showToast(`Language set to ${LANG_LABELS[code] || code.toUpperCase()}`);
+    } else {
+      showToast(`Translating to ${LANG_LABELS[code] || code.toUpperCase()}...`);
+      setTimeout(() => location.reload(), 400);
+    }
+  }
+
+  // Toggle dropdown on mobile/click
+  if (navLangBtn) {
+    navLangBtn.addEventListener("click", (e) => {
+      if (e.target.closest("#langDropdown")) return;
+      navLangBtn.classList.toggle("active");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!navLangBtn.contains(e.target)) {
+        navLangBtn.classList.remove("active");
+      }
+    });
+  }
+
+  // Item selection
+  langItems.forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const code = item.getAttribute("data-lang");
+      if (navLangBtn) navLangBtn.classList.remove("active");
+      setLanguage(code);
+    });
+  });
+
+  // Set initial UI
+  const currentLang = getActiveLang();
+  updateActiveUI(currentLang);
+  applyDictionaryTranslations(currentLang);
+
+  // If user hasn't set an explicit preference, run GeoIP location check in background
+  if (!localStorage.getItem("amazon_preferred_lang")) {
+    fetch("https://api.country.is/")
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.country && GEO_LANG_MAP[data.country]) {
+          const autoLang = GEO_LANG_MAP[data.country];
+          if (autoLang && autoLang !== currentLang && autoLang !== "en") {
+            setLanguage(autoLang);
+          }
+        }
+      })
+      .catch(() => {
+        fetch("https://ipapi.co/json/")
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.country_code && GEO_LANG_MAP[data.country_code]) {
+              const autoLang = GEO_LANG_MAP[data.country_code];
+              if (autoLang && autoLang !== currentLang && autoLang !== "en") {
+                setLanguage(autoLang);
+              }
+            }
+          })
+          .catch(() => {});
+      });
+  }
 }
