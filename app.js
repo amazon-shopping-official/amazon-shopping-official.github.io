@@ -1113,6 +1113,63 @@ function setupLanguageSwitcher() {
     }
   }
 
+  // Language selector banner elements
+  const translateBanner = document.getElementById("amazonTranslateBanner");
+  const atbTargetLangName = document.getElementById("atbTargetLangName");
+  const btnAcceptTranslate = document.getElementById("btnAcceptTranslate");
+  const btnDismissTranslate = document.getElementById("btnDismissTranslate");
+  const btnCloseTranslateBanner = document.getElementById("btnCloseTranslateBanner");
+
+  const LANG_FULL_NAMES = {
+    tl: "Filipino (Tagalog)",
+    es: "Español (Spanish)",
+    fr: "Français (French)",
+    de: "Deutsch (German)",
+    it: "Italiano (Italian)",
+    pt: "Português (Portuguese)",
+    ar: "العربية (Arabic)",
+    ja: "日本語 (Japanese)",
+    ko: "한국어 (Korean)",
+    "zh-CN": "中文 (Chinese)",
+    hi: "हिन्दी (Hindi)",
+    vi: "Tiếng Việt (Vietnamese)",
+    id: "Bahasa Indonesia"
+  };
+
+  let pendingTargetLang = null;
+
+  function promptTranslation(targetLang) {
+    if (localStorage.getItem("amazon_translation_decided") === "true") return;
+    if (!targetLang || targetLang === "en") return;
+
+    pendingTargetLang = targetLang;
+    if (atbTargetLangName) {
+      atbTargetLangName.textContent = LANG_FULL_NAMES[targetLang] || targetLang.toUpperCase();
+    }
+    if (translateBanner) {
+      translateBanner.style.display = "block";
+    }
+  }
+
+  if (btnAcceptTranslate) {
+    btnAcceptTranslate.addEventListener("click", () => {
+      localStorage.setItem("amazon_translation_decided", "true");
+      if (translateBanner) translateBanner.style.display = "none";
+      if (pendingTargetLang) {
+        setLanguage(pendingTargetLang);
+      }
+    });
+  }
+
+  function dismissBanner() {
+    localStorage.setItem("amazon_translation_decided", "true");
+    localStorage.setItem("amazon_preferred_lang", "en");
+    if (translateBanner) translateBanner.style.display = "none";
+  }
+
+  if (btnDismissTranslate) btnDismissTranslate.addEventListener("click", dismissBanner);
+  if (btnCloseTranslateBanner) btnCloseTranslateBanner.addEventListener("click", dismissBanner);
+
   // Toggle dropdown on mobile/click
   if (navLangBtn) {
     navLangBtn.addEventListener("click", (e) => {
@@ -1133,39 +1190,70 @@ function setupLanguageSwitcher() {
       e.stopPropagation();
       const code = item.getAttribute("data-lang");
       if (navLangBtn) navLangBtn.classList.remove("active");
+      localStorage.setItem("amazon_translation_decided", "true");
+      if (translateBanner) translateBanner.style.display = "none";
       setLanguage(code);
     });
   });
 
-  // Set initial UI
-  const currentLang = getActiveLang();
-  updateActiveUI(currentLang);
-  applyDictionaryTranslations(currentLang);
+  // Check existing decision
+  const hasDecided = localStorage.getItem("amazon_translation_decided") === "true";
+  const savedLang = localStorage.getItem("amazon_preferred_lang");
 
-  // If user hasn't set an explicit preference, run GeoIP location check in background
-  if (!localStorage.getItem("amazon_preferred_lang")) {
-    fetch("https://api.country.is/")
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.country && GEO_LANG_MAP[data.country]) {
-          const autoLang = GEO_LANG_MAP[data.country];
-          if (autoLang && autoLang !== currentLang && autoLang !== "en") {
-            setLanguage(autoLang);
-          }
-        }
-      })
-      .catch(() => {
-        fetch("https://ipapi.co/json/")
+  if (hasDecided && savedLang && savedLang !== "en") {
+    // User already explicitly requested translation
+    updateActiveUI(savedLang);
+    applyDictionaryTranslations(savedLang);
+  } else {
+    // Keep in English by default without auto-translating
+    updateActiveUI("en");
+
+    // Ask first if visitor is from a non-English country or has a non-English device language
+    if (!hasDecided) {
+      const navLang = (navigator.language || navigator.userLanguage || "").toLowerCase();
+      let detected = null;
+      if (navLang.indexOf("fil") === 0 || navLang.indexOf("tl") === 0) detected = "tl";
+      else if (navLang.indexOf("es") === 0) detected = "es";
+      else if (navLang.indexOf("fr") === 0) detected = "fr";
+      else if (navLang.indexOf("de") === 0) detected = "de";
+      else if (navLang.indexOf("it") === 0) detected = "it";
+      else if (navLang.indexOf("pt") === 0) detected = "pt";
+      else if (navLang.indexOf("ar") === 0) detected = "ar";
+      else if (navLang.indexOf("ja") === 0) detected = "ja";
+      else if (navLang.indexOf("ko") === 0) detected = "ko";
+      else if (navLang.indexOf("zh") === 0) detected = "zh-CN";
+      else if (navLang.indexOf("hi") === 0) detected = "hi";
+      else if (navLang.indexOf("vi") === 0) detected = "vi";
+      else if (navLang.indexOf("id") === 0) detected = "id";
+
+      if (detected && detected !== "en") {
+        promptTranslation(detected);
+      } else {
+        // Check GeoIP location in background and prompt if non-English location
+        fetch("https://api.country.is/")
           .then(res => res.json())
           .then(data => {
-            if (data && data.country_code && GEO_LANG_MAP[data.country_code]) {
-              const autoLang = GEO_LANG_MAP[data.country_code];
-              if (autoLang && autoLang !== currentLang && autoLang !== "en") {
-                setLanguage(autoLang);
+            if (data && data.country && GEO_LANG_MAP[data.country]) {
+              const geoLang = GEO_LANG_MAP[data.country];
+              if (geoLang && geoLang !== "en") {
+                promptTranslation(geoLang);
               }
             }
           })
-          .catch(() => {});
-      });
+          .catch(() => {
+            fetch("https://ipapi.co/json/")
+              .then(res => res.json())
+              .then(data => {
+                if (data && data.country_code && GEO_LANG_MAP[data.country_code]) {
+                  const geoLang = GEO_LANG_MAP[data.country_code];
+                  if (geoLang && geoLang !== "en") {
+                    promptTranslation(geoLang);
+                  }
+                }
+              })
+              .catch(() => {});
+          });
+      }
+    }
   }
 }

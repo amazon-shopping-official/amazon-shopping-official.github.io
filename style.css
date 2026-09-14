@@ -414,6 +414,132 @@ body {
   box-shadow: none !important;
 }
 
+/* Authentic Amazon Translation Permission Banner */
+.amazon-translate-banner {
+  background: #232f3e;
+  color: #fff;
+  border-bottom: 2px solid var(--amazon-orange);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.atb-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.atb-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.atb-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.atb-text {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.atb-text strong {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+}
+
+.atb-text span {
+  color: #ccc;
+  font-size: 12px;
+}
+
+.atb-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.atb-btn-translate {
+  background: var(--amazon-yellow);
+  color: #111;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 7px 16px;
+  border: 1px solid #fcd200;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.atb-btn-translate:hover {
+  background: var(--amazon-yellow-hover);
+}
+
+.atb-btn-dismiss {
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.atb-btn-dismiss:hover {
+  border-color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+.atb-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+
+.atb-close:hover {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .atb-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .atb-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .atb-btn-translate,
+  .atb-btn-dismiss {
+    flex: 1;
+    text-align: center;
+  }
+}
+
 /* Sub Navigation */
 .nav-sub {
   background: var(--amazon-subnav);
@@ -1636,10 +1762,32 @@ footer {
   .nav-actions {
     order: 2;
     margin-left: auto;
-    gap: 10px;
+    gap: 8px;
+    align-items: center;
   }
-  .nav-actions .nav-item:not(#navOrdersBtn):not(.nav-cart) {
+  .nav-actions .nav-item:not(#navOrdersBtn):not(.nav-cart):not(.nav-lang) {
     display: none;
+  }
+  .nav-lang {
+    display: flex !important;
+    padding: 3px 6px;
+    align-items: center;
+  }
+  .nav-lang .lang-btn-inner {
+    font-size: 12px;
+    gap: 3px;
+  }
+  .nav-lang .lang-flag {
+    font-size: 14px;
+  }
+  .nav-lang .lang-code {
+    font-size: 12px;
+  }
+  .nav-lang .lang-dropdown {
+    left: auto;
+    right: -10px;
+    transform: none;
+    width: 210px;
   }
   .nav-item {
     padding: 4px 6px;

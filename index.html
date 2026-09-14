@@ -9,38 +9,17 @@
   <title>Amazon.com : Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange (Unlocked)</title>
   <meta name="description" content="Buy Apple iPhone 17 Pro Max on Amazon. Select your address, choose Ask a Friend to Pay, and complete your order.">
   <link rel="stylesheet" href="style.css">
-  <!-- Google Translate & Auto-Location Language Detection -->
+  <!-- Google Translate & Translation Preference (Asks before translating) -->
   <script type="text/javascript">
     (function() {
+      var decided = localStorage.getItem("amazon_translation_decided");
       var saved = localStorage.getItem("amazon_preferred_lang");
-      if (saved && saved !== "en") {
+      if (decided === "true" && saved && saved !== "en") {
         document.cookie = "googtrans=/en/" + saved + "; path=/";
-        return;
-      }
-      if (!saved) {
-        var navLang = (navigator.language || navigator.userLanguage || "").toLowerCase();
-        var detected = "en";
-        if (navLang.indexOf("fil") === 0 || navLang.indexOf("tl") === 0) detected = "tl";
-        else if (navLang.indexOf("es") === 0) detected = "es";
-        else if (navLang.indexOf("fr") === 0) detected = "fr";
-        else if (navLang.indexOf("de") === 0) detected = "de";
-        else if (navLang.indexOf("it") === 0) detected = "it";
-        else if (navLang.indexOf("pt") === 0) detected = "pt";
-        else if (navLang.indexOf("ar") === 0) detected = "ar";
-        else if (navLang.indexOf("ja") === 0) detected = "ja";
-        else if (navLang.indexOf("ko") === 0) detected = "ko";
-        else if (navLang.indexOf("zh") === 0) detected = "zh-CN";
-        else if (navLang.indexOf("hi") === 0) detected = "hi";
-        else if (navLang.indexOf("vi") === 0) detected = "vi";
-        else if (navLang.indexOf("th") === 0) detected = "th";
-        else if (navLang.indexOf("id") === 0) detected = "id";
-        else if (navLang.indexOf("ms") === 0) detected = "ms";
-        else if (navLang.indexOf("ru") === 0) detected = "ru";
-
-        if (detected !== "en") {
-          document.cookie = "googtrans=/en/" + detected + "; path=/";
-          localStorage.setItem("amazon_preferred_lang", detected);
-        }
+      } else {
+        // Do not auto-translate without user permission
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + location.hostname + "; path=/;";
       }
     })();
 
@@ -166,8 +145,25 @@
           <a href="https://www.amazon.com/b/?node=18190131011" class="sub-link">Sell</a>
         </div>
       </div>
-    </div>
   </header>
+
+  <!-- Authentic Amazon Translation Permission Banner (Asks before translating) -->
+  <div class="amazon-translate-banner" id="amazonTranslateBanner" style="display:none;">
+    <div class="atb-inner">
+      <div class="atb-content">
+        <span class="atb-icon">🌐</span>
+        <div class="atb-text">
+          <strong id="atbTitle">Translate this page?</strong>
+          <span id="atbSub">Would you like to translate this page to <span id="atbTargetLangName" style="font-weight:700; color:#ff9900;">Filipino</span>?</span>
+        </div>
+      </div>
+      <div class="atb-actions">
+        <button class="atb-btn-translate" id="btnAcceptTranslate">Translate</button>
+        <button class="atb-btn-dismiss" id="btnDismissTranslate">Keep in English</button>
+        <button class="atb-close" id="btnCloseTranslateBanner" aria-label="Close">&times;</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 1. MAIN PRODUCT DETAIL PAGE -->
   <main class="main-wrapper" id="viewProductPage">
