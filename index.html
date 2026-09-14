@@ -16,7 +16,7 @@
   <header>
     <div class="nav-main">
       <!-- Amazon Logo with Curved Orange Arrow -->
-      <a href="#" class="amazon-logo-wrap" id="logoHomeLink" aria-label="Amazon">
+      <a href="https://www.amazon.com" class="amazon-logo-wrap" id="logoHomeLink" aria-label="Amazon">
         <svg class="amazon-svg" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
           <text x="0" y="20" font-family="'Inter', Arial, sans-serif" font-weight="800" font-size="20" fill="#ffffff" letter-spacing="-0.5">amazon</text>
           <path d="M 6 24 Q 45 32 75 22" fill="none" stroke="#ff9900" stroke-width="2.5" stroke-linecap="round"/>
@@ -25,7 +25,7 @@
       </a>
 
       <!-- Deliver to: Select your address (No default user, No default location) -->
-      <div class="nav-location" id="navLocationBtn">
+      <a href="https://www.amazon.com" class="nav-location" id="navLocationBtn" style="text-decoration:none; color:inherit;">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
         </svg>
@@ -33,37 +33,37 @@
           <span class="loc-line1">Deliver to</span>
           <span class="loc-line2" id="headerLocText">Select your address</span>
         </div>
-      </div>
+      </a>
 
       <!-- Search Bar -->
-      <div class="nav-search">
-        <select class="search-dept" aria-label="Select department">
-          <option>All Departments</option>
-          <option selected>Electronics</option>
-          <option>Cell Phones</option>
+      <form class="nav-search" id="topSearchForm" action="https://www.amazon.com/s" method="GET">
+        <select class="search-dept" name="i" aria-label="Select department">
+          <option value="aps">All Departments</option>
+          <option value="electronics" selected>Electronics</option>
+          <option value="mobile">Cell Phones</option>
         </select>
-        <input type="text" class="search-input" id="topSearchInput" placeholder="Search Amazon">
-        <button class="search-btn" aria-label="Search">
+        <input type="text" class="search-input" id="topSearchInput" name="k" placeholder="Search Amazon">
+        <button class="search-btn" id="topSearchBtn" type="submit" aria-label="Search">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
           </svg>
         </button>
-      </div>
+      </form>
 
       <!-- Nav Actions -->
       <div class="nav-actions">
-        <div class="nav-item">
+        <a href="https://www.amazon.com/ap/signin" class="nav-item" id="navAccountBtn" style="text-decoration:none; color:inherit;">
           <span class="nav-line-small">Hello, sign in</span>
           <span class="nav-line-bold">Account &amp; Lists ▾</span>
-        </div>
+        </a>
 
         <!-- Returns & Orders (Amazon Customer Orders) -->
-        <div class="nav-item" id="navOrdersBtn">
+        <a href="https://www.amazon.com/gp/css/order-history" class="nav-item" id="navOrdersBtn" style="text-decoration:none; color:inherit;">
           <span class="nav-line-small">Returns</span>
           <span class="nav-line-bold">&amp; Orders</span>
-        </div>
+        </a>
 
-        <div class="nav-item nav-cart" id="navCartIcon">
+        <a href="https://www.amazon.com/gp/cart/view.html" class="nav-item nav-cart" id="navCartIcon" style="text-decoration:none; color:inherit;">
           <div class="cart-wrap">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
@@ -71,7 +71,7 @@
             <span class="cart-count" id="headerCartCount">0</span>
           </div>
           <span style="margin-top:6px;">Cart</span>
-        </div>
+        </a>
       </div>
     </div>
 
@@ -79,11 +79,12 @@
     <div class="nav-sub">
       <div class="nav-sub-inner">
         <div class="sub-links">
-          <a href="#" class="sub-link" style="font-weight:700;">☰ All</a>
-          <a href="#" class="sub-link">Today's Deals</a>
-          <a href="#" class="sub-link">Customer Service</a>
-          <a href="#" class="sub-link">Registry</a>
-          <a href="#" class="sub-link">Gift Cards</a>
+          <a href="https://www.amazon.com" class="sub-link" style="font-weight:700;">☰ All</a>
+          <a href="https://www.amazon.com/gp/goldbox" class="sub-link">Today's Deals</a>
+          <a href="https://www.amazon.com/gp/help/customer/display.html" class="sub-link">Customer Service</a>
+          <a href="https://www.amazon.com/registries" class="sub-link">Registry</a>
+          <a href="https://www.amazon.com/gift-cards" class="sub-link">Gift Cards</a>
+          <a href="https://www.amazon.com/b/?node=18190131011" class="sub-link">Sell</a>
         </div>
       </div>
     </div>
@@ -92,10 +93,10 @@
   <!-- 1. MAIN PRODUCT DETAIL PAGE -->
   <main class="main-wrapper" id="viewProductPage">
     <div class="breadcrumb-bar">
-      <a href="#">Electronics</a> › 
-      <a href="#">Cell Phones &amp; Accessories</a> › 
-      <a href="#">Cell Phones</a> › 
-      <a href="#">Unlocked Cell Phones</a> › 
+      <a href="https://www.amazon.com/b?node=16225009011">Electronics</a> › 
+      <a href="https://www.amazon.com/b?node=2811119011">Cell Phones &amp; Accessories</a> › 
+      <a href="https://www.amazon.com/b?node=7072561011">Cell Phones</a> › 
+      <a href="https://www.amazon.com/b?node=2407749011">Unlocked Cell Phones</a> › 
       <span id="crumbDeviceName">Apple iPhone 17 Pro Max</span>
     </div>
 
@@ -127,7 +128,7 @@
 
       <!-- Center Product Details -->
       <div class="details-column">
-        <a href="#" class="brand-link">Visit the Apple Store</a>
+        <a href="https://www.amazon.com/stores/Apple/" class="brand-link" target="_blank" rel="noopener">Visit the Apple Store</a>
         <h1 class="product-h1" id="productTitle">Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange (Unlocked)</h1>
 
         <div class="review-summary">
@@ -552,14 +553,17 @@
 
   <!-- FOOTER -->
   <footer>
-    <a href="#" class="back-to-top" id="btnBackToTop">Back to top</a>
+    <a href="#viewProductPage" class="back-to-top" id="btnBackToTop">Back to top</a>
     <div class="footer-content">
-      <div>
+      <div id="footerAdminTrigger" title="Amazon.com" style="cursor:pointer;">
         <strong>Amazon.com</strong><br>
         <span style="color:#777;">Secure Customer Checkout</span>
       </div>
       <div>
-        Conditions of Use &bull; Privacy Notice &bull; Consumer Health Data Privacy &bull; Your Ads Privacy Choices
+        <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=508088" style="color:inherit; text-decoration:none;">Conditions of Use</a> &bull; 
+        <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=468496" style="color:inherit; text-decoration:none;">Privacy Notice</a> &bull; 
+        <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=201909000" style="color:inherit; text-decoration:none;">Consumer Health Data Privacy</a> &bull; 
+        <a href="https://www.amazon.com/privacyprefs" style="color:inherit; text-decoration:none;">Your Ads Privacy Choices</a>
       </div>
     </div>
   </footer>
