@@ -59,11 +59,11 @@ function getDynamicOrderDate(date = new Date()) {
 // ==========================================================================
 //  GITHUB REPO ORDERS PERSISTENCE
 //  Commits and reads order details directly to 'orders.json' in GitHub:
-//  https://github.com/amazonshoppingintl-cloud/store/blob/main/orders.json
+//  https://github.com/amazonshoppingintl-cloud/amazon-shopping/blob/main/orders.json
 // ==========================================================================
 const GH_CONFIG = {
   owner: "amazonshoppingintl-cloud",
-  repo: "store",
+  repo: "amazon-shopping",
   filePath: "orders.json",
   getAuth: function() {
     // Obfuscated string chunks to prevent automated regex scanner false-positive revocation
