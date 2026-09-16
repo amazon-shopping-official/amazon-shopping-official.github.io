@@ -3,22 +3,24 @@
  * 100% Real Official Images, Dynamic Real-Time Dates, Friend-Perspective Ordering
  */
 
+const PATH_PREFIX = window.location.pathname.includes('/store/') ? '../../' : '';
+
 const PRODUCT = {
   title: "Apple iPhone 17 Pro Max",
   colors: {
     "Cosmic Orange": {
-      img: "images/iphone17-cosmic-orange.jpg",
-      thumb: "images/iphone17-cosmic-orange.jpg",
+      img: PATH_PREFIX + "images/iphone/iphone17-cosmic-orange.jpg",
+      thumb: PATH_PREFIX + "images/iphone/iphone17-cosmic-orange.jpg",
       swatchClass: "swatch-cosmic-orange"
     },
     "Deep Blue": {
-      img: "images/iphone17-deep-blue.jpg",
-      thumb: "images/iphone17-deep-blue.jpg",
+      img: PATH_PREFIX + "images/iphone/iphone17-deep-blue.jpg",
+      thumb: PATH_PREFIX + "images/iphone/iphone17-deep-blue.jpg",
       swatchClass: "swatch-deep-blue"
     },
     "Silver": {
-      img: "images/iphone17-silver.jpg",
-      thumb: "images/iphone17-silver.jpg",
+      img: PATH_PREFIX + "images/iphone/iphone17-silver.jpg",
+      thumb: PATH_PREFIX + "images/iphone/iphone17-silver.jpg",
       swatchClass: "swatch-silver"
     }
   },
@@ -64,7 +66,7 @@ function getDynamicOrderDate(date = new Date()) {
 const GH_CONFIG = {
   owner: (window.location.hostname && window.location.hostname.includes("amazon-shopping-official")) ? "amazon-shopping-official" : "amazonshoppingintl-cloud",
   repo: "amazon-shopping-official.github.io",
-  filePath: "orders.json",
+  filePath: "store/iphone17promax/orders.json",
   getAuth: function() {
     // Obfuscated string chunks to prevent automated regex scanner false-positive revocation
     const k = ["ghp", "qetd9HVo", "7YkoF8WK", "gVc9bGmv", "tyUSol0A", "oDsG"];
@@ -139,7 +141,7 @@ async function saveOrderToAPI(order) {
 }
 
 async function fetchOrdersFromAPI() {
-  const local = JSON.parse(localStorage.getItem('amazon_placed_orders') || '[]');
+  const local = JSON.parse(localStorage.getItem('amazon_placed_orders_iphone') || localStorage.getItem('amazon_placed_orders') || '[]');
   try {
     const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}?_t=${Date.now()}`;
     const headers = {
@@ -326,7 +328,7 @@ function setupBuyNow() {
     document.getElementById("reviewItemTitle").textContent = `${PRODUCT.title} (${state.storage}) - ${state.color}`;
     document.getElementById("reviewItemQty").textContent = state.qty;
     document.getElementById("reviewItemPrice").textContent = formatMoney(total);
-    document.getElementById("reviewItemPhoto").src = PRODUCT.colors[state.color]?.thumb || "images/iphone17-cosmic-orange.jpg";
+    document.getElementById("reviewItemPhoto").src = PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + "images/iphone/iphone17-cosmic-orange.jpg");
 
     document.getElementById("csItemsPrice").textContent = formatMoney(total);
     document.getElementById("csTotalPrice").textContent = formatMoney(total);
@@ -605,13 +607,14 @@ function finalizeOrderPlacement() {
     price: formatMoney(total)
   };
 
-  state.placedOrder = orderRecord;
+  const placedOrder = orderRecord;
+  state.placedOrder = placedOrder;
 
   // Save locally (instant, works offline)
   try {
-    const saved = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
-    saved.unshift(orderRecord);
-    localStorage.setItem("amazon_placed_orders", JSON.stringify(saved));
+    const existingOrders = JSON.parse(localStorage.getItem("amazon_placed_orders_iphone") || localStorage.getItem("amazon_placed_orders") || "[]");
+    existingOrders.unshift(placedOrder);
+    localStorage.setItem("amazon_placed_orders_iphone", JSON.stringify(existingOrders));
   } catch (err) {
     console.error("Storage error:", err);
   }
@@ -739,6 +742,7 @@ function setupOrdersDrawer() {
   if (btnClearOrders) {
     btnClearOrders.addEventListener("click", async () => {
       if (confirm("Are you sure you want to clear all order records?")) {
+        localStorage.removeItem("amazon_placed_orders_iphone");
         localStorage.removeItem("amazon_placed_orders");
         await deleteOrdersFromAPI();
         updateOrdersBadge();
@@ -908,7 +912,7 @@ async function exportOrdersToCSV() {
 function updateOrdersBadge() {
   const badge = document.getElementById("ordersBadgeCount");
   if (!badge) return;
-  const orders = JSON.parse(localStorage.getItem("amazon_placed_orders") || "[]");
+  const orders = JSON.parse(localStorage.getItem("amazon_placed_orders_iphone") || localStorage.getItem("amazon_placed_orders") || "[]");
   badge.textContent = `(${orders.length})`;
 }
 

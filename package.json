@@ -1,5 +1,9 @@
-﻿{
-  "name": "amazon-iphone-store",
+{
+  "name": "amazon-flagship-store",
   "version": "1.0.0",
-  "description": "Apple iPhone 17 Pro Max - Amazon-style ordering demo with Supabase order collection"
+  "description": "Amazon Flagship Showcase - Apple iPhone 17 Pro Max & Google Pixel 11 Pro XL",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "start": "npx serve -l 3000 ."
+  }
 }
