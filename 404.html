@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Amazon.com : Redirecting...</title>
+  <script>
+    (function() {
+      var path = (window.location.pathname || "").toLowerCase();
+      if (path.includes("pixel")) {
+        window.location.replace("/store/pixel11proxl/" + window.location.search + window.location.hash);
+      } else if (path.includes("iphone")) {
+        window.location.replace("/store/iphone17promax/" + window.location.search + window.location.hash);
+      } else {
+        window.location.replace("/" + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+</head>
+<body style="font-family: Arial, sans-serif; text-align: center; padding: 40px; color: #0f1111;">
+  <p>Redirecting to store...</p>
+  <p>
+    <a href="/store/iphone17promax/" style="color: #007185; font-weight: bold; text-decoration: none; margin-right: 20px;">Apple iPhone 17 Pro Max Store</a>
+    <a href="/store/pixel11proxl/" style="color: #007185; font-weight: bold; text-decoration: none;">Google Pixel 11 Pro XL Store</a>
+  </p>
+</body>
+</html>
