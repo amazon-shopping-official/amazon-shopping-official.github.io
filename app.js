@@ -646,9 +646,10 @@ function setupOrdersDrawer() {
   const btnClearOrders = document.getElementById("btnClearAllOrders");
   const btnContinueShopping = document.getElementById("btnContinueShopping");
 
-  // Modal elements
   const invoiceModal = document.getElementById("invoiceModalBackdrop");
   const btnCloseInvoice = document.getElementById("btnCloseInvoiceModal");
+  const btnViewInlineJson = document.getElementById("btnViewInlineJson");
+  const inlineJsonContainer = document.getElementById("inlineJsonContainer");
 
   function openDrawer() {
     renderOrdersList();
@@ -659,6 +660,35 @@ function setupOrdersDrawer() {
   function closeDrawer() {
     ordersDrawer.classList.remove("open");
     drawerBackdrop.classList.remove("open");
+    if (inlineJsonContainer) {
+      inlineJsonContainer.style.display = "none";
+      if (btnViewInlineJson) btnViewInlineJson.textContent = "🔍 View JSON";
+    }
+  }
+
+  // Header Returns & Orders Button Trigger
+  if (navOrdersBtn) {
+    navOrdersBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openDrawer();
+    });
+  }
+
+  // Toggle inline JSON view
+  if (btnViewInlineJson && inlineJsonContainer) {
+    btnViewInlineJson.addEventListener("click", async () => {
+      if (inlineJsonContainer.style.display === "block") {
+        inlineJsonContainer.style.display = "none";
+        btnViewInlineJson.textContent = "🔍 View JSON";
+      } else {
+        inlineJsonContainer.style.display = "block";
+        inlineJsonContainer.textContent = "Loading orders.json...";
+        const current = await fetchOrdersFromAPI();
+        inlineJsonContainer.textContent = JSON.stringify(current, null, 2);
+        btnViewInlineJson.textContent = "✖️ Hide JSON";
+      }
+    });
   }
 
   // Covert Trigger 1: Secret URL Parameter (?admin=1, ?secret=1, ?orders=1, or ?seller=1)

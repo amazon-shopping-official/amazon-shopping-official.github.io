@@ -591,14 +591,18 @@
     </div>
 
     <div class="od-body">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
         <span style="font-size:12px; color:var(--text-muted);">Recorded customer addresses &amp; statements</span>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <a id="adminOrdersJsonLink" href="https://github.com/amazon-shopping-official/amazon-shopping-official.github.io/blob/main/store/pixel11proxl/orders.json" target="_blank" rel="noopener" style="background:#24292f; color:#fff; text-decoration:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">📂 orders.json</a>
-          <button id="btnExportOrdersCsv" style="background:#f0f2f2; border:1px solid #d5d9d9; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">📥 Export CSV</button>
+        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+          <button id="btnViewInlineJson" style="background:#007185; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">🔍 View JSON</button>
+          <a id="adminOrdersJsonDirectLink" href="orders.json" target="_blank" rel="noopener" style="background:#333; color:#fff; text-decoration:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">📄 orders.json</a>
+          <a id="adminOrdersJsonLink" href="https://github.com/amazon-shopping-official/amazon-shopping-official.github.io/blob/main/store/pixel11proxl/orders.json" target="_blank" rel="noopener" style="background:#24292f; color:#fff; text-decoration:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">📂 GitHub</a>
+          <button id="btnExportOrdersCsv" style="background:#f0f2f2; border:1px solid #d5d9d9; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">📥 CSV</button>
           <button id="btnClearAllOrders" style="background:none; border:1px solid #e77600; color:#c7511f; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Clear</button>
         </div>
       </div>
+
+      <div id="inlineJsonContainer" style="display:none; margin-bottom:14px; background:#1e1e1e; color:#d4d4d4; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; max-height:260px; overflow:auto; white-space:pre-wrap; word-break:break-word;"></div>
 
       <div id="ordersListContainer">
         <!-- Rendered dynamically -->

