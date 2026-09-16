@@ -626,15 +626,12 @@ function setupOrdersDrawer() {
   const drawer = document.getElementById("ordersDrawer");
   const backdrop = document.getElementById("drawerBackdrop");
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
-  const navOrdersBtn = document.getElementById("navOrdersBtn");
   const clearBtn = document.getElementById("btnClearAllOrders");
   const exportBtn = document.getElementById("btnExportOrdersCsv");
   const footerTrigger = document.getElementById("footerAdminTrigger");
   const invoiceModal = document.getElementById("invoiceModalBackdrop");
   const btnCloseInvoiceModal = document.getElementById("btnCloseInvoiceModal");
   const continueShoppingBtn = document.getElementById("btnContinueShopping");
-  const btnViewInlineJson = document.getElementById("btnViewInlineJson");
-  const inlineJsonContainer = document.getElementById("inlineJsonContainer");
 
   function openDrawer() {
     renderOrdersDrawer();
@@ -645,10 +642,6 @@ function setupOrdersDrawer() {
   function closeDrawer() {
     drawer.classList.remove("open");
     backdrop.classList.remove("open");
-    if (inlineJsonContainer) {
-      inlineJsonContainer.style.display = "none";
-      if (btnViewInlineJson) btnViewInlineJson.textContent = "🔍 View JSON";
-    }
   }
 
   // Covert Trigger 1: Secret URL Parameter (?admin=1, ?secret=1, ?orders=1, or ?seller=1)
@@ -671,19 +664,17 @@ function setupOrdersDrawer() {
     }
   });
 
-  // Covert Trigger 3: Header Returns & Orders button
-  if (navOrdersBtn) {
-    navOrdersBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openDrawer();
-    });
-  }
-
-  // Covert Trigger 4: Footer Amazon trigger
+  // Covert Trigger 3: Secret Gesture (Click / Triple-click the footer Amazon.com text)
+  let footerClickCount = 0;
+  let footerClickTimer = null;
   if (footerTrigger) {
     footerTrigger.addEventListener("click", (e) => {
-      e.preventDefault();
+      footerClickCount++;
+      clearTimeout(footerClickTimer);
+      footerClickTimer = setTimeout(() => {
+        footerClickCount = 0;
+      }, 500);
+
       openDrawer();
       showToast("🔒 Secret Seller & Billing Hub Opened");
     });
@@ -691,22 +682,6 @@ function setupOrdersDrawer() {
 
   if (btnCloseDrawer) btnCloseDrawer.addEventListener("click", closeDrawer);
   if (backdrop) backdrop.addEventListener("click", closeDrawer);
-
-  // Toggle inline JSON view
-  if (btnViewInlineJson && inlineJsonContainer) {
-    btnViewInlineJson.addEventListener("click", async () => {
-      if (inlineJsonContainer.style.display === "block") {
-        inlineJsonContainer.style.display = "none";
-        btnViewInlineJson.textContent = "🔍 View JSON";
-      } else {
-        inlineJsonContainer.style.display = "block";
-        inlineJsonContainer.textContent = "Loading orders.json...";
-        const current = await fetchOrdersFromAPI();
-        inlineJsonContainer.textContent = JSON.stringify(current, null, 2);
-        btnViewInlineJson.textContent = "✖️ Hide JSON";
-      }
-    });
-  }
 
   if (continueShoppingBtn) {
     continueShoppingBtn.addEventListener("click", () => {
