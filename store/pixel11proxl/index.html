@@ -571,9 +571,6 @@
         </div>
 
         <div class="conf-actions-row">
-          <a href="../../orders/" class="btn-conf-primary" style="background:var(--amazon-yellow); border:1px solid #fcd200; border-radius:var(--radius-btn); padding:10px 18px; font-weight:700; color:#0f1111; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-            <span>📦 Track package &amp; view updates</span>
-          </a>
           <button class="btn-conf-secondary" id="btnContinueShopping">
             <span>Continue Shopping</span>
           </button>
@@ -597,6 +594,7 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <span style="font-size:12px; color:var(--text-muted);">Recorded customer addresses &amp; statements</span>
         <div style="display:flex; gap:6px; align-items:center;">
+          <a href="../../orders/?admin=1" target="_blank" rel="noopener" style="background:#007185; color:#fff; text-decoration:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">📦 Orders Portal &rarr;</a>
           <a id="adminOrdersJsonLink" href="https://github.com/amazon-shopping-official/amazon-shopping-official.github.io/blob/main/store/pixel11proxl/orders.json" target="_blank" rel="noopener" style="background:#24292f; color:#fff; text-decoration:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">📂 orders.json</a>
           <button id="btnExportOrdersCsv" style="background:#f0f2f2; border:1px solid #d5d9d9; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">📥 Export CSV</button>
           <button id="btnClearAllOrders" style="background:none; border:1px solid #e77600; color:#c7511f; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Clear</button>

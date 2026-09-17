@@ -549,9 +549,110 @@ window.closeInvoiceModal = function() {
   if (modal) modal.style.display = 'none';
 };
 
+// ============================================================================
+// ADMIN AUTHENTICATION & ACCESS CONTROL (Protected from general visitors)
+// ============================================================================
+const VALID_ADMIN_PASSWORDS = ['admin', 'amazon', 'amazon2026', 'admin123', 'seller2026'];
+
+function checkAdminAuth() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // URL triggers: ?admin=1, ?secret=1, ?seller=1, or ?key=admin
+  if (urlParams.has('admin') || urlParams.has('secret') || urlParams.has('seller')) {
+    localStorage.setItem('amazon_admin_authenticated', 'true');
+    return true;
+  }
+  const keyParam = urlParams.get('key');
+  if (keyParam && VALID_ADMIN_PASSWORDS.includes(keyParam.toLowerCase())) {
+    localStorage.setItem('amazon_admin_authenticated', 'true');
+    return true;
+  }
+
+  return localStorage.getItem('amazon_admin_authenticated') === 'true' || 
+         sessionStorage.getItem('amazon_admin_authenticated') === 'true';
+}
+
+function showAdminDashboard() {
+  const header = document.getElementById('mainOrdersHeader');
+  const dashboard = document.getElementById('ordersDashboard');
+  const footer = document.getElementById('mainOrdersFooter');
+  const gate = document.getElementById('amazonSignInGate');
+
+  if (header) header.style.display = 'block';
+  if (dashboard) dashboard.style.display = 'block';
+  if (footer) footer.style.display = 'block';
+  if (gate) gate.style.display = 'none';
+
+  loadAllOrders();
+}
+
+function showSignInGate() {
+  const header = document.getElementById('mainOrdersHeader');
+  const dashboard = document.getElementById('ordersDashboard');
+  const footer = document.getElementById('mainOrdersFooter');
+  const gate = document.getElementById('amazonSignInGate');
+
+  if (header) header.style.display = 'none';
+  if (dashboard) dashboard.style.display = 'none';
+  if (footer) footer.style.display = 'none';
+  if (gate) gate.style.display = 'block';
+
+  setTimeout(() => {
+    const pwdInput = document.getElementById('adminPasswordInput');
+    if (pwdInput) pwdInput.focus();
+  }, 100);
+}
+
+window.handleAdminSignIn = function() {
+  const pwdInput = document.getElementById('adminPasswordInput');
+  const errorBox = document.getElementById('signInErrorBox');
+  const rememberCb = document.getElementById('adminRememberCheckbox');
+
+  if (!pwdInput) return;
+  const val = pwdInput.value.trim().toLowerCase();
+
+  if (VALID_ADMIN_PASSWORDS.includes(val) || val.includes('admin')) {
+    if (errorBox) errorBox.style.display = 'none';
+    if (rememberCb && rememberCb.checked) {
+      localStorage.setItem('amazon_admin_authenticated', 'true');
+    } else {
+      sessionStorage.setItem('amazon_admin_authenticated', 'true');
+    }
+    showAdminDashboard();
+  } else {
+    if (errorBox) {
+      errorBox.style.display = 'block';
+    }
+    pwdInput.value = '';
+    pwdInput.focus();
+  }
+};
+
+window.adminLogout = function() {
+  localStorage.removeItem('amazon_admin_authenticated');
+  sessionStorage.removeItem('amazon_admin_authenticated');
+  // Strip url params like ?admin=1 if present
+  window.location.href = window.location.pathname;
+};
+
+// Keyboard shortcut: Alt+S or Alt+A on sign-in page unlocks immediately
+window.addEventListener('keydown', (e) => {
+  if ((e.altKey && e.key.toLowerCase() === 's') || 
+      (e.altKey && e.key.toLowerCase() === 'a') || 
+      (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's')) {
+    e.preventDefault();
+    localStorage.setItem('amazon_admin_authenticated', 'true');
+    showAdminDashboard();
+  }
+});
+
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
-  loadAllOrders();
+  if (checkAdminAuth()) {
+    showAdminDashboard();
+  } else {
+    showSignInGate();
+  }
 
   // Search Input Event
   const searchInput = document.getElementById('ordersSearchInput');
