@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#131921">
+  <title>Your Orders &amp; Package Tracking - Amazon.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* ==========================================================================
+       YOUR ORDERS & SHIPMENT TRACKING CUSTOM STYLES
+       ========================================================================== */
+    .orders-page-container {
+      max-width: 1060px;
+      margin: 20px auto 40px;
+      padding: 0 16px;
+    }
+
+    .orders-breadcrumbs {
+      font-size: 12px;
+      color: #565959;
+      margin-bottom: 12px;
+    }
+    .orders-breadcrumbs a {
+      color: #007185;
+      text-decoration: none;
+    }
+    .orders-breadcrumbs a:hover {
+      text-decoration: underline;
+      color: #c7511f;
+    }
+
+    .orders-top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .orders-top-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0f1111;
+      letter-spacing: -0.3px;
+    }
+
+    .orders-search-bar {
+      display: flex;
+      gap: 8px;
+      max-width: 420px;
+      width: 100%;
+    }
+
+    .orders-search-input {
+      flex: 1;
+      padding: 7px 12px;
+      border: 1px solid #888c8c;
+      border-radius: 4px;
+      font-size: 13px;
+      outline: none;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .orders-search-input:focus {
+      border-color: #e77600;
+      box-shadow: 0 0 3px 2px rgba(228, 121, 17, 0.5);
+    }
+
+    .orders-search-btn {
+      background: #303333;
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .orders-search-btn:hover {
+      background: #232f3e;
+    }
+
+    /* Tabs Navigation */
+    .orders-tabs-nav {
+      display: flex;
+      border-bottom: 1px solid #d5d9d9;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .orders-tab {
+      padding: 8px 18px;
+      font-size: 14px;
+      color: #0f1111;
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .orders-tab.active {
+      border-bottom-color: #007185;
+      color: #007185;
+    }
+    .orders-tab:hover:not(.active) {
+      color: #c7511f;
+    }
+
+    /* Filter Bar */
+    .orders-filter-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #0f1111;
+      margin-bottom: 16px;
+    }
+
+    .time-filter-select {
+      background: #f0f2f2;
+      border: 1px solid #d5d9d9;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
+    }
+
+    /* Amazon Order Card */
+    .amazon-order-card {
+      background: #fff;
+      border: 1px solid #d5d9d9;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: box-shadow 0.2s;
+    }
+    .amazon-order-card:hover {
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .order-card-header {
+      background: #f0f2f2;
+      border-bottom: 1px solid #d5d9d9;
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 24px;
+      font-size: 12px;
+      color: #565959;
+    }
+
+    .header-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .col-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .col-val {
+      font-weight: 600;
+      color: #0f1111;
+      font-size: 13px;
+    }
+    .link-style {
+      color: #007185;
+      cursor: pointer;
+    }
+    .link-style:hover {
+      color: #c7511f;
+      text-decoration: underline;
+    }
+
+    .ship-to-col {
+      position: relative;
+    }
+    .ship-to-trigger {
+      outline: none;
+    }
+    .ship-popover {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      border: 1px solid #d5d9d9;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 6px;
+      padding: 12px 16px;
+      width: 240px;
+      font-size: 12px;
+      color: #0f1111;
+      line-height: 1.5;
+      z-index: 100;
+      margin-top: 6px;
+    }
+    .ship-to-trigger:hover .ship-popover,
+    .ship-to-trigger:focus .ship-popover {
+      display: block;
+    }
+
+    .header-shipping-badge {
+      margin-left: auto;
+    }
+    .intl-badge {
+      background: #e7f4f5;
+      border: 1px solid #99c6cb;
+      color: #007185;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Card Body */
+    .order-card-body {
+      padding: 20px;
+    }
+
+    .shipment-status-section {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e7e7e7;
+    }
+
+    .status-headline-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #007600;
+    }
+    .status-headline {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f1111;
+    }
+
+    /* Amazon Stepper Bar */
+    .amazon-stepper {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      max-width: 600px;
+      margin: 16px 0 10px;
+    }
+    .amazon-stepper::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      height: 4px;
+      background: #e7e7e7;
+      z-index: 1;
+    }
+    .step-bar-fill {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      height: 4px;
+      background: #007600;
+      z-index: 2;
+      transition: width 0.3s ease;
+    }
+    .amazon-stepper[data-step="ordered"] .step-bar-fill { width: 0%; }
+    .amazon-stepper[data-step="dispatched"] .step-bar-fill { width: 33%; }
+    .amazon-stepper[data-step="in_transit"] .step-bar-fill { width: 66%; }
+    .amazon-stepper[data-step="out_for_delivery"] .step-bar-fill { width: 75%; }
+    .amazon-stepper[data-step="delivered"] .step-bar-fill { width: 100%; }
+
+    .step-point {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .point-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #bbb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      transition: all 0.2s;
+    }
+    .step-point.reached .point-circle {
+      background: #007600;
+      border-color: #007600;
+    }
+    .point-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #565959;
+      white-space: nowrap;
+    }
+    .step-point.reached .point-label {
+      color: #0f1111;
+    }
+
+    /* Item Grid */
+    .order-item-grid {
+      display: grid;
+      grid-template-columns: 100px 1fr 220px;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 768px) {
+      .order-item-grid {
+        grid-template-columns: 80px 1fr;
+      }
+      .item-actions-column {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .order-prod-thumb {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border: 1px solid #e7e7e7;
+      border-radius: 4px;
+      padding: 4px;
+      background: #fdfdfd;
+    }
+
+    .item-title-link {
+      font-size: 15px;
+      font-weight: 700;
+      color: #007185;
+      text-decoration: none;
+      line-height: 1.35;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .item-title-link:hover {
+      text-decoration: underline;
+      color: #c7511f;
+    }
+
+    .item-sold-by {
+      font-size: 12px;
+      color: #565959;
+      margin-bottom: 4px;
+    }
+
+    .item-return-window {
+      font-size: 12px;
+      color: #565959;
+      margin-bottom: 8px;
+    }
+
+    .item-badges-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .badge-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #f0f2f2;
+      color: #0f1111;
+    }
+    .tag-verified {
+      background: #e7f4f5;
+      color: #007600;
+    }
+
+    /* Action Buttons */
+    .item-actions-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-track-package {
+      background: #ffd814;
+      border: 1px solid #fcd200;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f1111;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
+      transition: background 0.15s;
+    }
+    .btn-track-package:hover {
+      background: #f7ca00;
+    }
+
+    .btn-secondary-action {
+      background: #fff;
+      border: 1px solid #d5d9d9;
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f1111;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
+      transition: background 0.15s;
+    }
+    .btn-secondary-action:hover {
+      background: #f7fafa;
+      border-color: #888c8c;
+    }
+
+    /* ==========================================================================
+       TRACK PACKAGE DETAIL MODAL (No tracking ID shown)
+       ========================================================================== */
+    .track-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 2500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .track-modal-backdrop.open {
+      display: flex;
+    }
+
+    .track-modal-box {
+      background: #fff;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      border-radius: 8px;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { transform: translateY(15px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .track-modal-header {
+      background: #131921;
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .track-modal-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .btn-close-modal {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .track-modal-body {
+      padding: 24px;
+    }
+
+    /* Live Status Switcher Pill Bar (For Testing/Viewing Updates) */
+    .live-status-switcher {
+      background: #f0f2f2;
+      border: 1px solid #d5d9d9;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+    }
+    .switcher-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #565959;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status-pills-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .status-pill-btn {
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 16px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .status-pill-btn:hover {
+      border-color: #007185;
+      color: #007185;
+    }
+    .status-pill-btn.active {
+      background: #007600;
+      color: #fff;
+      border-color: #007600;
+    }
+
+    .track-product-snippet {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: #f9fafb;
+      border: 1px solid #e7e7e7;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .track-product-snippet img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      padding: 4px;
+    }
+
+    /* Vertical Timeline */
+    .milestone-timeline {
+      margin: 24px 0;
+      border-left: 2px solid #e7e7e7;
+      padding-left: 24px;
+      position: relative;
+    }
+    .milestone-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .milestone-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .milestone-marker {
+      position: absolute;
+      left: -33px;
+      top: 0;
+    }
+    .milestone-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #bbb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .milestone-item.completed .milestone-dot {
+      background: #007600;
+      border-color: #007600;
+    }
+    .milestone-item.active-step .milestone-dot {
+      background: #ffa41c;
+      border-color: #ffa41c;
+      box-shadow: 0 0 0 4px rgba(255, 164, 28, 0.2);
+    }
+
+    .milestone-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 3px;
+    }
+    .milestone-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f1111;
+    }
+    .milestone-time {
+      font-size: 12px;
+      color: #565959;
+      white-space: nowrap;
+    }
+    .milestone-desc {
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 3px;
+    }
+    .milestone-loc {
+      font-size: 12px;
+      color: #777;
+    }
+
+    /* Simulated Map Route Card */
+    .map-route-card {
+      background: #111b24;
+      border-radius: 6px;
+      padding: 16px;
+      color: #fff;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+    .map-svg-wrap {
+      flex-shrink: 0;
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    /* Address Verification Block */
+    .track-address-card {
+      background: #fdfdfd;
+      border: 1px solid #e7e7e7;
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Print Invoice Modal */
+    .invoice-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 3000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .invoice-modal {
+      background: #fff;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUTHENTIC AMAZON HEADER -->
+  <header>
+    <div class="nav-main">
+      <!-- Amazon Logo -->
+      <a href="../" class="amazon-logo-wrap notranslate" aria-label="Amazon">
+        <svg class="amazon-svg" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="20" font-family="'Inter', Arial, sans-serif" font-weight="800" font-size="20" fill="#ffffff" letter-spacing="-0.5">amazon</text>
+          <path d="M 6 24 Q 45 32 75 22" fill="none" stroke="#ff9900" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 72 19 L 77 22 L 72 25 Z" fill="#ff9900"/>
+        </svg>
+      </a>
+
+      <!-- Deliver to: Select your address -->
+      <a href="../" class="nav-location" style="text-decoration:none; color:inherit;">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
+        </svg>
+        <div>
+          <span class="loc-line1">Deliver to</span>
+          <span class="loc-line2">Select your address</span>
+        </div>
+      </a>
+
+      <!-- Search Bar -->
+      <form class="nav-search" onsubmit="event.preventDefault(); searchQuery = this.k.value; renderOrdersDashboard();">
+        <select class="search-dept" name="i">
+          <option value="orders" selected>Your Orders</option>
+          <option value="aps">All Departments</option>
+          <option value="mobile">Cell Phones</option>
+        </select>
+        <input type="text" class="search-input" name="k" placeholder="Search all orders">
+        <button class="search-btn" type="submit">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <!-- Language Selector -->
+        <div class="nav-item nav-lang" title="Change Language">
+          <div class="lang-btn-inner notranslate">
+            <span class="lang-flag">🌐</span>
+            <span class="lang-code">EN</span>
+            <span class="lang-caret">▾</span>
+          </div>
+        </div>
+
+        <a href="https://www.amazon.com/ap/signin" class="nav-item" style="text-decoration:none; color:inherit;">
+          <span class="nav-line-small">Hello, sign in</span>
+          <span class="nav-line-bold">Account &amp; Lists ▾</span>
+        </a>
+
+        <!-- Returns & Orders (Active) -->
+        <a href="./" class="nav-item active-nav" style="text-decoration:none; color:inherit; border:1px solid #fff; border-radius:2px; padding:2px 6px;">
+          <span class="nav-line-small">Returns</span>
+          <span class="nav-line-bold">&amp; Orders</span>
+        </a>
+
+        <a href="https://www.amazon.com/gp/cart/view.html" class="nav-item nav-cart" style="text-decoration:none; color:inherit;">
+          <div class="cart-wrap">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+            <span class="cart-count">0</span>
+          </div>
+          <span style="margin-top:6px;">Cart</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Subnav -->
+    <div class="nav-sub">
+      <div class="nav-sub-inner">
+        <div class="sub-links">
+          <a href="../" class="sub-link" style="font-weight:700;">☰ All</a>
+          <a href="https://www.amazon.com/gp/goldbox" class="sub-link">Today's Deals</a>
+          <a href="https://www.amazon.com/gp/help/customer/display.html" class="sub-link">Customer Service</a>
+          <a href="https://www.amazon.com/registries" class="sub-link">Registry</a>
+          <a href="https://www.amazon.com/gift-cards" class="sub-link">Gift Cards</a>
+          <a href="https://www.amazon.com/b/?node=18190131011" class="sub-link">Sell</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN YOUR ORDERS DASHBOARD -->
+  <main class="orders-page-container">
+    <div class="orders-breadcrumbs">
+      <a href="../">Your Account</a> &rsaquo; <span>Your Orders</span>
+    </div>
+
+    <div class="orders-top-header">
+      <h1>Your Orders</h1>
+
+      <div class="orders-search-bar">
+        <input type="text" id="ordersSearchInput" class="orders-search-input" placeholder="Search all orders (name, item, city)">
+        <button id="ordersSearchBtn" class="orders-search-btn">Search Orders</button>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <nav class="orders-tabs-nav">
+      <a href="#" class="orders-tab active" data-filter="all">Orders</a>
+      <a href="#" class="orders-tab" data-filter="buy_again">Buy Again</a>
+      <a href="#" class="orders-tab" data-filter="not_shipped">Not Yet Shipped</a>
+      <a href="#" class="orders-tab" data-filter="cancelled">Cancelled Orders</a>
+    </nav>
+
+    <!-- Orders Count -->
+    <div class="orders-filter-row">
+      <strong><span id="orderCountText">Loading orders...</span></strong>
+    </div>
+
+    <!-- Container for dynamic order cards -->
+    <div id="ordersContainer"></div>
+  </main>
+
+  <!-- ==========================================================================
+       TRACK PACKAGE MODAL (No tracking ID shown as per instructions)
+       ========================================================================== -->
+  <div class="track-modal-backdrop" id="trackPackageModal">
+    <div class="track-modal-box">
+      <div class="track-modal-header">
+        <h2>Tracking Details</h2>
+        <button class="btn-close-modal" onclick="closeTrackPackageModal()">&times;</button>
+      </div>
+
+      <div class="track-modal-body">
+        
+        <!-- Live Shipment State Simulator Bar -->
+        <div class="live-status-switcher">
+          <div class="switcher-label">
+            <span>Shipment Status Updates</span>
+            <span style="font-size:10px; color:#007185;">Live Carrier Milestones</span>
+          </div>
+          <div class="status-pills-row">
+            <button class="status-pill-btn" data-step="ordered" onclick="setLiveShipmentStatus('ordered')">1. Ordered</button>
+            <button class="status-pill-btn active" data-step="dispatched" onclick="setLiveShipmentStatus('dispatched')">2. Dispatched</button>
+            <button class="status-pill-btn" data-step="in_transit" onclick="setLiveShipmentStatus('in_transit')">3. In Transit</button>
+            <button class="status-pill-btn" data-step="out_for_delivery" onclick="setLiveShipmentStatus('out_for_delivery')">4. Out for Delivery</button>
+            <button class="status-pill-btn" data-step="delivered" onclick="setLiveShipmentStatus('delivered')">5. Delivered</button>
+          </div>
+        </div>
+
+        <!-- Product Summary Snippet -->
+        <div class="track-product-snippet">
+          <img id="trackItemThumb" src="../images/iphone/iphone17-cosmic-orange.jpg" alt="Item">
+          <div>
+            <strong id="trackItemTitle" style="font-size:14px; color:#0f1111; display:block; margin-bottom:2px;">Apple iPhone 17 Pro Max</strong>
+            <span id="trackItemPrice" style="color:#b12704; font-weight:700; font-size:13px;">$1,699.00</span> • 
+            <span style="color:#007600; font-size:12px; font-weight:600;">Verified Carrier Dispatch</span>
+          </div>
+        </div>
+
+        <!-- Status Headline & Carrier -->
+        <div style="margin-bottom:16px;">
+          <h3 id="trackStatusHeadline" style="font-size:20px; font-weight:700; color:#0f1111; margin-bottom:4px;">Dispatched</h3>
+          <div id="trackCarrierInfo" style="font-size:13px; color:#565959;">Shipped with Amazon Global Priority Express</div>
+        </div>
+
+        <!-- Modal Progress Stepper -->
+        <div class="amazon-stepper" id="modalStepper" data-step="dispatched">
+          <div class="step-bar-fill"></div>
+          
+          <div class="step-point reached">
+            <div class="point-circle">✓</div>
+            <span class="point-label">Ordered</span>
+          </div>
+
+          <div class="step-point reached">
+            <div class="point-circle">●</div>
+            <span class="point-label">Dispatched</span>
+          </div>
+
+          <div class="step-point">
+            <div class="point-circle"></div>
+            <span class="point-label">Out for delivery</span>
+          </div>
+
+          <div class="step-point">
+            <div class="point-circle"></div>
+            <span class="point-label">Delivered</span>
+          </div>
+        </div>
+
+        <!-- Simulated Map Visual -->
+        <div class="map-route-card">
+          <div class="map-svg-wrap" id="trackRouteIcon">✈️</div>
+          <div>
+            <strong id="trackRouteHeadline" style="font-size:14px; display:block; margin-bottom:2px;">Dispatched on Global Express Flight</strong>
+            <span id="trackRouteSubtitle" style="font-size:12px; color:#ccc;">Package departed sort hub on scheduled international logistics flight.</span>
+          </div>
+        </div>
+
+        <!-- Vertical Milestone Checkpoints Timeline -->
+        <h4 style="font-size:14px; font-weight:700; color:#0f1111; margin-bottom:12px;">Shipment Updates</h4>
+        <div class="milestone-timeline" id="trackingMilestonesList">
+          <!-- Dynamic Milestone Checkpoints rendered here -->
+        </div>
+
+        <!-- Destination Address Details -->
+        <h4 style="font-size:14px; font-weight:700; color:#0f1111; margin:20px 0 8px;">Delivery Address</h4>
+        <div class="track-address-card">
+          <strong id="trackCustomerName" style="color:#111;">Customer</strong><br>
+          <span id="trackAddressText">Address</span><br>
+          <span id="trackPhoneText" style="color:#565959;"></span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINTABLE BILLING INVOICE MODAL -->
+  <div class="invoice-backdrop" id="invoiceModalBackdrop">
+    <div class="invoice-modal">
+      <div style="background:#131921; color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:16px; font-weight:700;">Customer Billing Statement</h3>
+        <div style="display:flex; gap:10px;">
+          <button onclick="window.print()" style="padding:4px 10px; background:#ffd814; border:1px solid #fcd200; border-radius:4px; font-weight:700; font-size:12px; cursor:pointer;">🖨️ Print</button>
+          <button onclick="closeInvoiceModal()" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+      </div>
+      <div id="invoicePrintContent" style="padding:24px; font-size:13px; line-height:1.6;"></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="#" class="back-to-top" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">Back to top</a>
+    <div class="footer-content">
+      <div>
+        <strong>Amazon.com</strong><br>
+        <span style="color:#777;">Customer Orders &amp; Global Delivery Logistics</span>
+      </div>
+      <div>
+        <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=508088" style="color:inherit; text-decoration:none;">Conditions of Use</a> &bull; 
+        <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=468496" style="color:inherit; text-decoration:none;">Privacy Notice</a> &bull; 
+        <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=201909000" style="color:inherit; text-decoration:none;">Consumer Health Data Privacy</a> &bull; 
+        <a href="https://www.amazon.com/privacyprefs" style="color:inherit; text-decoration:none;">Your Ads Privacy Choices</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="orders.js"></script>
+</body>
+</html>

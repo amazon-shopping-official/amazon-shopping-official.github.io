@@ -6,7 +6,9 @@
   <script>
     (function() {
       var path = (window.location.pathname || "").toLowerCase();
-      if (path.includes("pixel")) {
+      if (path.includes("order") || path.includes("track")) {
+        window.location.replace("/orders/" + window.location.search + window.location.hash);
+      } else if (path.includes("pixel")) {
         window.location.replace("/store/pixel11proxl/" + window.location.search + window.location.hash);
       } else if (path.includes("iphone")) {
         window.location.replace("/store/iphone17promax/" + window.location.search + window.location.hash);
