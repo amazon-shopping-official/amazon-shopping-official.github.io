@@ -1,7 +1,7 @@
 [
   {
-    "orderId": "114-520643-711817",
-    "timestamp": "2026-09-18T08:16:08.303Z",
+    "orderId": "114-407448-509191",
+    "timestamp": "2026-09-18T08:16:07.924Z",
     "name": "Michael Scott",
     "address": "yjhbgfvd",
     "phoneNumber": "555-0199",
@@ -13,8 +13,8 @@
     "dateStr": "Friday, September 18, 2026"
   },
   {
-    "orderId": "114-407448-509191",
-    "timestamp": "2026-09-18T08:16:07.924Z",
+    "orderId": "114-520643-711817",
+    "timestamp": "2026-09-18T08:16:08.303Z",
     "name": "Michael Scott",
     "address": "yjhbgfvd",
     "phoneNumber": "555-0199",
@@ -78,13 +78,13 @@
     "dateStr": "Friday, September 18, 2026"
   },
   {
-    "orderId": "114-999888-777666",
-    "timestamp": "2026-09-18T07:15:00.000Z",
-    "name": "Test Customer",
-    "address": "123 Test Street, New York, NY",
-    "phoneNumber": "1234567890",
-    "email": "test@example.com",
-    "item": "Test Item",
+    "orderId": "114-421109-550095",
+    "timestamp": "2026-09-18T08:03:41.726Z",
+    "name": "Test Customer Samsung",
+    "address": "123 Samsung Way, Seoul",
+    "phoneNumber": "+1 555-0199",
+    "email": "test.samsung@example.com",
+    "item": "Samsung Galaxy S26 Ultra (256 GB) - Titanium Black",
     "price": "$1,299.99",
     "qty": 1,
     "payMethod": "Ask a Friend to Pay",

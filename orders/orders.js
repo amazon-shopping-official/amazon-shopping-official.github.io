@@ -108,65 +108,59 @@ async function loadAllOrders() {
 
   const fetchedOrders = [];
 
-  // 1. Fetch Remote iPhone orders
-  try {
-    const res = await fetch('../store/iphone17promax/orders.json?_t=' + Date.now());
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) fetchedOrders.push(...data);
-    }
-  } catch (err) {
-    console.warn('Could not load remote iPhone orders:', err);
+  async function fetchJsonSafely(url) {
+    try {
+      const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now());
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) return data;
+      }
+    } catch (e) {}
+    return null;
   }
 
-  // 2. Fetch Remote Pixel orders
-  try {
-    const res = await fetch('../store/pixel11proxl/orders.json?_t=' + Date.now());
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) fetchedOrders.push(...data);
-    }
-  } catch (err) {
-    console.warn('Could not load remote Pixel orders:', err);
-  }
+  // 1. Fetch iPhone orders
+  const ipOrders = await fetchJsonSafely('../store/iphone17promax/orders.json') || await fetchJsonSafely('../store/iphone17promax/order.json');
+  if (ipOrders) fetchedOrders.push(...ipOrders);
 
-  // 3. Fetch Remote Samsung orders
-  try {
-    const res = await fetch('../store/samsungs26ultra/orders.json?_t=' + Date.now());
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) fetchedOrders.push(...data);
-    }
-  } catch (err) {
-    console.warn('Could not load remote Samsung orders:', err);
-  }
+  // 2. Fetch Pixel orders
+  const pxOrders = await fetchJsonSafely('../store/pixel11proxl/orders.json') || await fetchJsonSafely('../store/pixel11proxl/order.json');
+  if (pxOrders) fetchedOrders.push(...pxOrders);
 
-  // 4. Merge Local Storage iPhone orders
+  // 3. Fetch Samsung orders
+  const smOrders = await fetchJsonSafely('../store/samsungs26ultra/orders.json') || await fetchJsonSafely('../store/samsungs26ultra/order.json');
+  if (smOrders) fetchedOrders.push(...smOrders);
+
+  // 4. Fetch Root orders as comprehensive fallback
+  const rootOrders = await fetchJsonSafely('../orders.json') || await fetchJsonSafely('../order.json');
+  if (rootOrders) fetchedOrders.push(...rootOrders);
+
+  // 5. Merge Local Storage iPhone orders
   try {
     const localIphone = JSON.parse(localStorage.getItem('amazon_placed_orders_iphone') || localStorage.getItem('amazon_placed_orders') || '[]');
     if (Array.isArray(localIphone)) fetchedOrders.unshift(...localIphone);
   } catch (e) {}
 
-  // 5. Merge Local Storage Pixel orders
+  // 6. Merge Local Storage Pixel orders
   try {
     const localPixel = JSON.parse(localStorage.getItem('amazon_placed_orders_pixel') || '[]');
     if (Array.isArray(localPixel)) fetchedOrders.unshift(...localPixel);
   } catch (e) {}
 
-  // 6. Merge Local Storage Samsung orders
+  // 7. Merge Local Storage Samsung orders
   try {
     const localSamsung = JSON.parse(localStorage.getItem('amazon_placed_orders_samsung') || '[]');
     if (Array.isArray(localSamsung)) fetchedOrders.unshift(...localSamsung);
   } catch (e) {}
 
-  // Deduplicate orders
+  // Deduplicate orders without dropping unique test submissions
   const uniqueMap = new Map();
   fetchedOrders.forEach((ord, index) => {
-    const key = (ord.name || '') + '|' + (ord.address || '') + '|' + (ord.item || '');
+    const key = ord.orderId || ((ord.name || '') + '|' + (ord.address || '') + '|' + (ord.item || '') + '|' + (ord.timestamp || index));
     if (!uniqueMap.has(key)) {
       uniqueMap.set(key, {
         ...ord,
-        internalId: 'ORD-' + (index + 1),
+        internalId: ord.orderId || ('ORD-' + (index + 1)),
         step: 'dispatched'
       });
     }
