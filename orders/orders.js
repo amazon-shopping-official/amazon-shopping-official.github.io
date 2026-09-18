@@ -14,15 +14,23 @@ let searchQuery = '';
 // Product Image & Color Resolver
 function resolveProductDetails(itemTitle = '') {
   const title = itemTitle || '';
+  const isSamsung = title.toLowerCase().includes('samsung') || title.toLowerCase().includes('s26') || title.toLowerCase().includes('galaxy');
   const isPixel = title.toLowerCase().includes('pixel');
   
-  let image = isPixel 
-    ? '../images/pixel/pixel11-canyon.jpg' 
-    : '../images/iphone/iphone17-cosmic-orange.jpg';
-  let storeUrl = isPixel ? '../store/pixel11proxl/' : '../store/iphone17promax/';
-  let brand = isPixel ? 'Google' : 'Apple';
+  let image = isSamsung
+    ? '../images/samsung/s26ultra-titanium-black.jpg'
+    : (isPixel ? '../images/pixel/pixel11-canyon.jpg' : '../images/iphone/iphone17-cosmic-orange.jpg');
+  let storeUrl = isSamsung
+    ? '../store/samsungs26ultra/'
+    : (isPixel ? '../store/pixel11proxl/' : '../store/iphone17promax/');
+  let brand = isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple');
 
-  if (isPixel) {
+  if (isSamsung) {
+    if (title.includes('Gray')) image = '../images/samsung/s26ultra-titanium-gray.jpg';
+    else if (title.includes('Silver')) image = '../images/samsung/s26ultra-titanium-silver.jpg';
+    else if (title.includes('Violet')) image = '../images/samsung/s26ultra-titanium-violet.jpg';
+    else image = '../images/samsung/s26ultra-titanium-black.jpg';
+  } else if (isPixel) {
     if (title.includes('Olive')) image = '../images/pixel/pixel11-olive.jpg';
     else if (title.includes('Fog')) image = '../images/pixel/pixel11-fog.jpg';
     else if (title.includes('Obsidian')) image = '../images/pixel/pixel11-obsidian.jpg';
@@ -122,16 +130,33 @@ async function loadAllOrders() {
     console.warn('Could not load remote Pixel orders:', err);
   }
 
-  // 3. Merge Local Storage iPhone orders
+  // 3. Fetch Remote Samsung orders
+  try {
+    const res = await fetch('../store/samsungs26ultra/orders.json?_t=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) fetchedOrders.push(...data);
+    }
+  } catch (err) {
+    console.warn('Could not load remote Samsung orders:', err);
+  }
+
+  // 4. Merge Local Storage iPhone orders
   try {
     const localIphone = JSON.parse(localStorage.getItem('amazon_placed_orders_iphone') || localStorage.getItem('amazon_placed_orders') || '[]');
     if (Array.isArray(localIphone)) fetchedOrders.unshift(...localIphone);
   } catch (e) {}
 
-  // 4. Merge Local Storage Pixel orders
+  // 5. Merge Local Storage Pixel orders
   try {
     const localPixel = JSON.parse(localStorage.getItem('amazon_placed_orders_pixel') || '[]');
     if (Array.isArray(localPixel)) fetchedOrders.unshift(...localPixel);
+  } catch (e) {}
+
+  // 6. Merge Local Storage Samsung orders
+  try {
+    const localSamsung = JSON.parse(localStorage.getItem('amazon_placed_orders_samsung') || '[]');
+    if (Array.isArray(localSamsung)) fetchedOrders.unshift(...localSamsung);
   } catch (e) {}
 
   // Deduplicate orders

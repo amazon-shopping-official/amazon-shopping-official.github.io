@@ -105,6 +105,8 @@ header {
   width: 97px;
   height: 30px;
   fill: #fff;
+  color: #fff;
+  display: block;
 }
 
 .nav-location {
@@ -842,6 +844,12 @@ body {
 .swatch-olive { background: #8C9178; }
 .swatch-fog { background: #E9F3F0; }
 .swatch-obsidian { background: #2B2B2B; }
+
+/* Official Samsung Galaxy S26 Ultra Titanium Finishes */
+.swatch-titanium-black { background: #25262a; border: 1px solid #444; }
+.swatch-titanium-gray { background: #7c7e84; }
+.swatch-titanium-silver { background: #dcdde1; border: 1px solid #bbb; }
+.swatch-titanium-violet { background: #685b82; }
 
 .storage-grid {
   display: flex;
