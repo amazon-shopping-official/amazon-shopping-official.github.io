@@ -1,5 +1,18 @@
 [
   {
+    "orderId": "114-215727-625538",
+    "timestamp": "2026-09-18T08:08:49.744Z",
+    "name": "Test Customer Samsung",
+    "address": "123 Samsung Way, Seoul",
+    "phoneNumber": "+1 555-0199",
+    "email": "test.samsung@example.com",
+    "item": "Samsung Galaxy S26 Ultra (256 GB) - Titanium Black",
+    "price": "$1,299.99",
+    "qty": 1,
+    "payMethod": "Ask a Friend to Pay",
+    "dateStr": "Friday, September 18, 2026"
+  },
+  {
     "orderId": "114-623041-740657",
     "timestamp": "2026-09-18T08:04:51.205Z",
     "name": "Test Customer Samsung",
