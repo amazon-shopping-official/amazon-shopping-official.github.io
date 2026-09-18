@@ -597,7 +597,9 @@ function setupCheckoutAccordion() {
   }
 
   // Place Order Triggers
-  function triggerPlaceOrder() {
+  function triggerPlaceOrder(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
     if (!state.address) {
       const inputName = document.getElementById("inputFullName");
       const inputAddr = document.getElementById("inputDeliveryAddress");
@@ -624,14 +626,44 @@ function setupCheckoutAccordion() {
           stepCardAddress.classList.add("completed");
         }
       } else {
-        alert("Please enter your delivery name and address first.");
-        if (btnEditAddress) btnEditAddress.click();
+        showToast("Please enter your delivery name and address first.");
+        if (stepAddressBody) stepAddressBody.style.display = "block";
+        if (stepCardAddress) {
+          stepCardAddress.classList.add("active");
+          stepCardAddress.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         if (inputName && !fullName) inputName.focus();
         else if (inputAddr && !deliveryAddress) inputAddr.focus();
         return;
       }
     }
-    completeOrderPlacement();
+
+    // Disable buttons & show loading state
+    if (btnFinalPlaceOrder) {
+      btnFinalPlaceOrder.disabled = true;
+      btnFinalPlaceOrder.dataset.origText = btnFinalPlaceOrder.innerHTML;
+      btnFinalPlaceOrder.innerHTML = 'Placing your order...';
+    }
+    if (btnSummaryPlaceOrder) {
+      btnSummaryPlaceOrder.disabled = true;
+      btnSummaryPlaceOrder.dataset.origText = btnSummaryPlaceOrder.innerHTML;
+      btnSummaryPlaceOrder.innerHTML = 'Placing your order...';
+    }
+
+    setTimeout(() => {
+      try {
+        completeOrderPlacement();
+      } finally {
+        if (btnFinalPlaceOrder) {
+          btnFinalPlaceOrder.disabled = false;
+          if (btnFinalPlaceOrder.dataset.origText) btnFinalPlaceOrder.innerHTML = btnFinalPlaceOrder.dataset.origText;
+        }
+        if (btnSummaryPlaceOrder) {
+          btnSummaryPlaceOrder.disabled = false;
+          if (btnSummaryPlaceOrder.dataset.origText) btnSummaryPlaceOrder.innerHTML = btnSummaryPlaceOrder.dataset.origText;
+        }
+      }
+    }, 400);
   }
 
   if (btnFinalPlaceOrder) btnFinalPlaceOrder.addEventListener("click", triggerPlaceOrder);
@@ -645,13 +677,18 @@ async function completeOrderPlacement() {
   const orderNumber = `114-${Math.floor(100000 + Math.random() * 900000)}-${Math.floor(100000 + Math.random() * 900000)}`;
   const orderDateFormatted = getDynamicOrderDate();
 
+  const safeSet = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || "";
+  };
+
   const placedOrder = {
     orderId: orderNumber,
     timestamp: new Date().toISOString(),
-    name: state.address.fullName,
-    address: state.address.deliveryAddress,
-    phoneNumber: state.address.phone,
-    email: state.address.email,
+    name: state.address ? state.address.fullName : "Customer",
+    address: state.address ? state.address.deliveryAddress : "",
+    phoneNumber: state.address ? state.address.phone : "",
+    email: state.address ? state.address.email : "",
     item: `${PRODUCT.title} (${state.storage}) - ${state.color}`,
     price: formatMoney(totalAmount),
     qty: state.qty,
@@ -660,24 +697,28 @@ async function completeOrderPlacement() {
   };
 
   // 1. Save to Local Storage
-  const existingOrders = JSON.parse(localStorage.getItem("amazon_placed_orders_samsung") || "[]");
-  existingOrders.unshift(placedOrder);
-  localStorage.setItem("amazon_placed_orders_samsung", JSON.stringify(existingOrders));
+  try {
+    const existingOrders = JSON.parse(localStorage.getItem("amazon_placed_orders_samsung") || "[]");
+    existingOrders.unshift(placedOrder);
+    localStorage.setItem("amazon_placed_orders_samsung", JSON.stringify(existingOrders));
+  } catch (e) {
+    console.warn("LocalStorage save error:", e);
+  }
 
-  // 2. Commit Order Details to GitHub Repo orders.json
+  // 2. Commit Order Details to GitHub Repo orders.json & order.json
   saveOrderToAPI(placedOrder);
 
-  // 3. Populate Order Confirmation Screen
-  document.getElementById("confEmailNotice").textContent = state.address.email;
-  document.getElementById("confOrderDate").textContent = orderDateFormatted;
-  document.getElementById("confOrderNumber").textContent = orderNumber;
-  document.getElementById("confRecipientName").textContent = state.address.fullName;
-  document.getElementById("confFullAddress").textContent = state.address.deliveryAddress;
-  document.getElementById("confPhone").textContent = state.address.phone;
-  document.getElementById("confItemName").textContent = placedOrder.item;
-  document.getElementById("confQty").textContent = state.qty;
-  document.getElementById("confTotal").textContent = formatMoney(totalAmount);
-  document.getElementById("confPayMethod").textContent = state.paymentMethod;
+  // 3. Populate Order Confirmation Screen safely
+  safeSet("confEmailNotice", state.address ? state.address.email || "your email" : "your email");
+  safeSet("confOrderDate", orderDateFormatted);
+  safeSet("confOrderNumber", orderNumber);
+  safeSet("confRecipientName", state.address ? state.address.fullName : "");
+  safeSet("confFullAddress", state.address ? state.address.deliveryAddress : "");
+  safeSet("confPhone", state.address ? state.address.phone : "");
+  safeSet("confItemName", placedOrder.item);
+  safeSet("confQty", state.qty);
+  safeSet("confTotal", formatMoney(totalAmount));
+  safeSet("confPayMethod", state.paymentMethod);
 
   const friendBox = document.getElementById("confFriendNoticeBox");
   const payStatus = document.getElementById("confPaymentStatus");
@@ -690,14 +731,22 @@ async function completeOrderPlacement() {
   }
 
   // Switch views smoothly
-  document.getElementById("checkoutGridArea").style.display = "none";
-  document.getElementById("orderConfirmationScreen").classList.add("active");
+  const checkoutGrid = document.getElementById("checkoutGridArea");
+  if (checkoutGrid) checkoutGrid.style.display = "none";
+  const confScreen = document.getElementById("orderConfirmationScreen");
+  if (confScreen) confScreen.classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  history.pushState({ view: "confirmation" }, "", "#confirmation");
+  try {
+    history.pushState({ view: "confirmation" }, "", "#confirmation");
+  } catch (e) {}
 
   updateOrdersBadge();
-  renderOrdersDrawer();
+  if (typeof renderOrdersDrawer === "function") {
+    renderOrdersDrawer();
+  }
+
+  showToast("Order placed successfully! Check your email for confirmation.");
 }
 
 // 5. Slide-Out Customer Orders Drawer
