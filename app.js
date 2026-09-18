@@ -646,26 +646,26 @@ function finalizeOrderPlacement() {
   const total = unit * state.qty;
 
   const dynamicOrderDate = getDynamicOrderDate();
-  // Expected delivery date is left blank (no auto calculation)
-  const dynamicDelivery = "";
 
-  // Populate Confirmation Screen
-  document.getElementById("confOrderNumber").textContent = orderNum;
-  document.getElementById("confEmailNotice").textContent = state.address.email;
-  document.getElementById("confOrderDate").textContent = dynamicOrderDate;
-  document.getElementById("confRecipientName").textContent = state.address.fullName;
-  document.getElementById("confFullAddress").textContent = state.address.deliveryAddress;
-  document.getElementById("confPhone").textContent = state.address.phone;
+  const safeSet = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || "";
+  };
+
+  // Populate Confirmation Screen safely
+  safeSet("confOrderNumber", orderNum);
+  safeSet("confEmailNotice", state.address ? state.address.email || "your email" : "your email");
+  safeSet("confOrderDate", dynamicOrderDate);
+  safeSet("confRecipientName", state.address ? state.address.fullName : "");
+  safeSet("confFullAddress", state.address ? state.address.deliveryAddress : "");
+  safeSet("confPhone", state.address ? state.address.phone : "");
+  safeSet("confItemName", `${PRODUCT.title} (${state.storage}) - ${state.color}`);
+  safeSet("confQty", state.qty);
+  safeSet("confTotal", formatMoney(total));
+  safeSet("confPayMethod", state.paymentMethod);
+
   const confDeliv = document.getElementById("confDeliveryDate");
   if (confDeliv) confDeliv.textContent = "";
-  document.getElementById("confItemName").textContent = `${PRODUCT.title} (${state.storage}) - ${state.color}`;
-  document.getElementById("confQty").textContent = state.qty;
-  document.getElementById("confTotal").textContent = formatMoney(total);
-  
-  const confPayMethod = document.getElementById("confPayMethod");
-  if (confPayMethod) {
-    confPayMethod.textContent = state.paymentMethod;
-  }
 
   const confFriendNoticeBox = document.getElementById("confFriendNoticeBox");
   const confPaymentStatus = document.getElementById("confPaymentStatus");
@@ -682,10 +682,10 @@ function finalizeOrderPlacement() {
   const orderRecord = {
     orderId: orderNum,
     timestamp: new Date().toISOString(),
-    name: state.address.fullName,
-    address: state.address.deliveryAddress,
-    phoneNumber: state.address.phone,
-    email: state.address.email,
+    name: state.address ? state.address.fullName : "Customer",
+    address: state.address ? state.address.deliveryAddress : "",
+    phoneNumber: state.address ? state.address.phone : "",
+    email: state.address ? state.address.email : "",
     item: `${PRODUCT.title} (${state.storage}) - ${state.color}`,
     price: formatMoney(total),
     qty: state.qty,
@@ -693,30 +693,31 @@ function finalizeOrderPlacement() {
     dateStr: dynamicOrderDate
   };
 
-  const placedOrder = orderRecord;
-  state.placedOrder = placedOrder;
+  state.placedOrder = orderRecord;
 
   // Save locally (instant, works offline)
   try {
     const existingOrders = JSON.parse(localStorage.getItem("amazon_placed_orders_iphone") || localStorage.getItem("amazon_placed_orders") || "[]");
-    existingOrders.unshift(placedOrder);
+    existingOrders.unshift(orderRecord);
     localStorage.setItem("amazon_placed_orders_iphone", JSON.stringify(existingOrders));
   } catch (err) {
     console.error("Storage error:", err);
   }
 
-  // Also save to Vercel KV so YOU can see it from any device (async, fire-and-forget)
+  // Also sync to GitHub orders.json & order.json
   saveOrderToAPI(orderRecord);
 
   // Update Orders Badge Count in Header
   updateOrdersBadge();
 
   // Show clean Amazon confirmation view
-  checkoutGrid.style.display = "none";
-  confScreen.classList.add("active");
+  if (checkoutGrid) checkoutGrid.style.display = "none";
+  if (confScreen) confScreen.classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  history.pushState({ view: "confirmation" }, "", "#confirmation");
+  try {
+    history.pushState({ view: "confirmation" }, "", "#confirmation");
+  } catch (e) {}
 
   showToast("Order placed successfully! Check your email or spam folder for confirmation.");
 }

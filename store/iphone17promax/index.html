@@ -480,7 +480,7 @@
             </div>
 
             <div style="display:flex; align-items:center; gap:12px; margin-top:14px; flex-wrap:wrap;">
-              <button class="cs-btn-place-order" id="btnFinalPlaceOrder" style="margin-bottom:0; flex:1; min-width:200px;">
+              <button type="button" class="cs-btn-place-order" id="btnFinalPlaceOrder" style="margin-bottom:0; flex:1; min-width:200px;">
                 Place your order
               </button>
               <button type="button" class="btn-change-step" id="btnBackToPayment" style="padding:6px 12px; font-size:13px;">
@@ -494,7 +494,7 @@
 
       <!-- Right: Sticky Order Summary -->
       <aside class="checkout-summary-box">
-        <button class="cs-btn-place-order" id="btnSummaryPlaceOrder">
+        <button type="button" class="cs-btn-place-order" id="btnSummaryPlaceOrder">
           Place your order
         </button>
         <p class="cs-terms">
@@ -520,7 +520,7 @@
 
     <!-- 3. CLEAN AUTHENTIC AMAZON ORDER CONFIRMATION SCREEN (NO RAW LINK DUMP) -->
     <div class="order-confirmation-screen" id="orderConfirmationScreen">
-      
+      <span id="confOrderNumber" style="display:none;"></span>
       <div class="conf-top-banner">
         <div class="conf-check-icon">✓</div>
         <div>
