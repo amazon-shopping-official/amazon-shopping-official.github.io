@@ -8,6 +8,8 @@
       var path = (window.location.pathname || "").toLowerCase();
       if (path.includes("order") || path.includes("track")) {
         window.location.replace("/orders/" + window.location.search + window.location.hash);
+      } else if (path.includes("samsung") || path.includes("s26") || path.includes("galaxy")) {
+        window.location.replace("/store/samsungs26ultra/" + window.location.search + window.location.hash);
       } else if (path.includes("pixel")) {
         window.location.replace("/store/pixel11proxl/" + window.location.search + window.location.hash);
       } else if (path.includes("iphone")) {
@@ -21,8 +23,9 @@
 <body style="font-family: Arial, sans-serif; text-align: center; padding: 40px; color: #0f1111;">
   <p>Redirecting to store...</p>
   <p>
-    <a href="/store/iphone17promax/" style="color: #007185; font-weight: bold; text-decoration: none; margin-right: 20px;">Apple iPhone 17 Pro Max Store</a>
-    <a href="/store/pixel11proxl/" style="color: #007185; font-weight: bold; text-decoration: none;">Google Pixel 11 Pro XL Store</a>
+    <a href="/store/iphone17promax/" style="color: #007185; font-weight: bold; text-decoration: none; margin-right: 15px;">Apple iPhone 17 Pro Max</a>
+    <a href="/store/pixel11proxl/" style="color: #007185; font-weight: bold; text-decoration: none; margin-right: 15px;">Google Pixel 11 Pro XL</a>
+    <a href="/store/samsungs26ultra/" style="color: #007185; font-weight: bold; text-decoration: none;">Samsung Galaxy S26 Ultra</a>
   </p>
 </body>
 </html>
