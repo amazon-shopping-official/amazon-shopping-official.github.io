@@ -5,16 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#131921">
   <title>Amazon.com: Apple iPhone 18 Pro Max (256 GB) - Burgundy (Unlocked) : Cell Phones &amp; Accessories</title>
-  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="../../style.css?v=20260919_03">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
   <style>
     .main-image-viewer {
       background: #ffffff !important;
       border: 1px solid #e7e7e7 !important;
+      padding: 6px !important;
+      height: 480px !important;
+    }
+    .main-image-viewer img {
+      width: auto !important;
+      height: 100% !important;
+      max-height: 468px !important;
+      object-fit: contain !important;
+      transform: scale(1.05) !important;
     }
     .thumb-item {
       background: #ffffff !important;
       border-color: #d5d9d9 !important;
+    }
+    .thumb-item img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+    .nav-cart {
+      position: relative !important;
+    }
+    .cart-wrap {
+      position: relative !important;
     }
   </style>
 </head>
@@ -61,24 +81,55 @@
       </form>
 
       <div class="nav-actions">
-        <a href="https://www.amazon.com/customer-preferences/edit" class="nav-item notranslate" style="text-decoration:none; color:inherit;">
-          <span class="nav-line-small">EN</span>
-          <span class="nav-line-bold">🇺🇸 ▾</span>
-        </a>
-        <a href="https://www.amazon.com/ap/signin" class="nav-item" style="text-decoration:none; color:inherit;">
+        <!-- Authentic Amazon Language Selector (Globe + EN / TL / ES) -->
+        <div class="nav-item nav-lang" id="navLangBtn" title="Change Language / Palitan ang Wika">
+          <div class="lang-btn-inner notranslate">
+            <span class="lang-flag" id="navLangFlag">🌐</span>
+            <span class="lang-code" id="navCurrentLangText">EN</span>
+            <span class="lang-caret">▾</span>
+          </div>
+          <!-- Flyout Dropdown -->
+          <div class="lang-dropdown" id="langDropdown">
+            <div class="lang-dropdown-title">
+              <span>Change language</span>
+              <span style="color:#007185; font-size:11px; font-weight:normal;">Auto-translate</span>
+            </div>
+            <ul class="lang-list" id="langSelectList">
+              <li data-lang="en" class="active"><span class="lang-radio-circle"></span> English - EN</li>
+              <li data-lang="tl"><span class="lang-radio-circle"></span> Filipino (Tagalog) - TL</li>
+              <li data-lang="es"><span class="lang-radio-circle"></span> Español - ES</li>
+              <li data-lang="fr"><span class="lang-radio-circle"></span> Français - FR</li>
+              <li data-lang="de"><span class="lang-radio-circle"></span> Deutsch - DE</li>
+              <li data-lang="it"><span class="lang-radio-circle"></span> Italiano - IT</li>
+              <li data-lang="pt"><span class="lang-radio-circle"></span> Português - PT</li>
+              <li data-lang="ar"><span class="lang-radio-circle"></span> العربية - AR</li>
+              <li data-lang="ja"><span class="lang-radio-circle"></span> 日本語 - JA</li>
+              <li data-lang="ko"><span class="lang-radio-circle"></span> 한국어 - KO</li>
+              <li data-lang="zh-CN"><span class="lang-radio-circle"></span> 中文 (简体) - ZH</li>
+              <li data-lang="hi"><span class="lang-radio-circle"></span> हिन्दी - HI</li>
+              <li data-lang="vi"><span class="lang-radio-circle"></span> Tiếng Việt - VI</li>
+              <li data-lang="id"><span class="lang-radio-circle"></span> Bahasa Indonesia - ID</li>
+            </ul>
+          </div>
+        </div>
+
+        <a href="https://www.amazon.com/ap/signin" class="nav-item" id="navAccountBtn" style="text-decoration:none; color:inherit;">
           <span class="nav-line-small">Hello, sign in</span>
           <span class="nav-line-bold">Account &amp; Lists ▾</span>
         </a>
+
+        <!-- Returns & Orders -->
         <a href="https://www.amazon.com/gp/css/order-history" class="nav-item" id="navOrdersBtn" style="text-decoration:none; color:inherit;">
           <span class="nav-line-small">Returns</span>
           <span class="nav-line-bold">&amp; Orders</span>
         </a>
-        <a href="https://www.amazon.com/gp/cart/view.html" class="nav-item nav-cart" id="navCartIcon" style="text-decoration:none; color:inherit;">
-          <div class="cart-wrap">
+
+        <a href="https://www.amazon.com/gp/cart/view.html" class="nav-item nav-cart" id="navCartIcon" style="position:relative; text-decoration:none; color:inherit;">
+          <div class="cart-wrap" style="position:relative; display:flex; align-items:center;">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
             </svg>
-            <span class="cart-count" id="headerCartCount">0</span>
+            <span class="cart-count" id="headerCartCount" style="position:absolute; top:1px; left:13px; color:var(--amazon-orange); font-size:15px; font-weight:800;">0</span>
           </div>
           <span style="margin-top:6px;">Cart</span>
         </a>
@@ -583,6 +634,6 @@
     </div>
   </footer>
 
-  <script src="../../iphone18-app.js"></script>
+  <script src="../../iphone18-app.js?v=20260919_03"></script>
 </body>
 </html>
