@@ -16,13 +16,22 @@ function resolveProductDetails(itemTitle = '') {
   const title = itemTitle || '';
   const isSamsung = title.toLowerCase().includes('samsung') || title.toLowerCase().includes('s26') || title.toLowerCase().includes('galaxy');
   const isPixel = title.toLowerCase().includes('pixel');
+  const isIphone18 = title.toLowerCase().includes('18');
   
   let image = isSamsung
     ? '../images/samsung/s26ultra-titanium-black.jpg'
-    : (isPixel ? '../images/pixel/pixel11-canyon.jpg' : '../images/iphone/iphone17-cosmic-orange.jpg');
+    : (isPixel
+        ? '../images/pixel/pixel11-canyon.jpg'
+        : (isIphone18
+            ? '../images/iphone18/iphone18-cosmic-purple.jpg'
+            : '../images/iphone/iphone17-cosmic-orange.jpg'));
   let storeUrl = isSamsung
     ? '../store/samsungs26ultra/'
-    : (isPixel ? '../store/pixel11proxl/' : '../store/iphone17promax/');
+    : (isPixel
+        ? '../store/pixel11proxl/'
+        : (isIphone18
+            ? '../store/iphone18promax/'
+            : '../store/iphone17promax/'));
   let brand = isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple');
 
   if (isSamsung) {
@@ -35,6 +44,11 @@ function resolveProductDetails(itemTitle = '') {
     else if (title.includes('Fog')) image = '../images/pixel/pixel11-fog.jpg';
     else if (title.includes('Obsidian')) image = '../images/pixel/pixel11-obsidian.jpg';
     else image = '../images/pixel/pixel11-canyon.jpg';
+  } else if (isIphone18) {
+    if (title.includes('Desert')) image = '../images/iphone18/iphone18-desert-titanium.jpg';
+    else if (title.includes('Natural')) image = '../images/iphone18/iphone18-natural-titanium.jpg';
+    else if (title.includes('Space Black') || title.includes('Black')) image = '../images/iphone18/iphone18-space-black.jpg';
+    else image = '../images/iphone18/iphone18-cosmic-purple.jpg';
   } else {
     if (title.includes('Deep Blue') || title.includes('Blue')) image = '../images/iphone/iphone17-deep-blue.jpg';
     else if (title.includes('Silver')) image = '../images/iphone/iphone17-silver.jpg';
@@ -119,35 +133,45 @@ async function loadAllOrders() {
     return null;
   }
 
-  // 1. Fetch iPhone orders
+  // 1. Fetch iPhone 18 orders
+  const ip18Orders = await fetchJsonSafely('../store/iphone18promax/orders.json') || await fetchJsonSafely('../store/iphone18promax/order.json');
+  if (ip18Orders) fetchedOrders.push(...ip18Orders);
+
+  // 2. Fetch iPhone 17 orders
   const ipOrders = await fetchJsonSafely('../store/iphone17promax/orders.json') || await fetchJsonSafely('../store/iphone17promax/order.json');
   if (ipOrders) fetchedOrders.push(...ipOrders);
 
-  // 2. Fetch Pixel orders
+  // 3. Fetch Pixel orders
   const pxOrders = await fetchJsonSafely('../store/pixel11proxl/orders.json') || await fetchJsonSafely('../store/pixel11proxl/order.json');
   if (pxOrders) fetchedOrders.push(...pxOrders);
 
-  // 3. Fetch Samsung orders
+  // 4. Fetch Samsung orders
   const smOrders = await fetchJsonSafely('../store/samsungs26ultra/orders.json') || await fetchJsonSafely('../store/samsungs26ultra/order.json');
   if (smOrders) fetchedOrders.push(...smOrders);
 
-  // 4. Fetch Root orders as comprehensive fallback
+  // 5. Fetch Root orders as comprehensive fallback
   const rootOrders = await fetchJsonSafely('../orders.json') || await fetchJsonSafely('../order.json');
   if (rootOrders) fetchedOrders.push(...rootOrders);
 
-  // 5. Merge Local Storage iPhone orders
+  // 6. Merge Local Storage iPhone 18 orders
+  try {
+    const localIphone18 = JSON.parse(localStorage.getItem('amazon_placed_orders_iphone18') || '[]');
+    if (Array.isArray(localIphone18)) fetchedOrders.unshift(...localIphone18);
+  } catch (e) {}
+
+  // 7. Merge Local Storage iPhone 17 orders
   try {
     const localIphone = JSON.parse(localStorage.getItem('amazon_placed_orders_iphone') || localStorage.getItem('amazon_placed_orders') || '[]');
     if (Array.isArray(localIphone)) fetchedOrders.unshift(...localIphone);
   } catch (e) {}
 
-  // 6. Merge Local Storage Pixel orders
+  // 8. Merge Local Storage Pixel orders
   try {
     const localPixel = JSON.parse(localStorage.getItem('amazon_placed_orders_pixel') || '[]');
     if (Array.isArray(localPixel)) fetchedOrders.unshift(...localPixel);
   } catch (e) {}
 
-  // 7. Merge Local Storage Samsung orders
+  // 9. Merge Local Storage Samsung orders
   try {
     const localSamsung = JSON.parse(localStorage.getItem('amazon_placed_orders_samsung') || '[]');
     if (Array.isArray(localSamsung)) fetchedOrders.unshift(...localSamsung);

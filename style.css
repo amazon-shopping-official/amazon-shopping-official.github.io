@@ -851,6 +851,13 @@ body {
 .swatch-titanium-silver { background: #dcdde1; border: 1px solid #bbb; }
 .swatch-titanium-violet { background: #685b82; }
 
+/* Official Apple iPhone 18 Pro Max Finishes */
+.swatch-cosmic-purple { background: #5c4d68; border: 1px solid #756285; }
+.swatch-desert-titanium { background: #c5a98d; }
+.swatch-natural-titanium { background: #9a948d; }
+.swatch-space-black { background: #1c1d1f; border: 1px solid #333; }
+
+
 .storage-grid {
   display: flex;
   gap: 8px;
