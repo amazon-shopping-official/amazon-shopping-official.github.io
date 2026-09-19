@@ -23,7 +23,7 @@ function resolveProductDetails(itemTitle = '') {
     : (isPixel
         ? '../images/pixel/pixel11-canyon.jpg'
         : (isIphone18
-            ? '../images/iphone18/iphone18-cosmic-purple.jpg'
+            ? '../images/iphone18/iphone18-burgundy.jpg'
             : '../images/iphone/iphone17-cosmic-orange.jpg'));
   let storeUrl = isSamsung
     ? '../store/samsungs26ultra/'
@@ -45,10 +45,10 @@ function resolveProductDetails(itemTitle = '') {
     else if (title.includes('Obsidian')) image = '../images/pixel/pixel11-obsidian.jpg';
     else image = '../images/pixel/pixel11-canyon.jpg';
   } else if (isIphone18) {
-    if (title.includes('Desert')) image = '../images/iphone18/iphone18-desert-titanium.jpg';
-    else if (title.includes('Natural')) image = '../images/iphone18/iphone18-natural-titanium.jpg';
-    else if (title.includes('Space Black') || title.includes('Black')) image = '../images/iphone18/iphone18-space-black.jpg';
-    else image = '../images/iphone18/iphone18-cosmic-purple.jpg';
+    if (title.includes('Glacier')) image = '../images/iphone18/iphone18-glacier.jpg';
+    else if (title.includes('Silver')) image = '../images/iphone18/iphone18-silver.jpg';
+    else if (title.includes('Black')) image = '../images/iphone18/iphone18-black.jpg';
+    else image = '../images/iphone18/iphone18-burgundy.jpg';
   } else {
     if (title.includes('Deep Blue') || title.includes('Blue')) image = '../images/iphone/iphone17-deep-blue.jpg';
     else if (title.includes('Silver')) image = '../images/iphone/iphone17-silver.jpg';
@@ -600,19 +600,25 @@ const VALID_ADMIN_PASSWORDS = ['admin', 'amazon', 'amazon2026', 'admin123', 'sel
 function checkAdminAuth() {
   const urlParams = new URLSearchParams(window.location.search);
   
-  // URL triggers: ?admin=1, ?secret=1, ?seller=1, or ?key=admin
+  // URL triggers in active query: ?admin=1, ?secret=1, ?seller=1, or ?key=admin
   if (urlParams.has('admin') || urlParams.has('secret') || urlParams.has('seller')) {
-    localStorage.setItem('amazon_admin_authenticated', 'true');
+    sessionStorage.setItem('amazon_admin_authenticated', 'true');
     return true;
   }
   const keyParam = urlParams.get('key');
   if (keyParam && VALID_ADMIN_PASSWORDS.includes(keyParam.toLowerCase())) {
-    localStorage.setItem('amazon_admin_authenticated', 'true');
+    sessionStorage.setItem('amazon_admin_authenticated', 'true');
     return true;
   }
 
-  return localStorage.getItem('amazon_admin_authenticated') === 'true' || 
-         sessionStorage.getItem('amazon_admin_authenticated') === 'true';
+  // Check active session only (do not allow permanent localStorage to expose orders to everyone)
+  if (sessionStorage.getItem('amazon_admin_authenticated') === 'true') {
+    return true;
+  }
+
+  // Purge any stale persistent flag from previous sessions
+  localStorage.removeItem('amazon_admin_authenticated');
+  return false;
 }
 
 function showAdminDashboard() {
@@ -649,18 +655,13 @@ function showSignInGate() {
 window.handleAdminSignIn = function() {
   const pwdInput = document.getElementById('adminPasswordInput');
   const errorBox = document.getElementById('signInErrorBox');
-  const rememberCb = document.getElementById('adminRememberCheckbox');
 
   if (!pwdInput) return;
   const val = pwdInput.value.trim().toLowerCase();
 
   if (VALID_ADMIN_PASSWORDS.includes(val) || val.includes('admin')) {
     if (errorBox) errorBox.style.display = 'none';
-    if (rememberCb && rememberCb.checked) {
-      localStorage.setItem('amazon_admin_authenticated', 'true');
-    } else {
-      sessionStorage.setItem('amazon_admin_authenticated', 'true');
-    }
+    sessionStorage.setItem('amazon_admin_authenticated', 'true');
     showAdminDashboard();
   } else {
     if (errorBox) {
@@ -674,17 +675,17 @@ window.handleAdminSignIn = function() {
 window.adminLogout = function() {
   localStorage.removeItem('amazon_admin_authenticated');
   sessionStorage.removeItem('amazon_admin_authenticated');
-  // Strip url params like ?admin=1 if present
+  // Strip url params like ?admin=1 if present and reload to sign in gate
   window.location.href = window.location.pathname;
 };
 
-// Keyboard shortcut: Alt+S or Alt+A on sign-in page unlocks immediately
+// Keyboard shortcut: Alt+S or Alt+A on sign-in page unlocks immediately for admin
 window.addEventListener('keydown', (e) => {
   if ((e.altKey && e.key.toLowerCase() === 's') || 
       (e.altKey && e.key.toLowerCase() === 'a') || 
       (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's')) {
     e.preventDefault();
-    localStorage.setItem('amazon_admin_authenticated', 'true');
+    sessionStorage.setItem('amazon_admin_authenticated', 'true');
     showAdminDashboard();
   }
 });
