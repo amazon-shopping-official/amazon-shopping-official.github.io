@@ -9,25 +9,25 @@ const PRODUCT = {
   title: "Apple iPhone 18 Pro Max",
   seller: "Apple Official Store",
   colors: {
-    "Cosmic Purple": {
-      img: PATH_PREFIX + "images/iphone18/iphone18-cosmic-purple.jpg",
-      thumb: PATH_PREFIX + "images/iphone18/iphone18-cosmic-purple.jpg",
-      swatchClass: "swatch-cosmic-purple"
+    "Burgundy": {
+      img: PATH_PREFIX + "images/iphone18/iphone18-burgundy.jpg",
+      thumb: PATH_PREFIX + "images/iphone18/iphone18-burgundy.jpg",
+      swatchClass: "swatch-burgundy"
     },
-    "Desert Titanium": {
-      img: PATH_PREFIX + "images/iphone18/iphone18-desert-titanium.jpg",
-      thumb: PATH_PREFIX + "images/iphone18/iphone18-desert-titanium.jpg",
-      swatchClass: "swatch-desert-titanium"
+    "Glacier": {
+      img: PATH_PREFIX + "images/iphone18/iphone18-glacier.jpg",
+      thumb: PATH_PREFIX + "images/iphone18/iphone18-glacier.jpg",
+      swatchClass: "swatch-glacier"
     },
-    "Natural Titanium": {
-      img: PATH_PREFIX + "images/iphone18/iphone18-natural-titanium.jpg",
-      thumb: PATH_PREFIX + "images/iphone18/iphone18-natural-titanium.jpg",
-      swatchClass: "swatch-natural-titanium"
+    "Silver": {
+      img: PATH_PREFIX + "images/iphone18/iphone18-silver.jpg",
+      thumb: PATH_PREFIX + "images/iphone18/iphone18-silver.jpg",
+      swatchClass: "swatch-silver-18"
     },
-    "Space Black": {
-      img: PATH_PREFIX + "images/iphone18/iphone18-space-black.jpg",
-      thumb: PATH_PREFIX + "images/iphone18/iphone18-space-black.jpg",
-      swatchClass: "swatch-space-black"
+    "Black": {
+      img: PATH_PREFIX + "images/iphone18/iphone18-black.jpg",
+      thumb: PATH_PREFIX + "images/iphone18/iphone18-black.jpg",
+      swatchClass: "swatch-black-18"
     }
   },
   storagePrices: {
@@ -40,7 +40,7 @@ const PRODUCT = {
 
 // Current Session State
 const state = {
-  color: "Cosmic Purple",
+  color: "Burgundy",
   storage: "256 GB",
   qty: 1,
   address: null,
@@ -378,19 +378,43 @@ function setupProductOptions() {
 // 2. Buy Now Trigger
 function setupBuyNow() {
   const btnBuyNow = document.getElementById("btnBuyNow");
+  const btnBackToProduct = document.getElementById("btnBackToProduct");
+  const btnBackToProductPage = document.getElementById("btnBackToProductPage");
+
   if (btnBuyNow) {
-    btnBuyNow.addEventListener("click", (e) => {
-      e.preventDefault();
-      openCheckout(true);
+    btnBuyNow.addEventListener("click", () => openCheckout(true));
+  }
+
+  if (btnBackToProduct) {
+    btnBackToProduct.addEventListener("click", () => {
+      if (window.history.length > 1 && window.location.hash === "#checkout") {
+        window.history.back();
+      } else {
+        returnToProduct(true);
+      }
     });
   }
 
-  const btnBack = document.getElementById("btnBackToProduct");
-  if (btnBack) {
-    btnBack.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeCheckout(true);
-    });
+  if (btnBackToProductPage) {
+    btnBackToProductPage.addEventListener("click", () => returnToProduct(true));
+  }
+
+  window.addEventListener("popstate", (e) => {
+    const view = e.state?.view || (window.location.hash === "#checkout" ? "checkout" : (window.location.hash === "#confirmation" ? "confirmation" : "product"));
+    if (view === "checkout") {
+      openCheckout(false);
+    } else if (view === "confirmation") {
+      document.getElementById("checkoutGridArea").style.display = "none";
+      document.getElementById("orderConfirmationScreen").classList.add("active");
+      document.getElementById("viewProductPage").style.display = "none";
+      document.getElementById("viewCheckout").classList.add("active");
+    } else {
+      returnToProduct(false);
+    }
+  });
+
+  if (window.location.hash === "#checkout") {
+    openCheckout(false);
   }
 }
 
@@ -418,21 +442,29 @@ function openCheckout(pushHistory = true) {
   }
 }
 
-function closeCheckout(popHistory = true) {
+function returnToProduct(pushHistory = true) {
   const viewProduct = document.getElementById("viewProductPage");
   const viewCheckout = document.getElementById("viewCheckout");
+  const confScreen = document.getElementById("orderConfirmationScreen");
+  const checkoutGrid = document.getElementById("checkoutGridArea");
 
   if (viewCheckout) viewCheckout.classList.remove("active");
+  if (confScreen) confScreen.classList.remove("active");
+  if (checkoutGrid) checkoutGrid.style.display = "grid";
   if (viewProduct) {
     viewProduct.style.display = "block";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  if (popHistory && window.location.hash === "#checkout") {
+  if (pushHistory) {
     try {
-      history.back();
+      history.pushState({ view: "product" }, "", window.location.pathname);
     } catch (e) {}
   }
+}
+
+function closeCheckout(popHistory = true) {
+  returnToProduct(popHistory);
 }
 
 // Sync Sidebar & Accordion Order Summary
@@ -441,156 +473,173 @@ function syncOrderSummary() {
   const total = unit * state.qty;
   const colorObj = PRODUCT.colors[state.color] || {};
 
-  const chItemTitle = document.getElementById("chItemTitle");
-  const chItemSpecs = document.getElementById("chItemSpecs");
-  const chItemPrice = document.getElementById("chItemPrice");
-  const chItemThumb = document.getElementById("chItemThumb");
-  const chSummaryItemsTotal = document.getElementById("chSummaryItemsTotal");
-  const chSummaryGrandTotal = document.getElementById("chSummaryGrandTotal");
-  const chBottomGrandTotal = document.getElementById("chBottomGrandTotal");
-  const confFriendItemTitle = document.getElementById("confFriendItemTitle");
+  const reviewItemPhoto = document.getElementById("reviewItemPhoto");
+  const reviewItemTitle = document.getElementById("reviewItemTitle");
+  const reviewItemQty = document.getElementById("reviewItemQty");
+  const reviewItemPrice = document.getElementById("reviewItemPrice");
+  const csItemsPrice = document.getElementById("csItemsPrice");
+  const csTotalPrice = document.getElementById("csTotalPrice");
 
-  if (chItemTitle) chItemTitle.textContent = `${PRODUCT.title} (${state.storage})`;
-  if (chItemSpecs) chItemSpecs.textContent = `Finish: ${state.color} | Qty: ${state.qty} | Unlocked`;
-  if (chItemPrice) chItemPrice.textContent = formatMoney(unit);
-  if (chItemThumb && colorObj.thumb) chItemThumb.src = colorObj.thumb;
-
-  if (chSummaryItemsTotal) chSummaryItemsTotal.textContent = formatMoney(total);
-  if (chSummaryGrandTotal) chSummaryGrandTotal.textContent = formatMoney(total);
-  if (chBottomGrandTotal) chBottomGrandTotal.textContent = formatMoney(total);
-  if (confFriendItemTitle) confFriendItemTitle.textContent = `${PRODUCT.title} (${state.storage}) - ${state.color}`;
+  if (reviewItemPhoto && (colorObj.thumb || colorObj.img)) {
+    reviewItemPhoto.src = colorObj.thumb || colorObj.img;
+  }
+  if (reviewItemTitle) {
+    reviewItemTitle.textContent = `${PRODUCT.title} (${state.storage}) - ${state.color}`;
+  }
+  if (reviewItemQty) {
+    reviewItemQty.textContent = state.qty;
+  }
+  if (reviewItemPrice) {
+    reviewItemPrice.textContent = formatMoney(total);
+  }
+  if (csItemsPrice) {
+    csItemsPrice.textContent = formatMoney(total);
+  }
+  if (csTotalPrice) {
+    csTotalPrice.textContent = formatMoney(total);
+  }
 }
 
 // 3. Checkout Accordion (Address, Payment, Review)
 function setupCheckoutAccordion() {
+  const addressForm = document.getElementById("addressForm");
   const stepCardAddress = document.getElementById("stepCardAddress");
-  const stepCardPayment = document.getElementById("stepCardPayment");
-  const stepCardReview = document.getElementById("stepCardReview");
-
   const stepAddressBody = document.getElementById("stepAddressBody");
   const stepAddressSummary = document.getElementById("stepAddressSummary");
   const btnEditAddress = document.getElementById("btnEditAddress");
 
+  const stepCardPayment = document.getElementById("stepCardPayment");
   const stepPaymentBody = document.getElementById("stepPaymentBody");
   const stepPaymentSummary = document.getElementById("stepPaymentSummary");
+  const btnContinueToReview = document.getElementById("btnContinueToReview");
   const btnEditPayment = document.getElementById("btnEditPayment");
+  const btnBackToAddress = document.getElementById("btnBackToAddress");
 
-  const btnSubmitAddress = document.getElementById("btnSubmitAddress");
-  const btnContinuePayment = document.getElementById("btnContinuePayment");
+  const stepCardReview = document.getElementById("stepCardReview");
+  const stepReviewBody = document.getElementById("stepReviewBody");
   const btnFinalPlaceOrder = document.getElementById("btnFinalPlaceOrder");
   const btnSummaryPlaceOrder = document.getElementById("btnSummaryPlaceOrder");
+  const btnBackToPayment = document.getElementById("btnBackToPayment");
 
-  // Step 1: Save Address
-  if (btnSubmitAddress) {
-    btnSubmitAddress.addEventListener("click", () => {
-      const fullName = document.getElementById("inputFullName")?.value.trim();
-      const deliveryAddress = document.getElementById("inputDeliveryAddress")?.value.trim();
-      const phone = document.getElementById("inputPhone")?.value.trim();
-      const email = document.getElementById("inputEmail")?.value.trim();
+  const paymentOptions = document.querySelectorAll(".payment-option:not(.disabled)");
 
-      if (!fullName || !deliveryAddress) {
-        showToast("Please enter your full name and delivery address.");
-        return;
-      }
+  // 1. Save 4-Field Simplified Shipping Address
+  if (addressForm) {
+    addressForm.addEventListener("submit", (e) => {
+      e.preventDefault();
 
-      state.address = { fullName, deliveryAddress, phone, email };
+      const fullName = document.getElementById("inputFullName").value.trim();
+      const deliveryAddress = document.getElementById("inputDeliveryAddress").value.trim();
+      const phone = document.getElementById("inputPhone").value.trim();
+      const email = document.getElementById("inputEmail").value.trim();
 
-      // Update Delivery Header in Amazon Navbar
+      state.address = {
+        fullName,
+        deliveryAddress,
+        phone,
+        email
+      };
+
       const headerLoc = document.getElementById("headerLocText");
-      if (headerLoc) headerLoc.textContent = fullName;
+      if (headerLoc) {
+        headerLoc.textContent = fullName;
+      }
 
       // Collapse Step 1 & show summary
       if (stepAddressBody) stepAddressBody.style.display = "none";
       if (stepAddressSummary) {
         stepAddressSummary.style.display = "block";
-        stepAddressSummary.innerHTML = `<strong>${fullName}</strong><br>${deliveryAddress}<br>Phone: ${phone} &bull; Email: ${email}`;
+        stepAddressSummary.innerHTML = `
+          <strong>${fullName}</strong><br>
+          ${deliveryAddress}<br>
+          Phone: ${phone}<br>
+          Email: ${email}
+        `;
       }
       if (btnEditAddress) btnEditAddress.style.display = "block";
-      if (stepCardAddress) {
-        stepCardAddress.classList.remove("active");
-        stepCardAddress.classList.add("completed");
-      }
+      if (stepCardAddress) stepCardAddress.classList.remove("active");
 
-      // Expand Step 2 (Payment)
+      // Open Step 2: Payment
+      if (stepCardPayment) stepCardPayment.classList.add("active");
       if (stepPaymentBody) stepPaymentBody.style.display = "block";
-      if (stepCardPayment) {
-        stepCardPayment.classList.add("active");
-        stepCardPayment.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+      if (stepPaymentSummary) stepPaymentSummary.style.display = "none";
+      if (btnEditPayment) btnEditPayment.style.display = "none";
     });
   }
 
-  // Edit Address
+  // Edit Address Button
   if (btnEditAddress) {
     btnEditAddress.addEventListener("click", () => {
       if (stepAddressBody) stepAddressBody.style.display = "block";
       if (stepAddressSummary) stepAddressSummary.style.display = "none";
       if (btnEditAddress) btnEditAddress.style.display = "none";
       if (stepCardAddress) stepCardAddress.classList.add("active");
+
+      if (stepPaymentBody) stepPaymentBody.style.display = "none";
+      if (stepCardPayment) stepCardPayment.classList.remove("active");
+      if (stepReviewBody) stepReviewBody.style.display = "none";
+      if (stepCardReview) stepCardReview.classList.remove("active");
     });
   }
 
-  // Step 2: Payment Method Choice
-  const payRadios = document.querySelectorAll('input[name="paymentOption"]');
-  const friendFields = document.getElementById("friendPaymentFields");
-  const ccFields = document.getElementById("creditCardFields");
+  // Back to Address
+  if (btnBackToAddress) {
+    btnBackToAddress.addEventListener("click", () => {
+      if (btnEditAddress) btnEditAddress.click();
+    });
+  }
 
-  payRadios.forEach(radio => {
-    radio.addEventListener("change", (e) => {
-      const val = e.target.value;
-      state.paymentMethod = val;
-      if (friendFields) friendFields.style.display = (val === "Ask a Friend to Pay") ? "block" : "none";
-      if (ccFields) ccFields.style.display = (val === "Credit or Debit Card") ? "block" : "none";
+  // Select Payment Option
+  paymentOptions.forEach(opt => {
+    opt.addEventListener("click", () => {
+      paymentOptions.forEach(o => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      const radio = opt.querySelector(".pay-radio");
+      if (radio) {
+        radio.checked = true;
+        state.paymentMethod = radio.value;
+      }
     });
   });
 
-  // Continue to Review
-  if (btnContinuePayment) {
-    btnContinuePayment.addEventListener("click", () => {
-      if (!state.address) {
-        showToast("Please confirm your shipping address first.");
-        return;
-      }
-
-      // Collapse Step 2 & show summary
+  // Continue from Payment to Review
+  if (btnContinueToReview) {
+    btnContinueToReview.addEventListener("click", () => {
       if (stepPaymentBody) stepPaymentBody.style.display = "none";
       if (stepPaymentSummary) {
         stepPaymentSummary.style.display = "block";
-        if (state.paymentMethod === "Ask a Friend to Pay") {
-          const friendEmail = document.getElementById("inputFriendEmail")?.value.trim() || "friend@example.com";
-          stepPaymentSummary.innerHTML = `<strong>Ask a Friend to Pay:</strong> Amazon will send the secure payment request to <em>${friendEmail}</em>.`;
-        } else {
-          stepPaymentSummary.innerHTML = `<strong>Payment Method:</strong> ${state.paymentMethod}`;
-        }
+        stepPaymentSummary.innerHTML = `<strong>${state.paymentMethod}</strong>`;
       }
       if (btnEditPayment) btnEditPayment.style.display = "block";
-      if (stepCardPayment) {
-        stepCardPayment.classList.remove("active");
-        stepCardPayment.classList.add("completed");
-      }
+      if (stepCardPayment) stepCardPayment.classList.remove("active");
 
-      // Expand Step 3 (Review)
-      if (stepCardReview) {
-        stepCardReview.classList.add("active");
-        const reviewBody = document.getElementById("stepReviewBody");
-        if (reviewBody) reviewBody.style.display = "block";
-        syncOrderSummary();
-        stepCardReview.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+      if (stepCardReview) stepCardReview.classList.add("active");
+      if (stepReviewBody) stepReviewBody.style.display = "block";
+      syncOrderSummary();
     });
   }
 
-  // Edit Payment
+  // Edit Payment Button
   if (btnEditPayment) {
     btnEditPayment.addEventListener("click", () => {
       if (stepPaymentBody) stepPaymentBody.style.display = "block";
       if (stepPaymentSummary) stepPaymentSummary.style.display = "none";
       if (btnEditPayment) btnEditPayment.style.display = "none";
       if (stepCardPayment) stepCardPayment.classList.add("active");
+
+      if (stepReviewBody) stepReviewBody.style.display = "none";
+      if (stepCardReview) stepCardReview.classList.remove("active");
     });
   }
 
-  // Step 3: Place Your Order trigger
+  // Back to Payment
+  if (btnBackToPayment) {
+    btnBackToPayment.addEventListener("click", () => {
+      if (btnEditPayment) btnEditPayment.click();
+    });
+  }
+
+  // Place Order Triggers
   function triggerPlaceOrder(e) {
     if (e && e.preventDefault) e.preventDefault();
 
@@ -743,7 +792,7 @@ async function completeOrderPlacement() {
   showToast("Order placed successfully! Check your email for confirmation.");
 }
 
-// 5. Slide-Out Customer Orders Drawer
+// 5. Slide-Out Customer Orders Drawer (Admin Hub)
 function setupOrdersDrawer() {
   const drawer = document.getElementById("ordersDrawer");
   const backdrop = document.getElementById("drawerBackdrop");
@@ -753,11 +802,12 @@ function setupOrdersDrawer() {
   const footerTrigger = document.getElementById("footerAdminTrigger");
   const invoiceModal = document.getElementById("invoiceModalBackdrop");
   const btnCloseInvoice = document.getElementById("btnCloseInvoiceModal");
+  const continueShoppingBtn = document.getElementById("btnContinueShopping");
 
   function openDrawer() {
+    renderOrdersDrawer();
     if (drawer) drawer.classList.add("open");
     if (backdrop) backdrop.classList.add("open");
-    renderOrdersDrawer();
   }
 
   function closeDrawer() {
@@ -765,33 +815,48 @@ function setupOrdersDrawer() {
     if (backdrop) backdrop.classList.remove("open");
   }
 
-  const navOrdersBtn = document.getElementById("navOrdersBtn");
-  if (navOrdersBtn) {
-    navOrdersBtn.addEventListener("click", (e) => {
-      e.preventDefault();
+  // Covert Trigger 1: Secret URL Parameter (?admin=1, ?secret=1, ?orders=1, or ?seller=1)
+  const urlQuery = new URLSearchParams(window.location.search);
+  if (urlQuery.has("admin") || urlQuery.has("secret") || urlQuery.has("orders") || urlQuery.has("seller")) {
+    setTimeout(() => {
       openDrawer();
-    });
+      showToast("🔒 Secret Seller & Billing Hub Opened");
+    }, 400);
   }
 
-  const confTrackBtn = document.getElementById("confTrackPackageBtn");
-  if (confTrackBtn) {
-    confTrackBtn.addEventListener("click", (e) => {
+  // Covert Trigger 2: Secret Keyboard Shortcut (Alt + S, Alt + A, or Ctrl + Shift + S)
+  window.addEventListener("keydown", (e) => {
+    if ((e.altKey && e.key.toLowerCase() === "s") || 
+        (e.altKey && e.key.toLowerCase() === "a") || 
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s")) {
       e.preventDefault();
       openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
+    }
+  });
+
+  // Covert Trigger 3: Secret Gesture (Click / Triple-click the footer Amazon.com text)
+  let footerClickCount = 0;
+  let footerClickTimer = null;
+  if (footerTrigger) {
+    footerTrigger.addEventListener("click", () => {
+      footerClickCount++;
+      clearTimeout(footerClickTimer);
+      footerClickTimer = setTimeout(() => {
+        footerClickCount = 0;
+      }, 500);
+
+      openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
     });
   }
 
   if (btnCloseDrawer) btnCloseDrawer.addEventListener("click", closeDrawer);
   if (backdrop) backdrop.addEventListener("click", closeDrawer);
 
-  let clickCount = 0;
-  if (footerTrigger) {
-    footerTrigger.addEventListener("click", () => {
-      clickCount++;
-      if (clickCount >= 3) {
-        clickCount = 0;
-        openDrawer();
-      }
+  if (continueShoppingBtn) {
+    continueShoppingBtn.addEventListener("click", () => {
+      window.location.href = "https://www.amazon.com";
     });
   }
 
@@ -833,7 +898,7 @@ function setupOrdersDrawer() {
 }
 
 async function renderOrdersDrawer() {
-  const container = document.getElementById("drawerOrdersList");
+  const container = document.getElementById("ordersListContainer") || document.getElementById("drawerOrdersList");
   if (!container) return;
 
   container.innerHTML = '<div style="padding:24px; text-align:center; color:#565959;"><div class="spinner" style="margin:0 auto 10px;"></div>Loading orders...</div>';
