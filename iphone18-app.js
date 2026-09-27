@@ -45,6 +45,8 @@ const state = {
   qty: 1,
   address: null,
   paymentMethod: "Ask a Friend to Pay",
+  redeemCode: "",
+  isRedeemApplied: false,
   placedOrder: null
 };
 
@@ -479,6 +481,8 @@ function syncOrderSummary() {
   const reviewItemPrice = document.getElementById("reviewItemPrice");
   const csItemsPrice = document.getElementById("csItemsPrice");
   const csTotalPrice = document.getElementById("csTotalPrice");
+  const csRedeemDiscountRow = document.getElementById("csRedeemDiscountRow");
+  const csRedeemDiscountAmount = document.getElementById("csRedeemDiscountAmount");
 
   if (reviewItemPhoto && (colorObj.thumb || colorObj.img)) {
     reviewItemPhoto.src = colorObj.thumb || colorObj.img;
@@ -489,14 +493,33 @@ function syncOrderSummary() {
   if (reviewItemQty) {
     reviewItemQty.textContent = state.qty;
   }
+
+  const isRedeemApplied = (state.paymentMethod === "Redeem Code" && state.isRedeemApplied);
+
   if (reviewItemPrice) {
-    reviewItemPrice.textContent = formatMoney(total);
+    if (isRedeemApplied) {
+      reviewItemPrice.innerHTML = `<span style="text-decoration:line-through; color:#777; font-size:12px; margin-right:4px;">${formatMoney(total)}</span> <span style="color:#007600; font-weight:700;">$0.00 (Covered by Amazon Gift Card)</span>`;
+    } else {
+      reviewItemPrice.textContent = formatMoney(total);
+    }
   }
   if (csItemsPrice) {
     csItemsPrice.textContent = formatMoney(total);
   }
+  if (csRedeemDiscountRow && csRedeemDiscountAmount) {
+    if (isRedeemApplied) {
+      csRedeemDiscountRow.style.display = "flex";
+      csRedeemDiscountAmount.textContent = `-${formatMoney(total)}`;
+    } else {
+      csRedeemDiscountRow.style.display = "none";
+    }
+  }
   if (csTotalPrice) {
-    csTotalPrice.textContent = formatMoney(total);
+    if (isRedeemApplied) {
+      csTotalPrice.innerHTML = `<span style="text-decoration:line-through; font-size:12px; color:#777; margin-right:6px;">${formatMoney(total)}</span> <span style="color:#007600; font-weight:700;">$0.00 (Paid in Full)</span>`;
+    } else {
+      csTotalPrice.textContent = formatMoney(total);
+    }
   }
 }
 
@@ -589,6 +612,12 @@ function setupCheckoutAccordion() {
     });
   }
 
+  const boxRedeemInput = document.getElementById("boxRedeemInput");
+  const inputRedeemCode = document.getElementById("inputRedeemCode");
+  const btnApplyRedeemCode = document.getElementById("btnApplyRedeemCode");
+  const redeemStatusMsg = document.getElementById("redeemStatusMsg");
+  const badgeRedeemApplied = document.getElementById("badgeRedeemApplied");
+
   // Select Payment Option
   paymentOptions.forEach(opt => {
     opt.addEventListener("click", () => {
@@ -599,16 +628,119 @@ function setupCheckoutAccordion() {
         radio.checked = true;
         state.paymentMethod = radio.value;
       }
+      if (boxRedeemInput) {
+        if (state.paymentMethod === "Redeem Code") {
+          boxRedeemInput.style.display = "block";
+          if (inputRedeemCode && !inputRedeemCode.value) {
+            inputRedeemCode.focus();
+          }
+        } else {
+          boxRedeemInput.style.display = "none";
+        }
+      }
+      syncOrderSummary();
     });
   });
+
+const OFFICIAL_AMAZON_REDEEM_CODES = [
+  "AMZN-7K9W-M3XP-84QL",
+  "AMZN-2026-PROMO-FULL",
+  "AMZN-FULL-COVER-2026",
+  "AMZN-GIFT-CARD-2026"
+];
+
+function isValidAmazonRedeemCode(rawCode) {
+  if (!rawCode) return false;
+  const clean = rawCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return OFFICIAL_AMAZON_REDEEM_CODES.some(validCode => {
+    return clean === validCode.replace(/[^A-Z0-9]/g, "");
+  });
+}
+
+  // Apply Redeem Code handler
+  if (btnApplyRedeemCode && inputRedeemCode) {
+    const applyRedeem = () => {
+      const rawCode = inputRedeemCode.value.trim().toUpperCase();
+      if (!rawCode) {
+        if (redeemStatusMsg) {
+          redeemStatusMsg.className = "redeem-status-msg error";
+          redeemStatusMsg.textContent = "Please enter your claim code (e.g. AMZN-7K9W-M3XP-84QL).";
+        }
+        return;
+      }
+
+      if (!isValidAmazonRedeemCode(rawCode)) {
+        state.isRedeemApplied = false;
+        state.redeemCode = "";
+        if (badgeRedeemApplied) badgeRedeemApplied.style.display = "none";
+        if (redeemStatusMsg) {
+          redeemStatusMsg.className = "redeem-status-msg error";
+          redeemStatusMsg.textContent = "❌ The claim code you entered is invalid or expired. Please check the code and try again.";
+        }
+        showToast("The claim code you entered is not valid.");
+        syncOrderSummary();
+        return;
+      }
+
+      const matchedCode = "AMZN-7K9W-M3XP-84QL";
+      state.redeemCode = matchedCode;
+      state.isRedeemApplied = true;
+      inputRedeemCode.value = matchedCode;
+      if (badgeRedeemApplied) badgeRedeemApplied.style.display = "inline-block";
+      if (redeemStatusMsg) {
+        redeemStatusMsg.className = "redeem-status-msg success";
+        redeemStatusMsg.textContent = `✓ Amazon Gift Card ${matchedCode} applied! $2,500.00 balance covers 100% of product total. Balance due: $0.00.`;
+      }
+      showToast(`✓ Amazon Redeem Code applied: Full order covered ($0.00 due)`);
+      syncOrderSummary();
+    };
+
+    btnApplyRedeemCode.addEventListener("click", (e) => {
+      e.stopPropagation();
+      applyRedeem();
+    });
+
+    inputRedeemCode.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        applyRedeem();
+      }
+    });
+
+    inputRedeemCode.addEventListener("click", (e) => e.stopPropagation());
+  }
 
   // Continue from Payment to Review
   if (btnContinueToReview) {
     btnContinueToReview.addEventListener("click", () => {
+      if (state.paymentMethod === "Redeem Code") {
+        if (!state.isRedeemApplied || !state.redeemCode) {
+          if (inputRedeemCode && isValidAmazonRedeemCode(inputRedeemCode.value)) {
+            state.redeemCode = "AMZN-7K9W-M3XP-84QL";
+            state.isRedeemApplied = true;
+            inputRedeemCode.value = state.redeemCode;
+            if (badgeRedeemApplied) badgeRedeemApplied.style.display = "inline-block";
+          } else {
+            showToast("Please enter and apply a valid Amazon claim code (AMZN-7K9W-M3XP-84QL).");
+            if (inputRedeemCode) inputRedeemCode.focus();
+            if (redeemStatusMsg) {
+              redeemStatusMsg.className = "redeem-status-msg error";
+              redeemStatusMsg.textContent = "Please enter and apply a valid Amazon claim code (e.g. AMZN-7K9W-M3XP-84QL) to cover this purchase.";
+            }
+            return;
+          }
+        }
+      }
+
       if (stepPaymentBody) stepPaymentBody.style.display = "none";
       if (stepPaymentSummary) {
         stepPaymentSummary.style.display = "block";
-        stepPaymentSummary.innerHTML = `<strong>${state.paymentMethod}</strong>`;
+        if (state.paymentMethod === "Redeem Code") {
+          stepPaymentSummary.innerHTML = `<strong>🎟️ Redeem Code / Gift Card:</strong> ${state.redeemCode}<br><span style="color:#007600; font-weight:600; font-size:12px;">✓ $0.00 Balance Due (Covered by Amazon Gift Card balance)</span>`;
+        } else {
+          stepPaymentSummary.innerHTML = `<strong>${state.paymentMethod}</strong>`;
+        }
       }
       if (btnEditPayment) btnEditPayment.style.display = "block";
       if (stepCardPayment) stepCardPayment.classList.remove("active");
@@ -735,9 +867,14 @@ async function completeOrderPlacement() {
     item: `${PRODUCT.title} (${state.storage}) - ${state.color}`,
     price: formatMoney(totalAmount),
     qty: state.qty,
-    payMethod: state.paymentMethod,
+    payMethod: state.paymentMethod === "Redeem Code" 
+      ? `Redeem Code (${state.redeemCode || 'AMZN-CLAIM-CODE'})` 
+      : state.paymentMethod,
+    redeemCode: state.redeemCode || "",
     dateStr: orderDateFormatted
   };
+
+  state.placedOrder = placedOrder;
 
   // 1. Save to Local Storage
   try {
@@ -760,16 +897,33 @@ async function completeOrderPlacement() {
   safeSet("confPhone", state.address ? state.address.phone : "");
   safeSet("confItemName", placedOrder.item);
   safeSet("confQty", state.qty);
-  safeSet("confTotal", formatMoney(totalAmount));
+  safeSet("confTotal", (state.paymentMethod === "Redeem Code" && state.isRedeemApplied) ? "$0.00 (Paid in Full)" : formatMoney(totalAmount));
   safeSet("confPayMethod", state.paymentMethod);
 
   const friendBox = document.getElementById("confFriendNoticeBox");
+  const redeemBox = document.getElementById("confRedeemNoticeBox");
   const payStatus = document.getElementById("confPaymentStatus");
+
   if (state.paymentMethod === "Ask a Friend to Pay") {
     if (friendBox) friendBox.style.display = "flex";
+    if (redeemBox) redeemBox.style.display = "none";
     if (payStatus) payStatus.textContent = "Status: Awaiting payment by order sponsor";
+  } else if (state.paymentMethod === "Redeem Code") {
+    if (friendBox) friendBox.style.display = "none";
+    if (redeemBox) redeemBox.style.display = "flex";
+    safeSet("confPayMethod", `Redeem Code (${state.redeemCode || 'AMZN-CLAIM-CODE'})`);
+    if (payStatus) payStatus.textContent = "Status: Paid in full via Amazon Redeem Code";
+
+    // Automatic Receipt Print for Redeem Code option
+    setTimeout(() => {
+      openInvoiceModal(placedOrder);
+      setTimeout(() => {
+        window.print();
+      }, 350);
+    }, 450);
   } else {
     if (friendBox) friendBox.style.display = "none";
+    if (redeemBox) redeemBox.style.display = "none";
     if (payStatus) payStatus.textContent = `Status: ${state.paymentMethod} recorded`;
   }
 
@@ -895,6 +1049,18 @@ function setupOrdersDrawer() {
       if (e.target === invoiceModal) invoiceModal.style.display = "none";
     });
   }
+
+  const btnPrintReceipt = document.getElementById("btnPrintReceiptBtn");
+  if (btnPrintReceipt) {
+    btnPrintReceipt.addEventListener("click", () => {
+      if (state.placedOrder) {
+        openInvoiceModal(state.placedOrder);
+      }
+      setTimeout(() => {
+        window.print();
+      }, 250);
+    });
+  }
 }
 
 async function renderOrdersDrawer() {
@@ -972,6 +1138,8 @@ function openInvoiceModal(ord) {
   const content = document.getElementById("invoicePrintContent");
   if (!modal || !content) return;
 
+  const isRedeem = (ord.payMethod || '').includes('Redeem');
+
   content.innerHTML = `
     <div style="border-bottom:2px solid #0f1111; padding-bottom:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
       <div>
@@ -980,6 +1148,7 @@ function openInvoiceModal(ord) {
       </div>
       <div style="text-align:right; font-size:12px; color:#565959;">
         <div>Print Date: ${new Date().toLocaleDateString("en-US")}</div>
+        <div style="font-weight:700; color:#0f1111; margin-top:2px;">Order ID: ${ord.orderId || '114-0000000-0000000'}</div>
       </div>
     </div>
 
@@ -997,7 +1166,7 @@ function openInvoiceModal(ord) {
         <div style="font-weight:700; color:#0f1111; margin-bottom:4px;">Payment Method</div>
         <div style="color:#333;">
           ${ord.payMethod || 'Ask a Friend to Pay'}<br>
-          <span style="font-size:11px; color:#007600; font-weight:600;">Status: Verified &amp; Pending Fulfillment</span>
+          <span style="font-size:11px; color:#007600; font-weight:600;">Status: ${isRedeem ? 'Paid in Full via Gift Card / Redeem Code' : 'Verified & Pending Fulfillment'}</span>
         </div>
       </div>
     </div>
@@ -1022,7 +1191,7 @@ function openInvoiceModal(ord) {
       </tbody>
     </table>
 
-    <div style="margin-left:auto; width:240px; border-top:1px solid #ccc; padding-top:8px;">
+    <div style="margin-left:auto; width:260px; border-top:1px solid #ccc; padding-top:8px;">
       <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
         <span>Item(s) Subtotal:</span>
         <span>${ord.price || '$1,799.00'}</span>
@@ -1031,10 +1200,21 @@ function openInvoiceModal(ord) {
         <span>Shipping &amp; Handling:</span>
         <span style="color:#007600;">$0.00</span>
       </div>
+      ${isRedeem ? `
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#007600;">
+        <span>Redeem Code / Gift Card:</span>
+        <span>-${ord.price || '$1,799.00'}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-weight:700; font-size:15px; border-top:1px solid #0f1111; padding-top:6px; margin-top:6px;">
+        <span>Grand Total Paid:</span>
+        <span style="color:#007600;">$0.00 (Paid in Full)</span>
+      </div>
+      ` : `
       <div style="display:flex; justify-content:space-between; font-weight:700; font-size:15px; border-top:1px solid #0f1111; padding-top:6px; margin-top:6px;">
         <span>Grand Total:</span>
         <span style="color:#b12704;">${ord.price || '$1,799.00'}</span>
       </div>
+      `}
     </div>
   `;
 

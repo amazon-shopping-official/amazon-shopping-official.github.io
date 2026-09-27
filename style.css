@@ -2111,3 +2111,119 @@ footer {
     height: 250px;
   }
 }
+
+/* Redeem Code Payment Method Box */
+.redeem-code-box {
+  margin-top: 10px;
+  background: #f7f9fa;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #d5d9d9;
+}
+.redeem-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid #888;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+}
+.redeem-input:focus {
+  outline: none;
+  border-color: #e77600;
+  box-shadow: 0 0 3px 2px rgba(228, 121, 17, 0.4);
+}
+.btn-apply-redeem {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #ffd814;
+  border: 1px solid #fcd200;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-apply-redeem:hover {
+  background: #f7ca00;
+}
+.redeem-status-msg {
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+.redeem-status-msg.success {
+  color: #007600;
+}
+.redeem-status-msg.error {
+  color: #b12704;
+}
+
+/* Confirmation Screen Redeem Alert */
+.conf-redeem-alert {
+  background: #f0fbf7;
+  border: 1px solid #00a86b;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.btn-print-receipt {
+  background: #ffd814 !important;
+  border: 1px solid #fcd200 !important;
+  color: #0f1111 !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-print-receipt:hover {
+  background: #f7ca00 !important;
+}
+
+/* Professional Print Stylesheet for Invoices / Receipts */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #invoiceModalBackdrop,
+  #invoiceModalBackdrop * {
+    visibility: visible !important;
+  }
+  #invoiceModalBackdrop {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    background: #ffffff !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 99999 !important;
+  }
+  #invoiceModalBackdrop > div {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #invoiceModalBackdrop button,
+  #drawerBackdrop,
+  .orders-drawer {
+    display: none !important;
+  }
+  @page {
+    margin: 15mm;
+    size: auto;
+  }
+}
