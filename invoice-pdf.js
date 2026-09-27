@@ -27,7 +27,7 @@
 
     return {
       windowStr: `${startStr} – ${endStr}`,
-      fullRangeStr: `${startStr} – ${endStr} (25–30 business days)`,
+      fullRangeStr: `${startStr} – ${endStr}`,
       startDate: dStart,
       endDate: dEnd
     };
@@ -129,7 +129,6 @@
               <div style="font-size:14px; font-weight:800; color:#b12704; margin-top:2px;">
                 📅 ${delivery.windowStr}
               </div>
-              <div style="font-size:11px; color:#555;">(25–30 days from order date)</div>
             </div>
           </div>
         </div>
@@ -187,7 +186,7 @@
                 Arriving <strong>${delivery.windowStr}</strong>
               </div>
               <div style="font-size:11px; color:#666;">
-                International shipment delivery timeframe: 25–30 business days.
+                International shipment delivery via Amazon Global Priority Express.
               </div>
             </div>
           </div>

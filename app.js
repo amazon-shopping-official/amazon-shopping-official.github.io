@@ -826,7 +826,7 @@ function finalizeOrderPlacement() {
   // Calculate Expected Delivery Window (25-30 days from order date)
   const deliveryInfo = (typeof window.calculateDeliveryWindow === "function")
     ? window.calculateDeliveryWindow(new Date())
-    : { windowStr: "Oct 22 – Oct 27, 2026", fullRangeStr: "October 22 – October 27, 2026 (25–30 days)" };
+    : { windowStr: "Oct 22 – Oct 27, 2026", fullRangeStr: "October 22 – October 27, 2026" };
 
   // Populate Confirmation Screen safely
   safeSet("confOrderNumber", orderNum);

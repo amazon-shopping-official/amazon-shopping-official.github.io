@@ -325,7 +325,7 @@ function renderOrdersDashboard() {
               <div class="item-sold-by">Sold by: ${prod.brand} Official Storefront on Amazon</div>
               <div class="item-return-window">Return or replace items: Eligible through 30 days after delivery</div>
               <div class="item-delivery-window" style="font-size:13px; font-weight:700; color:#007600; margin-top:4px;">
-                📅 Expected Delivery: ${ord.expectedDelivery || (typeof window.calculateDeliveryWindow === 'function' ? window.calculateDeliveryWindow(ord.timestamp).fullRangeStr : '25–30 business days')}
+                📅 Expected Delivery: ${ord.expectedDelivery || (typeof window.calculateDeliveryWindow === 'function' ? window.calculateDeliveryWindow(ord.timestamp).fullRangeStr : 'October 22 – October 27, 2026')}
               </div>
               
               <div class="item-badges-row">
