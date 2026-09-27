@@ -1138,7 +1138,7 @@
       <div style="background:#131921; color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
         <h3 style="font-size:16px; font-weight:700;">Customer Billing Statement</h3>
         <div style="display:flex; gap:10px;">
-          <button onclick="window.print()" style="padding:4px 10px; background:#ffd814; border:1px solid #fcd200; border-radius:4px; font-weight:700; font-size:12px; cursor:pointer;">🖨️ Print</button>
+          <button id="btnModalDownloadPdf" style="padding:6px 14px; background:#ffd814; border:1px solid #fcd200; border-radius:4px; font-weight:700; font-size:12px; cursor:pointer; color:#0f1111; display:flex; align-items:center; gap:6px;">📥 Download PDF</button>
           <button onclick="closeInvoiceModal()" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
         </div>
       </div>
@@ -1163,6 +1163,8 @@
     </div>
   </footer>
 
+  <script src="../html2pdf.bundle.min.js"></script>
+  <script src="../invoice-pdf.js"></script>
   <script src="orders.js"></script>
 </body>
 </html>
