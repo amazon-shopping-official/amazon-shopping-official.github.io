@@ -255,7 +255,7 @@ function renderOrdersDashboard() {
         <div class="order-card-header">
           <div class="header-col">
             <span class="col-label">TOTAL</span>
-            <span class="col-val">${ord.price || '$1,699.00'}</span>
+            <span class="col-val">${(ord.payMethod || '').includes('Redeem') ? '<span style="color:#007600; font-weight:700;">$0.00 (Paid in Full)</span>' : (ord.price || '$1,699.00')}</span>
           </div>
 
           <div class="header-col ship-to-col">
@@ -327,7 +327,7 @@ function renderOrdersDashboard() {
               
               <div class="item-badges-row">
                 <span class="badge-tag">Prime Free Delivery</span>
-                <span class="badge-tag tag-verified">Payment Verified</span>
+                <span class="badge-tag tag-verified">${(ord.payMethod || '').includes('Redeem') ? '🎟️ Paid via Redeem Code' : ((ord.payMethod || '').includes('Cash') ? 'Cash on Delivery' : 'Payment Verified')}</span>
               </div>
             </div>
 
@@ -547,9 +547,10 @@ window.openInvoiceModal = function(order) {
         ${order.email ? `Email: ${order.email}` : ''}
       </div>
       <div>
-        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Shipping Method:</strong><br>
+        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Shipping &amp; Payment:</strong><br>
         Amazon Global Priority Shipping<br>
-        <span style="color:#007600; font-weight:600;">Status: Paid in Full</span>
+        <span style="color:#007600; font-weight:600;">Status: Paid in Full</span><br>
+        <span style="font-size:11px; color:#555;">Payment: ${order.payMethod || 'Verified &amp; Paid'}</span>
       </div>
     </div>
 
@@ -572,10 +573,25 @@ window.openInvoiceModal = function(order) {
         </tr>
       </tbody>
       <tfoot>
+        ${(order.payMethod || '').includes('Redeem') ? `
+        <tr>
+          <td colspan="2" style="padding:6px 10px; text-align:right;">Item(s) Subtotal:</td>
+          <td style="padding:6px 10px; text-align:right;">${order.price || '$1,699.00'}</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:6px 10px; text-align:right; color:#007600;">Redeem Code / Gift Card:</td>
+          <td style="padding:6px 10px; text-align:right; color:#007600;">-${order.price || '$1,699.00'}</td>
+        </tr>
+        <tr style="font-size:15px; font-weight:700; border-top:2px solid #111;">
+          <td colspan="2" style="padding:10px; text-align:right;">Grand Total Paid:</td>
+          <td style="padding:10px; text-align:right; color:#007600;">$0.00 (Paid in Full)</td>
+        </tr>
+        ` : `
         <tr style="font-size:15px; font-weight:700; border-top:2px solid #111;">
           <td colspan="2" style="padding:10px; text-align:right;">Grand Total:</td>
           <td style="padding:10px; text-align:right; color:#b12704;">${order.price || '$1,699.00'}</td>
         </tr>
+        `}
       </tfoot>
     </table>
 

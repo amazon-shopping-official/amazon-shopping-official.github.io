@@ -426,6 +426,25 @@
                   </div>
                 </div>
               </label>
+
+              <!-- 5. Redeem Code -->
+              <label class="payment-option" id="optRedeemCode">
+                <input type="radio" name="payMethod" value="Redeem Code" class="pay-radio">
+                <div class="pay-info">
+                  <div class="pay-title-row">
+                    <span class="pay-title">🎟️ Redeem Code / Gift Card</span>
+                    <span class="pay-badge-popular" style="background:#007185; display:none;" id="badgeRedeemApplied">Applied</span>
+                  </div>
+                  <div class="pay-desc">Pay instantly using an Amazon Gift Card, Voucher, or Promotional Redeem Code.</div>
+                  <div class="redeem-code-box" id="boxRedeemInput" style="display:none;" onclick="event.stopPropagation();">
+                    <div style="display:flex; gap:8px;">
+                      <input type="text" id="inputRedeemCode" class="redeem-input" placeholder="Enter claim code (e.g. AMZN-7K9W-M3XP-84QL)" autocomplete="off">
+                      <button type="button" id="btnApplyRedeemCode" class="btn-apply-redeem">Apply</button>
+                    </div>
+                    <div id="redeemStatusMsg" class="redeem-status-msg"></div>
+                  </div>
+                </div>
+              </label>
             </div>
 
             <div style="display:flex; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap;">
@@ -491,6 +510,10 @@
           <span>Shipping &amp; handling:</span>
           <span>$0.00</span>
         </div>
+        <div class="cs-row" id="csRedeemDiscountRow" style="display:none; color:#007600; font-weight:600;">
+          <span>Redeem Code / Gift Card:</span>
+          <span id="csRedeemDiscountAmount">-$1,799.00</span>
+        </div>
         <div class="cs-row total">
           <span>Order total:</span>
           <span id="csTotalPrice">$1,799.00</span>
@@ -534,6 +557,17 @@
         </div>
       </div>
 
+      <!-- Redeem Code Confirmation Notice -->
+      <div class="conf-redeem-alert" id="confRedeemNoticeBox" style="display:none;">
+        <div class="alert-icon" style="font-size:24px;">🎟️</div>
+        <div>
+          <strong style="color:#007600; font-size:15px;">Paid in full with Redeem Code!</strong>
+          <p style="margin:4px 0 0 0; font-size:13px; color:#333;">
+            Your Amazon Redeem Code was applied successfully. Your official invoice and printable payment receipt has been generated.
+          </p>
+        </div>
+      </div>
+
       <!-- Clean Order & Delivery Summary -->
       <div class="conf-summary-card">
         <div class="conf-section-title">Delivery &amp; Item Details</div>
@@ -558,6 +592,9 @@
 
         <!-- Clean Action Buttons for the Friend -->
         <div class="conf-actions-row">
+          <button type="button" class="btn-conf-secondary btn-print-receipt" id="btnPrintReceiptBtn">
+            <span>🖨️ Print Receipt</span>
+          </button>
           <button class="btn-conf-secondary" id="btnContinueShopping">
             <span>Continue Shopping</span>
           </button>
