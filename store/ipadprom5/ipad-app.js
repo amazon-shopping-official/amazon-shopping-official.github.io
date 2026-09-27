@@ -469,10 +469,14 @@ function setupProductOptions() {
 function setupBuyNow() {
   const btnBuyNow = document.getElementById("btnBuyNow");
   const btnBackToProductPage = document.getElementById("btnBackToProductPage");
+  const btnBackToProductCheckout = document.getElementById("btnBackToProductCheckout");
   const btnContinueShopping = document.getElementById("btnContinueShopping");
 
   if (btnBuyNow) {
     btnBuyNow.addEventListener("click", () => openCheckout(true));
+  }
+  if (btnBackToProductCheckout) {
+    btnBackToProductCheckout.addEventListener("click", () => returnToProduct(true));
   }
   if (btnBackToProductPage) {
     btnBackToProductPage.addEventListener("click", () => returnToProduct(true));
