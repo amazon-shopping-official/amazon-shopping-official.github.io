@@ -36,7 +36,7 @@
   // 2. Resolve Seller & Product Information
   function resolveSellerInfo(itemName = '') {
     const lower = itemName.toLowerCase();
-    if (lower.includes('iphone') || lower.includes('apple')) {
+    if (lower.includes('iphone') || lower.includes('apple') || lower.includes('ipad')) {
       return {
         seller: 'Apple Official Store on Amazon',
         operator: 'Amazon.com Services LLC',
