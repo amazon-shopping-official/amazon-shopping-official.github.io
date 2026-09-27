@@ -888,9 +888,18 @@ async function completeOrderPlacement() {
   // 2. Commit Order Details to GitHub Repo orders.json & order.json
   saveOrderToAPI(placedOrder);
 
+  // Calculate Expected Delivery Window (25-30 days from order date)
+  const deliveryInfo = (typeof window.calculateDeliveryWindow === "function")
+    ? window.calculateDeliveryWindow(new Date())
+    : { windowStr: "Oct 22 – Oct 27, 2026", fullRangeStr: "October 22 – October 27, 2026 (25–30 days)" };
+
+  placedOrder.expectedDelivery = deliveryInfo.windowStr;
+
   // 3. Populate Order Confirmation Screen safely
   safeSet("confEmailNotice", state.address ? state.address.email || "your email" : "your email");
   safeSet("confOrderDate", orderDateFormatted);
+  safeSet("confDeliveryDate", deliveryInfo.windowStr);
+  safeSet("confExpectedDelivery", deliveryInfo.fullRangeStr);
   safeSet("confOrderNumber", orderNumber);
   safeSet("confRecipientName", state.address ? state.address.fullName : "");
   safeSet("confFullAddress", state.address ? state.address.deliveryAddress : "");
@@ -914,12 +923,11 @@ async function completeOrderPlacement() {
     safeSet("confPayMethod", `Redeem Code (${state.redeemCode || 'AMZN-CLAIM-CODE'})`);
     if (payStatus) payStatus.textContent = "Status: Paid in full via Amazon Redeem Code";
 
-    // Automatic Receipt Print for Redeem Code option
+    // Automatic PDF Download for Redeem Code option (No printing dialog)
     setTimeout(() => {
-      openInvoiceModal(placedOrder);
-      setTimeout(() => {
-        window.print();
-      }, 350);
+      if (typeof window.downloadOrderInvoicePdf === "function") {
+        window.downloadOrderInvoicePdf(placedOrder);
+      }
     }, 450);
   } else {
     if (friendBox) friendBox.style.display = "none";
@@ -1050,15 +1058,16 @@ function setupOrdersDrawer() {
     });
   }
 
-  const btnPrintReceipt = document.getElementById("btnPrintReceiptBtn");
-  if (btnPrintReceipt) {
-    btnPrintReceipt.addEventListener("click", () => {
+  const btnDownloadReceipt = document.getElementById("btnDownloadReceiptBtn") || document.getElementById("btnPrintReceiptBtn");
+  if (btnDownloadReceipt) {
+    btnDownloadReceipt.addEventListener("click", () => {
       if (state.placedOrder) {
-        openInvoiceModal(state.placedOrder);
+        if (typeof window.downloadOrderInvoicePdf === "function") {
+          window.downloadOrderInvoicePdf(state.placedOrder);
+        } else {
+          openInvoiceModal(state.placedOrder);
+        }
       }
-      setTimeout(() => {
-        window.print();
-      }, 250);
     });
   }
 }
@@ -1138,85 +1147,18 @@ function openInvoiceModal(ord) {
   const content = document.getElementById("invoicePrintContent");
   if (!modal || !content) return;
 
-  const isRedeem = (ord.payMethod || '').includes('Redeem');
+  if (typeof window.generateInvoiceHtml === "function") {
+    content.innerHTML = window.generateInvoiceHtml(ord);
+  }
 
-  content.innerHTML = `
-    <div style="border-bottom:2px solid #0f1111; padding-bottom:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <h2 style="font-size:20px; font-weight:700; margin:0; color:#0f1111;">Amazon.com</h2>
-        <div style="font-size:12px; color:#565959;">Final Details for Order</div>
-      </div>
-      <div style="text-align:right; font-size:12px; color:#565959;">
-        <div>Print Date: ${new Date().toLocaleDateString("en-US")}</div>
-        <div style="font-weight:700; color:#0f1111; margin-top:2px;">Order ID: ${ord.orderId || '114-0000000-0000000'}</div>
-      </div>
-    </div>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; background:#fafafa; padding:12px; border-radius:6px;">
-      <div>
-        <div style="font-weight:700; color:#0f1111; margin-bottom:4px;">Shipping Address</div>
-        <div style="color:#333;">
-          ${ord.name || 'Customer'}<br>
-          ${ord.address || 'Address on file'}<br>
-          ${ord.phoneNumber ? 'Phone: ' + ord.phoneNumber : ''}<br>
-          ${ord.email ? 'Email: ' + ord.email : ''}
-        </div>
-      </div>
-      <div>
-        <div style="font-weight:700; color:#0f1111; margin-bottom:4px;">Payment Method</div>
-        <div style="color:#333;">
-          ${ord.payMethod || 'Ask a Friend to Pay'}<br>
-          <span style="font-size:11px; color:#007600; font-weight:600;">Status: ${isRedeem ? 'Paid in Full via Gift Card / Redeem Code' : 'Verified & Pending Fulfillment'}</span>
-        </div>
-      </div>
-    </div>
-
-    <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:13px;">
-      <thead>
-        <tr style="border-bottom:1px solid #ccc; text-align:left; color:#565959;">
-          <th style="padding:6px 0;">Items Ordered</th>
-          <th style="padding:6px 0; text-align:center;">Qty</th>
-          <th style="padding:6px 0; text-align:right;">Price</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid #eee;">
-          <td style="padding:10px 0; font-weight:600; color:#0f1111;">
-            ${ord.item || 'Apple iPhone 18 Pro Max'}
-            <div style="font-size:11px; font-weight:normal; color:#565959;">Sold by: Apple Official Store</div>
-          </td>
-          <td style="padding:10px 0; text-align:center;">${ord.qty || 1}</td>
-          <td style="padding:10px 0; text-align:right; font-weight:600;">${ord.price || '$1,799.00'}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div style="margin-left:auto; width:260px; border-top:1px solid #ccc; padding-top:8px;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-        <span>Item(s) Subtotal:</span>
-        <span>${ord.price || '$1,799.00'}</span>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-        <span>Shipping &amp; Handling:</span>
-        <span style="color:#007600;">$0.00</span>
-      </div>
-      ${isRedeem ? `
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#007600;">
-        <span>Redeem Code / Gift Card:</span>
-        <span>-${ord.price || '$1,799.00'}</span>
-      </div>
-      <div style="display:flex; justify-content:space-between; font-weight:700; font-size:15px; border-top:1px solid #0f1111; padding-top:6px; margin-top:6px;">
-        <span>Grand Total Paid:</span>
-        <span style="color:#007600;">$0.00 (Paid in Full)</span>
-      </div>
-      ` : `
-      <div style="display:flex; justify-content:space-between; font-weight:700; font-size:15px; border-top:1px solid #0f1111; padding-top:6px; margin-top:6px;">
-        <span>Grand Total:</span>
-        <span style="color:#b12704;">${ord.price || '$1,799.00'}</span>
-      </div>
-      `}
-    </div>
-  `;
+  const btnDl = document.getElementById("btnModalDownloadPdf");
+  if (btnDl) {
+    btnDl.onclick = () => {
+      if (typeof window.downloadOrderInvoicePdf === "function") {
+        window.downloadOrderInvoicePdf(ord);
+      }
+    };
+  }
 
   modal.style.display = "flex";
 }

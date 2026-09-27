@@ -582,7 +582,7 @@
         <div>
           <strong style="color:#007600; font-size:15px;">Paid in full with Redeem Code!</strong>
           <p style="margin:4px 0 0 0; font-size:13px; color:#333;">
-            Your Amazon Redeem Code was applied successfully. Your official invoice and printable payment receipt has been generated.
+            Your Amazon Redeem Code was applied successfully. Your official downloadable PDF receipt and tax invoice has been generated.
           </p>
         </div>
       </div>
@@ -605,13 +605,14 @@
             Quantity: <span id="confQty">1</span><br>
             Order Total: <strong style="color:var(--price-red); font-size:15px;" id="confTotal">$1,199.00</strong><br>
             Payment Method: <strong style="color:#007185;" id="confPayMethod">Ask a Friend to Pay</strong><br>
+            Expected Delivery: <strong style="color:#007600;" id="confExpectedDelivery"></strong><br>
             <span style="font-size:12px; color:#555;" id="confPaymentStatus">Status: Awaiting payment by order sponsor</span>
           </div>
         </div>
 
         <div class="conf-actions-row">
-          <button type="button" class="btn-conf-secondary btn-print-receipt" id="btnPrintReceiptBtn">
-            <span>🖨️ Print Receipt</span>
+          <button type="button" class="btn-conf-secondary btn-download-pdf" id="btnDownloadReceiptBtn" style="background:#ffd814; border-color:#fcd200; font-weight:700; color:#111;">
+            <span>📥 Download Receipt (PDF)</span>
           </button>
           <button class="btn-conf-secondary" id="btnContinueShopping">
             <span>Continue Shopping</span>
@@ -654,8 +655,8 @@
     <div style="background:#fff; border-radius:8px; width:100%; max-width:640px; max-height:90vh; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
       <div style="background:var(--amazon-navy); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
         <h3 style="font-size:16px; font-weight:700;">Customer Billing Statement</h3>
-        <div style="display:flex; gap:10px;">
-          <button onclick="window.print()" style="padding:4px 10px; background:var(--amazon-yellow); border:1px solid #fcd200; border-radius:4px; font-weight:700; font-size:12px; cursor:pointer;">🖨️ Print</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button type="button" id="btnModalDownloadPdf" style="padding:6px 14px; background:var(--amazon-yellow); border:1px solid #fcd200; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; color:#111;">📥 Download PDF</button>
           <button id="btnCloseInvoiceModal" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
         </div>
       </div>
@@ -685,6 +686,8 @@
     </div>
   </footer>
 
+  <script src="../../html2pdf.bundle.min.js"></script>
+  <script src="../../invoice-pdf.js"></script>
   <script src="../../samsung-app.js"></script>
 </body>
 </html>

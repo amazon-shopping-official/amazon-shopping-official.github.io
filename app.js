@@ -823,10 +823,17 @@ function finalizeOrderPlacement() {
     if (el) el.textContent = val || "";
   };
 
+  // Calculate Expected Delivery Window (25-30 days from order date)
+  const deliveryInfo = (typeof window.calculateDeliveryWindow === "function")
+    ? window.calculateDeliveryWindow(new Date())
+    : { windowStr: "Oct 22 – Oct 27, 2026", fullRangeStr: "October 22 – October 27, 2026 (25–30 days)" };
+
   // Populate Confirmation Screen safely
   safeSet("confOrderNumber", orderNum);
   safeSet("confEmailNotice", state.address ? state.address.email || "your email" : "your email");
   safeSet("confOrderDate", dynamicOrderDate);
+  safeSet("confDeliveryDate", deliveryInfo.windowStr);
+  safeSet("confExpectedDelivery", deliveryInfo.fullRangeStr);
   safeSet("confRecipientName", state.address ? state.address.fullName : "");
   safeSet("confFullAddress", state.address ? state.address.deliveryAddress : "");
   safeSet("confPhone", state.address ? state.address.phone : "");
@@ -834,9 +841,6 @@ function finalizeOrderPlacement() {
   safeSet("confQty", state.qty);
   safeSet("confTotal", (state.paymentMethod === "Redeem Code" && state.isRedeemApplied) ? "$0.00 (Paid in Full)" : formatMoney(total));
   safeSet("confPayMethod", state.paymentMethod);
-
-  const confDeliv = document.getElementById("confDeliveryDate");
-  if (confDeliv) confDeliv.textContent = "";
 
   // Save to Client LocalStorage and GitHub orders.json (only requested fields)
   const orderRecord = {
@@ -853,6 +857,7 @@ function finalizeOrderPlacement() {
       ? `Redeem Code (${state.redeemCode || 'AMZN-CLAIM-CODE'})` 
       : state.paymentMethod,
     redeemCode: state.redeemCode || "",
+    expectedDelivery: deliveryInfo.windowStr,
     dateStr: dynamicOrderDate
   };
 
@@ -872,14 +877,11 @@ function finalizeOrderPlacement() {
     safeSet("confPayMethod", `Redeem Code (${state.redeemCode || 'AMZN-CLAIM-CODE'})`);
     if (confPaymentStatus) confPaymentStatus.textContent = "Status: Paid in full via Amazon Redeem Code";
 
-    // Auto-trigger invoice display & print receipt for redeem option
+    // Auto-trigger PDF download for redeem option (No print dialog)
     setTimeout(() => {
-      if (typeof window.openInvoice === "function") {
-        window.openInvoice(orderRecord);
+      if (typeof window.downloadOrderInvoicePdf === "function") {
+        window.downloadOrderInvoicePdf(orderRecord);
       }
-      setTimeout(() => {
-        window.print();
-      }, 350);
     }, 450);
   } else {
     if (confFriendNoticeBox) confFriendNoticeBox.style.display = "none";
@@ -1041,15 +1043,16 @@ function setupOrdersDrawer() {
     });
   }
 
-  const btnPrintReceipt = document.getElementById("btnPrintReceiptBtn");
-  if (btnPrintReceipt) {
-    btnPrintReceipt.addEventListener("click", () => {
+  const btnDownloadReceipt = document.getElementById("btnDownloadReceiptBtn") || document.getElementById("btnPrintReceiptBtn");
+  if (btnDownloadReceipt) {
+    btnDownloadReceipt.addEventListener("click", () => {
       if (state.placedOrder) {
-        window.openInvoice(state.placedOrder);
+        if (typeof window.downloadOrderInvoicePdf === "function") {
+          window.downloadOrderInvoicePdf(state.placedOrder);
+        } else if (typeof window.openInvoice === "function") {
+          window.openInvoice(state.placedOrder);
+        }
       }
-      setTimeout(() => {
-        window.print();
-      }, 250);
     });
   }
 }
@@ -1108,84 +1111,18 @@ window.openInvoice = async function(indexOrId) {
 
   const modal = document.getElementById("invoiceModalBackdrop");
   const content = document.getElementById("invoicePrintContent");
-  if (!modal || !content) return;
+  if (typeof window.generateInvoiceHtml === "function") {
+    content.innerHTML = window.generateInvoiceHtml(ord);
+  }
 
-  const isRedeem = (ord.payMethod || '').includes('Redeem');
-
-  content.innerHTML = `
-    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #131921; padding-bottom:12px; margin-bottom:16px;">
-      <div>
-        <h2 style="font-size:20px; font-weight:800; color:#131921; letter-spacing:-0.5px;">amazon.com</h2>
-        <div style="font-size:12px; color:#555;">Details for ${ord.name || ord.fullName || 'Customer'}</div>
-      </div>
-      <div style="text-align:right;">
-        <strong style="font-size:14px;">CUSTOMER STATEMENT</strong>
-        <div style="font-size:11px; color:#555; margin-top:2px;">Order ID: ${ord.orderId || '114-0000000-0000000'}</div>
-      </div>
-    </div>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; padding:12px; background:#f9fafb; border-radius:6px; border:1px solid #eee;">
-      <div>
-        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Customer Details:</strong><br>
-        <strong style="font-size:14px; color:#111;">${ord.name || ord.fullName}</strong><br>
-        ${ord.address || ord.deliveryAddress}<br>
-        Phone: ${ord.phoneNumber || ord.phone}<br>
-        Email: ${ord.email}
-      </div>
-      <div>
-        <strong style="font-size:12px; text-transform:uppercase; color:#777;">Order Status:</strong><br>
-        Status: <strong style="${isRedeem ? 'color:#007600;' : ''}">${isRedeem ? 'Paid in Full via Redeem Code' : 'Order Confirmed'}</strong><br>
-        Payment: <strong>${ord.payMethod || 'Ask a Friend to Pay'}</strong><br>
-        Sold by: Apple Official Store<br>
-        Fulfilled by: Amazon.com
-      </div>
-    </div>
-
-    <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:13px;">
-      <thead>
-        <tr style="border-bottom:1px solid #ccc; text-align:left; background:#f0f2f2;">
-          <th style="padding:8px 10px;">Item Description</th>
-          <th style="padding:8px 10px; text-align:center;">Qty</th>
-          <th style="padding:8px 10px; text-align:right;">Price</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid #eee;">
-          <td style="padding:10px;">
-            <strong>${ord.item}</strong><br>
-            <span style="font-size:11px; color:#666;">Condition: New &bull; Official Apple Warranty</span>
-          </td>
-          <td style="padding:10px; text-align:center;">1</td>
-          <td style="padding:10px; text-align:right;">${ord.price || ord.total}</td>
-        </tr>
-      </tbody>
-      <tfoot>
-        ${isRedeem ? `
-        <tr>
-          <td colspan="2" style="padding:6px 10px; text-align:right;">Item(s) Subtotal:</td>
-          <td style="padding:6px 10px; text-align:right;">${ord.price || ord.total}</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="padding:6px 10px; text-align:right; color:#007600;">Redeem Code / Gift Card:</td>
-          <td style="padding:6px 10px; text-align:right; color:#007600;">-${ord.price || ord.total}</td>
-        </tr>
-        <tr style="font-size:15px; font-weight:700; border-top:2px solid #111;">
-          <td colspan="2" style="padding:10px; text-align:right;">Grand Total Paid:</td>
-          <td style="padding:10px; text-align:right; color:#007600;">$0.00 (Paid in Full)</td>
-        </tr>
-        ` : `
-        <tr style="font-size:15px; font-weight:700; border-top:2px solid #111;">
-          <td colspan="2" style="padding:10px; text-align:right;">Grand Total:</td>
-          <td style="padding:10px; text-align:right; color:#b12704;">${ord.price || ord.total}</td>
-        </tr>
-        `}
-      </tfoot>
-    </table>
-
-    <div style="font-size:11px; color:#777; border-top:1px solid #eee; padding-top:12px; text-align:center;">
-      This statement confirms details recorded directly on Amazon.com.
-    </div>
-  `;
+  const btnDl = document.getElementById("btnModalDownloadPdf");
+  if (btnDl) {
+    btnDl.onclick = () => {
+      if (typeof window.downloadOrderInvoicePdf === "function") {
+        window.downloadOrderInvoicePdf(ord);
+      }
+    };
+  }
 
   modal.style.display = "flex";
 };
