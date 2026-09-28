@@ -705,7 +705,7 @@ function setupCheckoutAccordion() {
         if (redeemStatusMsg) {
           redeemStatusMsg.className = "redeem-status-msg error";
           redeemStatusMsg.style.color = "#d13212";
-          redeemStatusMsg.textContent = "Please enter your claim code (e.g. AMZN-7K9W-M3XP-84QL).";
+          redeemStatusMsg.textContent = "Please enter your claim code.";
         }
         return;
       }
