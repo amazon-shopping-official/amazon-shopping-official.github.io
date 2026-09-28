@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-139781-886859",
+    "timestamp": "2026-09-28T10:16:57.579Z",
+    "name": "Ma Susette Juan",
+    "address": "AGL block 22 lot 25 Caalibangbangan Cabanatuan city nueva Ecija Philippines",
+    "phoneNumber": "9755535438",
+    "email": "juanmasusette@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (512 GB) - Glacier",
+    "price": "$1,999.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Monday, September 28, 2026",
+    "expectedDelivery": "October 23 – October 28, 2026"
+  },
+  {
     "orderId": "114-167702-421345",
     "orderDate": "Monday, September 28, 2026",
     "expectedDelivery": "October 18 – 23, 2026",
