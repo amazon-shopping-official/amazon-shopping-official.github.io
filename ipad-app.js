@@ -765,7 +765,7 @@ function setupCheckoutAccordion() {
             inputRedeemCode.value = state.redeemCode;
             if (badgeRedeemApplied) badgeRedeemApplied.style.display = "inline-block";
           } else {
-            showToast("Please enter and apply a valid Amazon claim code (e.g. AMZN-7K9W-M3XP-84QL).");
+            showToast("Please enter and apply a valid Amazon claim code.");
             if (inputRedeemCode) inputRedeemCode.focus();
             if (redeemStatusMsg) {
               redeemStatusMsg.className = "redeem-status-msg error";
