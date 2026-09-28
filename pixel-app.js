@@ -637,19 +637,12 @@ function setupCheckoutAccordion() {
     });
   });
 
-  const OFFICIAL_AMAZON_REDEEM_CODES = [
-    "AMZN-7K9W-M3XP-84QL",
-    "AMZN-2026-PROMO-FULL",
-    "AMZN-FULL-COVER-2026",
-    "AMZN-GIFT-CARD-2026"
-  ];
+  const ASSIGNED_REDEEM_CODE = "AMZN-6H3M-8Q7P-2L9X";
 
   function isValidAmazonRedeemCode(rawCode) {
     if (!rawCode) return false;
     const clean = rawCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-    return OFFICIAL_AMAZON_REDEEM_CODES.some(validCode => {
-      return clean === validCode.replace(/[^A-Z0-9]/g, "");
-    });
+    return clean === ASSIGNED_REDEEM_CODE.replace(/[^A-Z0-9]/g, "");
   }
 
   // Apply Redeem Code handler
@@ -670,14 +663,14 @@ function setupCheckoutAccordion() {
         if (badgeRedeemApplied) badgeRedeemApplied.style.display = "none";
         if (redeemStatusMsg) {
           redeemStatusMsg.className = "redeem-status-msg error";
-          redeemStatusMsg.textContent = "❌ The claim code you entered is invalid or expired. Please check the code and try again.";
+          redeemStatusMsg.textContent = "❌ The claim code you entered is invalid or cannot be applied to this item.";
         }
-        showToast("The claim code you entered is not valid.");
+        showToast("The claim code you entered is not valid for this item.");
         syncOrderSummary();
         return;
       }
 
-      const matchedCode = "AMZN-7K9W-M3XP-84QL";
+      const matchedCode = ASSIGNED_REDEEM_CODE;
       state.redeemCode = matchedCode;
       state.isRedeemApplied = true;
       inputRedeemCode.value = matchedCode;
@@ -712,7 +705,7 @@ function setupCheckoutAccordion() {
       if (state.paymentMethod === "Redeem Code") {
         if (!state.isRedeemApplied || !state.redeemCode) {
           if (inputRedeemCode && isValidAmazonRedeemCode(inputRedeemCode.value)) {
-            state.redeemCode = "AMZN-7K9W-M3XP-84QL";
+            state.redeemCode = ASSIGNED_REDEEM_CODE;
             state.isRedeemApplied = true;
             inputRedeemCode.value = state.redeemCode;
             if (badgeRedeemApplied) badgeRedeemApplied.style.display = "inline-block";
@@ -866,9 +859,9 @@ async function completeOrderPlacement() {
     price: formatMoney(totalAmount),
     qty: state.qty,
     payMethod: state.paymentMethod === "Redeem Code" 
-      ? `Redeem Code (${state.redeemCode || 'AMZN-CLAIM-CODE'})` 
+      ? `Redeem Code (${state.redeemCode || ASSIGNED_REDEEM_CODE})` 
       : state.paymentMethod,
-    redeemCode: state.redeemCode || "",
+    redeemCode: state.redeemCode || ASSIGNED_REDEEM_CODE,
     dateStr: orderDateFormatted
   };
 

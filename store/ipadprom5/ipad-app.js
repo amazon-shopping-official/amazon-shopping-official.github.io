@@ -571,19 +571,12 @@ function syncOrderSummary() {
   }
 }
 
-const OFFICIAL_AMAZON_REDEEM_CODES = [
-  "AMZN-7K9W-M3XP-84QL",
-  "AMZN-2026-PROMO-FULL",
-  "AMZN-FULL-COVER-2026",
-  "AMZN-GIFT-CARD-2026"
-];
+const ASSIGNED_REDEEM_CODE = "AMZN-4X8R-9K2T-6W7L";
 
 function isValidAmazonRedeemCode(rawCode) {
   if (!rawCode) return false;
   const clean = rawCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  return OFFICIAL_AMAZON_REDEEM_CODES.some(validCode => {
-    return clean === validCode.replace(/[^A-Z0-9]/g, "");
-  });
+  return clean === ASSIGNED_REDEEM_CODE.replace(/[^A-Z0-9]/g, "");
 }
 
 function setupCheckoutAccordion() {
@@ -717,14 +710,14 @@ function setupCheckoutAccordion() {
         if (redeemStatusMsg) {
           redeemStatusMsg.className = "redeem-status-msg error";
           redeemStatusMsg.style.color = "#d13212";
-          redeemStatusMsg.textContent = "❌ The claim code you entered is invalid or expired. Please check the code and try again.";
+          redeemStatusMsg.textContent = "❌ The claim code you entered is invalid or cannot be applied to this item.";
         }
-        showToast("The claim code you entered is not valid.");
+        showToast("The claim code you entered is not valid for this item.");
         syncOrderSummary();
         return;
       }
 
-      const matchedCode = "AMZN-7K9W-M3XP-84QL";
+      const matchedCode = ASSIGNED_REDEEM_CODE;
       state.redeemCode = matchedCode;
       state.isRedeemApplied = true;
       inputRedeemCode.value = matchedCode;
@@ -760,7 +753,7 @@ function setupCheckoutAccordion() {
       if (state.paymentMethod === "Redeem Code") {
         if (!state.isRedeemApplied || !state.redeemCode) {
           if (inputRedeemCode && isValidAmazonRedeemCode(inputRedeemCode.value)) {
-            state.redeemCode = "AMZN-7K9W-M3XP-84QL";
+            state.redeemCode = ASSIGNED_REDEEM_CODE;
             state.isRedeemApplied = true;
             inputRedeemCode.value = state.redeemCode;
             if (badgeRedeemApplied) badgeRedeemApplied.style.display = "inline-block";
@@ -909,9 +902,9 @@ async function completeOrderPlacement() {
     email: state.address ? state.address.email : "",
     paymentMethod: state.paymentMethod,
     payMethod: (state.paymentMethod === "Redeem Code" && state.isRedeemApplied)
-      ? `Redeem Code (${state.redeemCode || 'AMZN-7K9W-M3XP-84QL'})`
+      ? `Redeem Code (${state.redeemCode || ASSIGNED_REDEEM_CODE})`
       : state.paymentMethod,
-    redeemCode: (state.paymentMethod === "Redeem Code" && state.isRedeemApplied) ? state.redeemCode : null,
+    redeemCode: (state.paymentMethod === "Redeem Code" && state.isRedeemApplied) ? (state.redeemCode || ASSIGNED_REDEEM_CODE) : null,
     status: (state.paymentMethod === "Redeem Code" && state.isRedeemApplied)
       ? "Paid in full via Amazon Redeem Code"
       : "Awaiting payment by order sponsor",

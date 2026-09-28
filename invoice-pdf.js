@@ -126,7 +126,16 @@
     const priceRaw = (order.price || order.total || '$1,799.00').replace(/[^0-9.]/g, '');
     const numPrice = parseFloat(priceRaw) || 1799.00;
     const formattedPrice = '$' + numPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const claimCode = order.redeemCode || 'AMZN-7K9W-M3XP-84QL';
+  function resolveItemRedeemCode(title = '') {
+    const t = (title || '').toLowerCase();
+    if (t.includes('ipad')) return 'AMZN-4X8R-9K2T-6W7L';
+    if (t.includes('18')) return 'AMZN-8K3P-4M7W-9Y2L';
+    if (t.includes('pixel') || t.includes('11')) return 'AMZN-6H3M-8Q7P-2L9X';
+    if (t.includes('samsung') || t.includes('s26') || t.includes('galaxy')) return 'AMZN-5V7C-3N9J-8K4R';
+    return 'AMZN-9B2N-5F8K-3P4V';
+  }
+
+    const claimCode = order.redeemCode || resolveItemRedeemCode(order.item || '');
 
     return `
       <div id="amazonInvoicePdfSheet" style="
