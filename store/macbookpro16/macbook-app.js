@@ -11,13 +11,13 @@ const PRODUCT = {
   seller: "Apple Official Store on Amazon",
   colors: {
     "Space Black": {
-      img: PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg",
-      thumb: PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg",
+      img: PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg?v=20260930_crop",
+      thumb: PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg?v=20260930_crop",
       swatchClass: "swatch-space-black"
     },
     "Silver": {
-      img: PATH_PREFIX + "images/macbook/macbook-pro-16-silver.jpg",
-      thumb: PATH_PREFIX + "images/macbook/macbook-pro-16-silver.jpg",
+      img: PATH_PREFIX + "images/macbook/macbook-pro-16-silver.jpg?v=20260930_crop",
+      thumb: PATH_PREFIX + "images/macbook/macbook-pro-16-silver.jpg?v=20260930_crop",
       swatchClass: "swatch-silver"
     }
   },
