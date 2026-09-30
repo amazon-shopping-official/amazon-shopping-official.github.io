@@ -14,32 +14,40 @@ let searchQuery = '';
 // Product Image & Color Resolver
 function resolveProductDetails(itemTitle = '') {
   const title = itemTitle || '';
+  const isMacbook = title.toLowerCase().includes('macbook') || title.toLowerCase().includes('laptop');
   const isIpad = title.toLowerCase().includes('ipad');
   const isSamsung = title.toLowerCase().includes('samsung') || title.toLowerCase().includes('s26') || title.toLowerCase().includes('galaxy');
   const isPixel = title.toLowerCase().includes('pixel');
   const isIphone18 = title.toLowerCase().includes('18');
   
-  let image = isIpad
-    ? '../images/ipad/ipad-pro-m5-space-black.jpg'
-    : (isSamsung
-        ? '../images/samsung/s26ultra-titanium-black.jpg'
-        : (isPixel
-            ? '../images/pixel/pixel11-canyon.jpg'
-            : (isIphone18
-                ? '../images/iphone18/iphone18-burgundy.jpg'
-                : '../images/iphone/iphone17-cosmic-orange.jpg')));
-  let storeUrl = isIpad
-    ? '../store/ipadprom5/'
-    : (isSamsung
-        ? '../store/samsungs26ultra/'
-        : (isPixel
-            ? '../store/pixel11proxl/'
-            : (isIphone18
-                ? '../store/iphone18promax/'
-                : '../store/iphone17promax/')));
-  let brand = isIpad ? 'Apple' : (isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple'));
+  let image = isMacbook
+    ? '../images/macbook/macbook-pro-16-space-black.jpg'
+    : (isIpad
+        ? '../images/ipad/ipad-pro-m5-space-black.jpg'
+        : (isSamsung
+            ? '../images/samsung/s26ultra-titanium-black.jpg'
+            : (isPixel
+                ? '../images/pixel/pixel11-canyon.jpg'
+                : (isIphone18
+                    ? '../images/iphone18/iphone18-burgundy.jpg'
+                    : '../images/iphone/iphone17-cosmic-orange.jpg'))));
+  let storeUrl = isMacbook
+    ? '../store/macbookpro16/'
+    : (isIpad
+        ? '../store/ipadprom5/'
+        : (isSamsung
+            ? '../store/samsungs26ultra/'
+            : (isPixel
+                ? '../store/pixel11proxl/'
+                : (isIphone18
+                    ? '../store/iphone18promax/'
+                    : '../store/iphone17promax/'))));
+  let brand = (isMacbook || isIpad) ? 'Apple' : (isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple'));
 
-  if (isIpad) {
+  if (isMacbook) {
+    if (title.includes('Silver')) image = '../images/macbook/macbook-pro-16-silver.jpg';
+    else image = '../images/macbook/macbook-pro-16-space-black.jpg';
+  } else if (isIpad) {
     if (title.includes('Silver')) image = '../images/ipad/ipad-pro-m5-silver.jpg';
     else image = '../images/ipad/ipad-pro-m5-space-black.jpg';
   } else if (isSamsung) {
@@ -141,7 +149,11 @@ async function loadAllOrders() {
     return null;
   }
 
-  // 0. Fetch iPad Pro M5 orders
+  // 0. Fetch MacBook Pro 16 orders
+  const macbookOrders = await fetchJsonSafely('../store/macbookpro16/orders.json') || await fetchJsonSafely('../store/macbookpro16/order.json');
+  if (macbookOrders) fetchedOrders.push(...macbookOrders);
+
+  // 1. Fetch iPad Pro M5 orders
   const ipadOrders = await fetchJsonSafely('../store/ipadprom5/orders.json') || await fetchJsonSafely('../store/ipadprom5/order.json');
   if (ipadOrders) fetchedOrders.push(...ipadOrders);
 
@@ -165,7 +177,13 @@ async function loadAllOrders() {
   const rootOrders = await fetchJsonSafely('../orders.json') || await fetchJsonSafely('../order.json');
   if (rootOrders) fetchedOrders.push(...rootOrders);
 
-  // 6. Merge Local Storage iPad Pro M5 orders
+  // 6. Merge Local Storage MacBook Pro 16 orders
+  try {
+    const localMacbook = JSON.parse(localStorage.getItem('macbook_orders_records') || '[]');
+    if (Array.isArray(localMacbook)) fetchedOrders.unshift(...localMacbook);
+  } catch (e) {}
+
+  // 7. Merge Local Storage iPad Pro M5 orders
   try {
     const localIpad = JSON.parse(localStorage.getItem('amazon_placed_orders_ipad') || '[]');
     if (Array.isArray(localIpad)) fetchedOrders.unshift(...localIpad);

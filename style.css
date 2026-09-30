@@ -869,8 +869,9 @@ body {
 .swatch-silver-18 { background: #e2e4e6; border: 1px solid #bbb; }
 .swatch-black-18 { background: #1c1d1f; border: 1px solid #333; }
 
-/* Official Apple iPad Pro M5 Finishes (Space Black, Silver) */
+/* Official Apple iPad Pro M5 & MacBook Pro Finishes (Space Black, Silver) */
 .swatch-space-black { background: #1d1e20; border: 1px solid #444; }
+.swatch-silver { background: #e3e4e5; border: 1px solid #c0c0c0; }
 
 
 .storage-grid {
