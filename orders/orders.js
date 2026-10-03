@@ -77,6 +77,18 @@ function resolveProductDetails(itemTitle = '') {
 // Generate Dynamic Milestone Updates for an Order (No dates shown as requested)
 function generateTrackingMilestones(order, currentStep = 'dispatched') {
   const customerCity = (order.address || '').split(',').slice(-2, -1)[0]?.trim() || (order.address || '').split(' ').slice(-2)[0] || 'Destination Facility';
+  const customUpdate = order?.shippingUpdate;
+  const isCapetown = customUpdate && customUpdate.toLowerCase().includes('capetown');
+
+  const inTransitTitle = customUpdate || 'In Transit & Customs Cleared';
+  const inTransitDetail = customUpdate
+    ? (isCapetown
+        ? 'Package arrived at Capetown Port and cleared port logistics inspection.'
+        : `Package arrived at ${customUpdate} and cleared logistics inspection.`)
+    : 'Package cleared customs and arrived at regional logistics hub.';
+  const inTransitLocation = isCapetown
+    ? 'Capetown Port Gateway • Hub 4'
+    : (customUpdate ? `${customUpdate} Gateway • Hub 4` : 'International Transit Gateway • Hub 4');
 
   const milestones = [
     {
@@ -93,15 +105,15 @@ function generateTrackingMilestones(order, currentStep = 'dispatched') {
       detail: 'Package has left the international sort facility.',
       time: '',
       location: 'Amazon Logistics Export Facility',
-      completed: ['dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(currentStep)
+      completed: ['dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(currentStep) || !!customUpdate
     },
     {
       id: 'in_transit',
-      title: 'In Transit & Customs Cleared',
-      detail: 'Package cleared customs and arrived at regional logistics hub.',
+      title: inTransitTitle,
+      detail: inTransitDetail,
       time: '',
-      location: `International Transit Gateway • Hub 4`,
-      completed: ['in_transit', 'out_for_delivery', 'delivered'].includes(currentStep)
+      location: inTransitLocation,
+      completed: ['in_transit', 'out_for_delivery', 'delivered'].includes(currentStep) || !!customUpdate
     },
     {
       id: 'out_for_delivery',
@@ -221,7 +233,7 @@ async function loadAllOrders() {
       uniqueMap.set(key, {
         ...ord,
         internalId: ord.orderId || ('ORD-' + (index + 1)),
-        step: 'dispatched'
+        step: ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched')
       });
     }
   });
@@ -282,8 +294,8 @@ function renderOrdersDashboard() {
 
   container.innerHTML = filtered.map((ord, idx) => {
     const prod = resolveProductDetails(ord.item);
-    const step = ord.step || 'dispatched';
-    const statusText = getStatusHeadline(step);
+    const step = ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched');
+    const statusText = ord.shippingUpdate || ord.shippingStatus || getStatusHeadline(step);
 
     return `
       <div class="amazon-order-card" data-index="${idx}">
@@ -418,12 +430,12 @@ function getStatusHeadline(step) {
 window.openTrackPackageModal = function(order) {
   if (!order) return;
   activeOrder = order;
-  currentTrackingStep = order.step || 'dispatched';
+  currentTrackingStep = order.step || (order.shippingUpdate ? 'in_transit' : 'dispatched');
 
   const modal = document.getElementById('trackPackageModal');
   const prod = resolveProductDetails(order.item);
   const milestones = generateTrackingMilestones(order, currentTrackingStep);
-  const statusHeadline = getStatusHeadline(currentTrackingStep);
+  const statusHeadline = order.shippingUpdate || getStatusHeadline(currentTrackingStep);
 
   // Set Recipient Address
   document.getElementById('trackCustomerName').textContent = order.name || 'Recipient';
@@ -446,6 +458,11 @@ window.openTrackPackageModal = function(order) {
   updateModalStepper(currentTrackingStep);
   updateRouteVisual(currentTrackingStep);
 
+  // Update switcher pills
+  document.querySelectorAll('.status-pill-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.step === currentTrackingStep);
+  });
+
   // Show Modal
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -457,6 +474,15 @@ function updateRouteVisual(stepId) {
   const headline = document.getElementById('trackRouteHeadline');
   const subtitle = document.getElementById('trackRouteSubtitle');
   if (!headline || !subtitle) return;
+
+  if (activeOrder?.shippingUpdate && (stepId === 'in_transit' || !stepId || stepId === activeOrder.step)) {
+    if (icon) icon.textContent = '⚓';
+    headline.textContent = activeOrder.shippingUpdate;
+    subtitle.textContent = activeOrder.shippingUpdate.toLowerCase().includes('capetown')
+      ? 'Package has arrived at Capetown Port and is undergoing logistics transfer.'
+      : 'Package is undergoing regional logistics transfer at transit port.';
+    return;
+  }
 
   if (stepId === 'delivered') {
     if (icon) icon.textContent = '🏡';
@@ -511,18 +537,35 @@ function updateModalStepper(step) {
   stepper.setAttribute('data-step', step);
 
   const points = stepper.querySelectorAll('.step-point');
-  const stepOrder = ['ordered', 'dispatched', 'in_transit', 'out_for_delivery', 'delivered'];
-  const currentIndex = stepOrder.indexOf(step);
+  if (points.length === 4) {
+    // 0: ordered, 1: dispatched, 2: out_for_delivery, 3: delivered
+    points[0].classList.add('reached');
+    points[0].querySelector('.point-circle').textContent = (step === 'ordered') ? '●' : '✓';
 
-  points.forEach((pt, pIdx) => {
-    if (pIdx <= currentIndex) {
-      pt.classList.add('reached');
-      pt.querySelector('.point-circle').textContent = (pIdx === currentIndex && step !== 'delivered') ? '●' : '✓';
+    if (['dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(step)) {
+      points[1].classList.add('reached');
+      points[1].querySelector('.point-circle').textContent = (step === 'dispatched') ? '●' : '✓';
     } else {
-      pt.classList.remove('reached');
-      pt.querySelector('.point-circle').textContent = '';
+      points[1].classList.remove('reached');
+      points[1].querySelector('.point-circle').textContent = '';
     }
-  });
+
+    if (['out_for_delivery', 'delivered'].includes(step)) {
+      points[2].classList.add('reached');
+      points[2].querySelector('.point-circle').textContent = (step === 'out_for_delivery') ? '●' : '✓';
+    } else {
+      points[2].classList.remove('reached');
+      points[2].querySelector('.point-circle').textContent = '';
+    }
+
+    if (step === 'delivered') {
+      points[3].classList.add('reached');
+      points[3].querySelector('.point-circle').textContent = '✓';
+    } else {
+      points[3].classList.remove('reached');
+      points[3].querySelector('.point-circle').textContent = '';
+    }
+  }
 }
 
 // Live Status Switcher (Allows testing and previewing shipment milestones)
@@ -533,7 +576,9 @@ window.setLiveShipmentStatus = function(stepId) {
   }
   
   // Re-render modal details
-  const statusHeadline = getStatusHeadline(stepId);
+  const statusHeadline = (stepId === 'in_transit' && activeOrder?.shippingUpdate)
+    ? activeOrder.shippingUpdate
+    : getStatusHeadline(stepId);
   document.getElementById('trackStatusHeadline').textContent = statusHeadline;
   
   const milestones = generateTrackingMilestones(activeOrder, stepId);

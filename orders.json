@@ -330,7 +330,9 @@
     "price": "$2,299.00",
     "qty": 1,
     "payMethod": "Ask a Friend to Pay",
-    "dateStr": "Saturday, September 26, 2026"
+    "dateStr": "Saturday, September 26, 2026",
+    "shippingUpdate": "Reached Capetown Port",
+    "step": "in_transit"
   },
   {
     "orderId": "114-367190-210821",
