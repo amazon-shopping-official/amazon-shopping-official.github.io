@@ -13,19 +13,6 @@
     "dateStr": "Saturday, September 19, 2026"
   },
   {
-    "orderId": "114-645446-6966593",
-    "timestamp": "2026-09-18T10:48:44.013Z",
-    "name": "Dick",
-    "address": "5dyduc",
-    "phoneNumber": "38383",
-    "email": "danraajvpn@gmail.com",
-    "item": "Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange",
-    "price": "$1,699.00",
-    "qty": 1,
-    "payMethod": "Ask a Friend to Pay",
-    "dateStr": "Friday, September 18, 2026"
-  },
-  {
     "orderId": "114-773555-7562230",
     "timestamp": "2026-09-18T09:05:42.316Z",
     "name": "Browser Test iPhone",
@@ -61,14 +48,6 @@
     "email": "g96312404@gmail.com",
     "item": "Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange",
     "price": "$1,699.00"
-  },
-  {
-    "name": "Daniel Raaj J",
-    "address": "Green Gate Road",
-    "phoneNumber": "csdfs",
-    "email": "raajdcruzzz@okhdfcbank",
-    "item": "Apple iPhone 17 Pro Max (512 GB) - Deep Blue",
-    "price": "$1,899.00"
   },
   {
     "name": "Shikha",
