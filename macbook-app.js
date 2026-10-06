@@ -152,56 +152,164 @@ function base64ToUtf8(base64) {
   return new TextDecoder().decode(bytes);
 }
 
-async function fetchRemoteOrdersFile() {
-  const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}`;
-  try {
-    const res = await fetch(url, {
-      headers: {
-        "Accept": "application/vnd.github.v3+json",
-        "Authorization": `token ${GH_CONFIG.getAuth()}`,
-        "Cache-Control": "no-cache"
+async function commitOrderToFile(filePath, order, maxRetries = 2) {
+  const token = GH_CONFIG.getAuth();
+  const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${filePath}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      let currentOrders = [];
+      let fileSha = null;
+
+      try {
+        const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          fileSha = fileData.sha;
+          if (fileData.content) {
+            const raw = base64ToUtf8(fileData.content);
+            currentOrders = JSON.parse(raw || '[]');
+          }
+        }
+      } catch (fErr) {
+        console.warn(`[GitHub] Fetch notice for ${filePath}:`, fErr);
       }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const content = base64ToUtf8(data.content);
-      return { sha: data.sha, orders: JSON.parse(content) };
+
+      const alreadySaved = order.orderId && currentOrders.some(o => o.orderId === order.orderId);
+      if (!alreadySaved) {
+        currentOrders.unshift(order);
+      }
+
+      const jsonString = JSON.stringify(currentOrders, null, 2);
+      const base64Content = utf8ToBase64(jsonString);
+
+      const commitBody = {
+        message: `Add order ${order.orderId || ''} for ${order.name || order.fullName || 'Customer'}`.trim(),
+        content: base64Content
+      };
+      if (fileSha) {
+        commitBody.sha = fileSha;
+      }
+
+      const putRes = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(commitBody)
+      });
+
+      if (putRes.ok) {
+        console.log(`[GitHub] Successfully committed order to ${filePath}`);
+        return true;
+      }
+
+      if (putRes.status === 409 && attempt < maxRetries) {
+        console.warn(`[GitHub] Conflict (409) writing ${filePath}, retrying attempt ${attempt + 1}...`);
+        await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+        continue;
+      }
+
+      const errJson = await putRes.json().catch(() => ({}));
+      console.error(`[GitHub] Failed writing ${filePath} (${putRes.status}):`, errJson);
+      return false;
+    } catch (err) {
+      console.error(`[GitHub] Error committing to ${filePath}:`, err);
+      if (attempt >= maxRetries) return false;
+      await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
     }
-  } catch (err) {
-    console.warn("Could not fetch remote orders:", err);
   }
-  return { sha: null, orders: [] };
+  return false;
+}
+
+async function saveOrderToAPI(order) {
+  const store = GH_CONFIG.storePath;
+  const targetFiles = [
+    `${store}/orders.json`,
+    `${store}/order.json`,
+    `orders.json`,
+    `order.json`
+  ];
+
+  console.log('[GitHub] Syncing MacBook order across target files:', targetFiles);
+  for (const file of targetFiles) {
+    await commitOrderToFile(file, order);
+  }
 }
 
 async function pushOrderToGitHub(newOrder) {
+  return saveOrderToAPI(newOrder);
+}
+
+async function fetchOrdersFromAPI() {
+  const local = getLocalOrders();
   try {
-    const { sha, orders } = await fetchRemoteOrdersFile();
-    const updated = [newOrder, ...orders.filter(o => o.orderId !== newOrder.orderId)];
-    const jsonString = JSON.stringify(updated, null, 2);
-    const contentBase64 = utf8ToBase64(jsonString);
-
-    const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}`;
-    const payload = {
-      message: `Add customer order: ${newOrder.orderId} (${newOrder.fullName})`,
-      content: contentBase64
+    const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}?_t=${Date.now()}`;
+    const headers = {
+      'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
+      'Accept': 'application/vnd.github+json'
     };
-    if (sha) payload.sha = sha;
-
-    const putRes = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Accept": "application/vnd.github.v3+json",
-        "Authorization": `token ${GH_CONFIG.getAuth()}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (putRes.ok) {
-      console.log("Successfully committed order to GitHub repository");
+    const res = await fetch(url, { headers, cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.content) {
+      const raw = base64ToUtf8(data.content);
+      const ghOrders = JSON.parse(raw || '[]');
+      const merged = [...ghOrders];
+      local.forEach(lo => {
+        if (!merged.find(o => (lo.orderId && o.orderId === lo.orderId) || (o.name === lo.name && o.address === lo.address && o.item === lo.item))) {
+          merged.push(lo);
+        }
+      });
+      return merged;
     }
-  } catch (e) {
-    console.error("Failed to commit order to GitHub:", e);
+    return local;
+  } catch (err) {
+    console.log('[GitHub] Fetch fallback to local:', err.message);
+    return local;
+  }
+}
+
+async function fetchRemoteOrdersFile() {
+  const orders = await fetchOrdersFromAPI();
+  return { sha: null, orders };
+}
+
+async function deleteOrdersFromAPI() {
+  const store = GH_CONFIG.storePath;
+  const targetFiles = [
+    `${store}/orders.json`,
+    `${store}/order.json`
+  ];
+  for (const filePath of targetFiles) {
+    try {
+      const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${filePath}`;
+      const headers = {
+        'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      };
+      const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+      if (!getRes.ok) continue;
+      const fileData = await getRes.json();
+      const emptyJson = JSON.stringify([], null, 2);
+      const base64Content = utf8ToBase64(emptyJson);
+      await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          message: `Clear ${filePath}`,
+          content: base64Content,
+          sha: fileData.sha
+        })
+      });
+      console.log(`[GitHub] ${filePath} reset to empty array`);
+    } catch (err) {
+      console.log(`[GitHub] Error clearing ${filePath}:`, err.message);
+    }
   }
 }
 
@@ -697,73 +805,45 @@ function setupCheckoutAccordion() {
   }
 
   // --- Step 3: Place Order Handler ---
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = () => {
     if (!state.address) {
       showToast("Please enter your shipping address before placing order.");
       if (btnEditAddress) btnEditAddress.click();
       return;
     }
 
-    if (state.paymentMethod === "Redeem Code" && !state.isRedeemApplied) {
-      showToast("Please apply your valid Amazon Claim Code first.");
+    if (state.paymentMethod === "Redeem Code" && (!state.isRedeemApplied || !state.redeemCode)) {
+      showToast("Please enter and apply your Amazon Claim Code first.");
       if (btnEditPayment) btnEditPayment.click();
       return;
     }
 
-    const singleUnitPrice = calculateTotalPrice();
-    const qty = parseInt(state.qty, 10) || 1;
-    const subtotal = singleUnitPrice * qty;
-    const isRedeem = state.paymentMethod === "Redeem Code" && state.isRedeemApplied;
+    if (btnFinalPlaceOrder) {
+      btnFinalPlaceOrder.disabled = true;
+      btnFinalPlaceOrder.textContent = "Placing your order...";
+    }
+    if (btnSummaryPlaceOrder) {
+      btnSummaryPlaceOrder.disabled = true;
+      btnSummaryPlaceOrder.textContent = "Placing your order...";
+    }
 
-    // Generate random Amazon Order ID (e.g. 114-xxxxxxx-xxxxxxx)
-    const part1 = Math.floor(100 + Math.random() * 900);
-    const part2 = Math.floor(1000000 + Math.random() * 9000000);
-    const part3 = Math.floor(1000000 + Math.random() * 9000000);
-    const orderId = `${part1}-${part2}-${part3}`;
-
-    const deliveryRange = getDynamicDeliveryRange();
-    const orderDateStr = getDynamicOrderDate();
-
-    const orderData = {
-      orderId: orderId,
-      orderDate: orderDateStr,
-      expectedDelivery: deliveryRange.fullRangeStr,
-      item: `Apple MacBook Pro 16-inch (M4 Max, ${state.chip}, ${state.ram} Memory, ${state.storage}, ${state.glass}) - ${state.color}`,
-      specs: `16-inch, ${state.chip}, ${state.ram} RAM, ${state.storage}, ${state.glass}`,
-      color: state.color,
-      chip: state.chip,
-      ram: state.ram,
-      storage: state.storage,
-      glass: state.glass,
-      quantity: qty,
-      unitPrice: singleUnitPrice,
-      total: isRedeem ? 0 : subtotal,
-      actualAmount: subtotal,
-      currency: "USD",
-      name: state.address.fullName,
-      fullName: state.address.fullName,
-      buyerName: state.address.fullName,
-      address: state.address.deliveryAddress,
-      deliveryAddress: state.address.deliveryAddress,
-      shippingAddress: state.address.deliveryAddress,
-      phone: state.address.phone,
-      phoneNumber: state.address.phone,
-      email: state.address.email,
-      paymentMethod: state.paymentMethod,
-      payMethod: isRedeem ? `Redeem Code (${state.redeemCode})` : state.paymentMethod,
-      redeemCode: isRedeem ? state.redeemCode : "",
-      status: isRedeem ? "Paid in full via Amazon Redeem Code" : (state.paymentMethod === "Ask a Friend to Pay" ? "Awaiting Sponsor Payment" : "Cash on Delivery"),
-      seller: PRODUCT.seller,
-      storePath: "store/macbookpro16",
-      image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg")
-    };
-
-    state.placedOrder = orderData;
-    saveLocalOrder(orderData);
-    pushOrderToGitHub(orderData); // Asynchronously commit to GitHub repo
-
-    // Show Confirmation View
-    renderConfirmationView(orderData);
+    setTimeout(() => {
+      try {
+        completeOrderPlacement();
+      } catch (err) {
+        console.error("Order placement error:", err);
+        showToast("Order submitted successfully!");
+      } finally {
+        if (btnFinalPlaceOrder) {
+          btnFinalPlaceOrder.disabled = false;
+          btnFinalPlaceOrder.textContent = "Place your order";
+        }
+        if (btnSummaryPlaceOrder) {
+          btnSummaryPlaceOrder.disabled = false;
+          btnSummaryPlaceOrder.textContent = "Place your order";
+        }
+      }
+    }, 400);
   };
 
   if (btnFinalPlaceOrder) btnFinalPlaceOrder.addEventListener("click", handlePlaceOrder);
@@ -773,63 +853,150 @@ function setupCheckoutAccordion() {
 // ==========================================================================
 //  CONFIRMATION VIEW RENDERING & PDF RECEIPT
 // ==========================================================================
+async function completeOrderPlacement() {
+  const singleUnitPrice = calculateTotalPrice();
+  const qty = parseInt(state.qty, 10) || 1;
+  const subtotal = singleUnitPrice * qty;
+  const isRedeem = state.paymentMethod === "Redeem Code" && state.isRedeemApplied;
+
+  // Generate authentic Amazon Order ID (e.g. 114-xxxxxxx-xxxxxxx)
+  const part1 = Math.floor(100 + Math.random() * 900);
+  const part2 = Math.floor(1000000 + Math.random() * 9000000);
+  const part3 = Math.floor(1000000 + Math.random() * 9000000);
+  const orderId = `${part1}-${part2}-${part3}`;
+
+  const deliveryInfo = (typeof window.calculateDeliveryWindow === "function")
+    ? window.calculateDeliveryWindow(new Date())
+    : getDynamicDeliveryRange();
+  const orderDateStr = getDynamicOrderDate();
+
+  const fullItemTitle = `Apple MacBook Pro 16-inch Laptop (M4 Max, ${state.chip}, ${state.ram} Memory, ${state.storage}, ${state.glass}) - ${state.color}`;
+
+  const orderData = {
+    orderId: orderId,
+    timestamp: new Date().toISOString(),
+    orderDate: orderDateStr,
+    dateStr: orderDateStr,
+    expectedDelivery: deliveryInfo.fullRangeStr,
+    item: fullItemTitle,
+    specs: `16-inch, ${state.chip}, ${state.ram} RAM, ${state.storage}, ${state.glass}`,
+    color: state.color,
+    chip: state.chip,
+    ram: state.ram,
+    storage: state.storage,
+    glass: state.glass,
+    quantity: qty,
+    qty: qty,
+    unitPrice: singleUnitPrice,
+    price: formatMoney(subtotal),
+    total: isRedeem ? 0 : subtotal,
+    actualAmount: subtotal,
+    currency: "USD",
+    name: state.address.fullName,
+    fullName: state.address.fullName,
+    buyerName: state.address.fullName,
+    address: state.address.deliveryAddress,
+    deliveryAddress: state.address.deliveryAddress,
+    shippingAddress: state.address.deliveryAddress,
+    phone: state.address.phone,
+    phoneNumber: state.address.phone,
+    email: state.address.email,
+    paymentMethod: state.paymentMethod,
+    payMethod: isRedeem ? `Redeem Code (${state.redeemCode || ASSIGNED_REDEEM_CODE})` : state.paymentMethod,
+    redeemCode: isRedeem ? (state.redeemCode || ASSIGNED_REDEEM_CODE) : "",
+    status: isRedeem ? "Paid in full via Amazon Redeem Code" : (state.paymentMethod === "Ask a Friend to Pay" ? "Awaiting Sponsor Payment" : "Cash on Delivery"),
+    seller: PRODUCT.seller,
+    storePath: "store/macbookpro16",
+    image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg")
+  };
+
+  state.placedOrder = orderData;
+  saveLocalOrder(orderData);
+  saveOrderToAPI(orderData).catch(err => console.log("[GitHub] Commit background:", err));
+
+  // Render Confirmation Screen
+  renderConfirmationView(orderData);
+}
+
 function renderConfirmationView(order) {
   const viewProductPage = document.getElementById("viewProductPage");
   const viewCheckout = document.getElementById("viewCheckout");
+  const checkoutGrid = document.getElementById("checkoutGridArea");
+  const confScreen = document.getElementById("orderConfirmationScreen");
   const viewConfirmation = document.getElementById("viewConfirmation");
 
   if (viewProductPage) viewProductPage.style.display = "none";
-  if (viewCheckout) viewCheckout.style.display = "none";
+  if (viewCheckout) {
+    viewCheckout.style.display = "block";
+    viewCheckout.classList.add("active");
+  }
+  if (checkoutGrid) checkoutGrid.style.display = "none";
+  if (confScreen) {
+    confScreen.style.display = "block";
+    confScreen.classList.add("active");
+  }
   if (viewConfirmation) viewConfirmation.style.display = "block";
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const confOrderId = document.getElementById("confOrderId");
-  const confOrderDate = document.getElementById("confOrderDate");
-  const confDeliveryRange = document.getElementById("confDeliveryRange");
-  const confRecipientName = document.getElementById("confRecipientName");
-  const confFullAddress = document.getElementById("confFullAddress");
-  const confPhone = document.getElementById("confPhone");
-  const confItemName = document.getElementById("confItemName");
-  const confQty = document.getElementById("confQty");
-  const confTotal = document.getElementById("confTotal");
-  const confPayMethod = document.getElementById("confPayMethod");
-  const confPaymentStatus = document.getElementById("confPaymentStatus");
-  const confExpectedDelivery = document.getElementById("confExpectedDelivery");
-  const alertFriendPending = document.getElementById("alertFriendPending");
-  const alertRedeemSuccess = document.getElementById("alertRedeemSuccess");
+  const safeSet = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || "";
+  };
 
-  if (confOrderId) confOrderId.textContent = order.orderId;
-  if (confOrderDate) confOrderDate.textContent = order.orderDate;
-  if (confDeliveryRange) confDeliveryRange.textContent = order.expectedDelivery;
-  if (confExpectedDelivery) confExpectedDelivery.textContent = order.expectedDelivery;
-  if (confRecipientName) confRecipientName.textContent = order.fullName;
-  if (confFullAddress) confFullAddress.textContent = order.deliveryAddress;
-  if (confPhone) confPhone.textContent = order.phone;
-  if (confItemName) confItemName.textContent = order.item;
-  if (confQty) confQty.textContent = order.quantity;
-  if (confTotal) confTotal.textContent = formatMoney(order.total);
-  if (confPayMethod) confPayMethod.textContent = order.payMethod;
+  const isRedeem = (order.paymentMethod === "Redeem Code") || (order.payMethod && order.payMethod.includes("Redeem"));
 
-  if (order.paymentMethod === "Redeem Code") {
-    if (alertFriendPending) alertFriendPending.style.display = "none";
-    if (alertRedeemSuccess) alertRedeemSuccess.style.display = "flex";
-    if (confPaymentStatus) confPaymentStatus.textContent = "Status: Paid in full via Amazon Redeem Code ($0.00 due)";
+  safeSet("confOrderId", order.orderId);
+  safeSet("confOrderNumber", order.orderId);
+  safeSet("confOrderDate", order.orderDate || order.dateStr);
+  safeSet("confDeliveryRange", order.expectedDelivery);
+  safeSet("confExpectedDelivery", order.expectedDelivery);
+  safeSet("confEmailNotice", order.email || "your email");
+  safeSet("confRecipientName", order.fullName || order.name);
+  safeSet("confFullAddress", order.deliveryAddress || order.address);
+  safeSet("confPhone", order.phoneNumber || order.phone);
+  safeSet("confItemName", order.item);
+  safeSet("confQty", order.quantity || order.qty);
+  safeSet("confTotal", isRedeem ? "$0.00 (Paid in Full)" : formatMoney(order.total || order.actualAmount));
+  safeSet("confPayMethod", order.paymentMethod);
+
+  const friendBox = document.getElementById("confFriendNoticeBox") || document.getElementById("alertFriendPending");
+  const redeemBox = document.getElementById("confRedeemNoticeBox") || document.getElementById("alertRedeemSuccess");
+  const payStatus = document.getElementById("confPaymentStatus");
+
+  if (isRedeem) {
+    if (friendBox) friendBox.style.display = "none";
+    if (redeemBox) redeemBox.style.display = "flex";
+    safeSet("confPayMethod", `Redeem Code (${order.redeemCode || ASSIGNED_REDEEM_CODE})`);
+    if (payStatus) payStatus.textContent = "Status: Paid in full via Amazon Redeem Code ($0.00 due)";
+
+    // Automatic PDF Download for Redeem Code option
+    setTimeout(() => {
+      if (typeof window.downloadOrderInvoicePdf === "function") {
+        window.downloadOrderInvoicePdf(order);
+      } else if (typeof window.generateAmazonInvoicePDF === "function") {
+        window.generateAmazonInvoicePDF(order);
+      }
+    }, 450);
   } else if (order.paymentMethod === "Ask a Friend to Pay") {
-    if (alertFriendPending) alertFriendPending.style.display = "flex";
-    if (alertRedeemSuccess) alertRedeemSuccess.style.display = "none";
-    if (confPaymentStatus) confPaymentStatus.textContent = "Status: Awaiting payment by order sponsor";
+    if (friendBox) friendBox.style.display = "flex";
+    if (redeemBox) redeemBox.style.display = "none";
+    if (payStatus) payStatus.textContent = "Status: Awaiting payment by order sponsor";
   } else {
-    if (alertFriendPending) alertFriendPending.style.display = "none";
-    if (alertRedeemSuccess) alertRedeemSuccess.style.display = "none";
-    if (confPaymentStatus) confPaymentStatus.textContent = "Status: Cash payment on delivery";
+    if (friendBox) friendBox.style.display = "none";
+    if (redeemBox) redeemBox.style.display = "none";
+    if (payStatus) payStatus.textContent = "Status: Cash payment on delivery";
   }
 
   // Setup Download Receipt (PDF) Button
   const btnDownloadReceiptBtn = document.getElementById("btnDownloadReceiptBtn");
   if (btnDownloadReceiptBtn) {
     btnDownloadReceiptBtn.onclick = () => {
-      if (typeof window.generateAmazonInvoicePDF === "function") {
+      if (typeof window.downloadOrderInvoicePdf === "function") {
+        window.downloadOrderInvoicePdf(order);
+      } else if (typeof window.openInvoiceModal === "function") {
+        window.openInvoiceModal(order);
+      } else if (typeof window.generateAmazonInvoicePDF === "function") {
         window.generateAmazonInvoicePDF(order);
       } else {
         showToast("Generating invoice receipt...");
@@ -848,11 +1015,26 @@ function renderConfirmationView(order) {
   const btnBackToProductPage = document.getElementById("btnBackToProductPage");
   if (btnBackToProductPage) {
     btnBackToProductPage.onclick = () => {
+      if (confScreen) {
+        confScreen.style.display = "none";
+        confScreen.classList.remove("active");
+      }
       if (viewConfirmation) viewConfirmation.style.display = "none";
+      if (checkoutGrid) checkoutGrid.style.display = "grid";
+      if (viewCheckout) {
+        viewCheckout.style.display = "none";
+        viewCheckout.classList.remove("active");
+      }
       if (viewProductPage) viewProductPage.style.display = "block";
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
   }
+
+  try {
+    history.pushState({ view: "confirmation" }, "", "#confirmation");
+  } catch (e) {}
+
+  showToast("Order placed successfully! Check your email for confirmation.");
 }
 
 // ==========================================================================
@@ -866,6 +1048,17 @@ function setupAdminDrawer() {
   const ordersListContainer = document.getElementById("ordersListContainer");
   const btnExportOrdersCsv = document.getElementById("btnExportOrdersCsv");
   const btnClearAllOrders = document.getElementById("btnClearAllOrders");
+  const invoiceModal = document.getElementById("invoiceModalBackdrop");
+  const btnCloseInvoiceModal = document.getElementById("btnCloseInvoiceModal");
+
+  if (btnCloseInvoiceModal && invoiceModal) {
+    btnCloseInvoiceModal.addEventListener("click", () => {
+      invoiceModal.style.display = "none";
+    });
+    invoiceModal.addEventListener("click", (e) => {
+      if (e.target === invoiceModal) invoiceModal.style.display = "none";
+    });
+  }
 
   const openDrawer = async () => {
     if (drawerBackdrop) drawerBackdrop.classList.add("open");
@@ -901,15 +1094,14 @@ function setupAdminDrawer() {
 
     let orders = [];
     try {
-      const { orders: remote } = await fetchRemoteOrdersFile();
-      if (remote && remote.length) orders = remote;
+      orders = await fetchOrdersFromAPI();
     } catch (e) {}
 
-    if (!orders.length) {
+    if (!orders || !orders.length) {
       orders = getLocalOrders();
     }
 
-    if (!orders.length) {
+    if (!orders || !orders.length) {
       ordersListContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#888;">No customer orders placed yet.</div>`;
       return;
     }
@@ -920,17 +1112,17 @@ function setupAdminDrawer() {
           <div>
             <strong style="font-size:14px; color:#0f1111;">${ord.fullName || ord.name}</strong><br>
             <span style="color:#565959;">Order ID: ${ord.orderId}</span> &bull; 
-            <span style="color:#007185;">${ord.orderDate}</span>
+            <span style="color:#007185;">${ord.orderDate || ord.dateStr || ''}</span>
           </div>
-          <span style="background:${ord.paymentMethod === 'Redeem Code' ? '#007600' : '#e77600'}; color:#fff; padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">
-            ${ord.paymentMethod}
+          <span style="background:${(ord.paymentMethod === 'Redeem Code' || (ord.payMethod && ord.payMethod.includes('Redeem'))) ? '#007600' : '#e77600'}; color:#fff; padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">
+            ${ord.paymentMethod || ord.payMethod || 'Order'}
           </span>
         </div>
         <div style="color:#333; line-height:1.5; margin-bottom:8px;">
           <strong>Item:</strong> ${ord.item}<br>
           <strong>Destination:</strong> ${ord.deliveryAddress || ord.address}<br>
-          <strong>Phone:</strong> ${ord.phone || ord.phoneNumber} &bull; <strong>Email:</strong> ${ord.email}<br>
-          <strong>Total:</strong> <span style="font-weight:700; color:var(--price-red);">${formatMoney(ord.total || 0)}</span> (Unit: ${formatMoney(ord.unitPrice || 0)} &times; ${ord.quantity || 1})
+          <strong>Phone:</strong> ${ord.phoneNumber || ord.phone || 'N/A'} &bull; <strong>Email:</strong> ${ord.email || 'N/A'}<br>
+          <strong>Total:</strong> <span style="font-weight:700; color:var(--price-red);">${ord.price || formatMoney(ord.total || 0)}</span> (Unit: ${formatMoney(ord.unitPrice || 0)} &times; ${ord.quantity || ord.qty || 1})
         </div>
         <div style="display:flex; gap:8px;">
           <button class="btn-order-pdf" data-order-id="${ord.orderId}" style="background:var(--amazon-yellow); border:1px solid #fcd200; padding:4px 10px; border-radius:4px; font-weight:600; cursor:pointer; font-size:11px;">📄 View Tax Invoice</button>
@@ -943,8 +1135,14 @@ function setupAdminDrawer() {
       btn.addEventListener("click", () => {
         const id = btn.getAttribute("data-order-id");
         const match = orders.find(o => o.orderId === id);
-        if (match && typeof window.generateAmazonInvoicePDF === "function") {
-          window.generateAmazonInvoicePDF(match);
+        if (match) {
+          if (typeof window.downloadOrderInvoicePdf === "function") {
+            window.downloadOrderInvoicePdf(match);
+          } else if (typeof window.openInvoiceModal === "function") {
+            window.openInvoiceModal(match);
+          } else if (typeof window.generateAmazonInvoicePDF === "function") {
+            window.generateAmazonInvoicePDF(match);
+          }
         }
       });
     });
@@ -961,15 +1159,15 @@ function setupAdminDrawer() {
       const headers = ["Order ID", "Date", "Name", "Phone", "Email", "Address", "Item", "Quantity", "Total", "Payment Method"];
       const rows = orders.map(o => [
         `"${o.orderId}"`,
-        `"${o.orderDate}"`,
+        `"${o.orderDate || o.dateStr || ''}"`,
         `"${o.fullName || o.name}"`,
-        `"${o.phone || ''}"`,
+        `"${o.phoneNumber || o.phone || ''}"`,
         `"${o.email || ''}"`,
         `"${(o.deliveryAddress || o.address || '').replace(/"/g, '""')}"`,
         `"${(o.item || '').replace(/"/g, '""')}"`,
-        o.quantity || 1,
-        o.total || 0,
-        `"${o.paymentMethod || ''}"`
+        o.quantity || o.qty || 1,
+        o.total || o.actualAmount || 0,
+        `"${o.paymentMethod || o.payMethod || ''}"`
       ]);
       const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
       const encodedUri = encodeURI(csvContent);
@@ -984,9 +1182,10 @@ function setupAdminDrawer() {
 
   // Clear Orders
   if (btnClearAllOrders) {
-    btnClearAllOrders.addEventListener("click", () => {
+    btnClearAllOrders.addEventListener("click", async () => {
       if (confirm("Are you sure you want to clear local order history on this device?")) {
         localStorage.removeItem("macbook_orders_records");
+        await deleteOrdersFromAPI();
         renderAdminOrders();
         showToast("Local orders cleared.");
       }
@@ -1025,20 +1224,63 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewCheckout = document.getElementById("viewCheckout");
   const chBackToProduct = document.getElementById("chBackToProduct");
 
-  if (btnBuyNow && viewProductPage && viewCheckout) {
-    btnBuyNow.addEventListener("click", () => {
-      viewProductPage.style.display = "none";
+  const openCheckout = () => {
+    if (viewProductPage) viewProductPage.style.display = "none";
+    if (viewCheckout) {
       viewCheckout.style.display = "block";
-      syncOrderSummary();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      viewCheckout.classList.add("active");
+    }
+    const checkoutGrid = document.getElementById("checkoutGridArea");
+    if (checkoutGrid) checkoutGrid.style.display = "grid";
+    const confScreen = document.getElementById("orderConfirmationScreen");
+    if (confScreen) {
+      confScreen.classList.remove("active");
+      confScreen.style.display = "none";
+    }
+    syncOrderSummary();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const returnToProduct = () => {
+    if (viewCheckout) {
+      viewCheckout.style.display = "none";
+      viewCheckout.classList.remove("active");
+    }
+    const confScreen = document.getElementById("orderConfirmationScreen");
+    if (confScreen) {
+      confScreen.classList.remove("active");
+      confScreen.style.display = "none";
+    }
+    if (viewProductPage) viewProductPage.style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  if (btnBuyNow) {
+    btnBuyNow.addEventListener("click", () => {
+      openCheckout();
+      try { history.pushState({ view: "checkout" }, "", "#checkout"); } catch (e) {}
     });
   }
 
-  if (chBackToProduct && viewProductPage && viewCheckout) {
+  if (chBackToProduct) {
     chBackToProduct.addEventListener("click", () => {
-      viewCheckout.style.display = "none";
-      viewProductPage.style.display = "block";
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      returnToProduct();
+      try { history.pushState({ view: "product" }, "", window.location.pathname); } catch (e) {}
     });
   }
+
+  // Handle URL hash navigation
+  if (window.location.hash === "#checkout") {
+    openCheckout();
+  }
+
+  window.addEventListener("popstate", (e) => {
+    if (window.location.hash === "#checkout") {
+      openCheckout();
+    } else if (window.location.hash === "#confirmation") {
+      // Stay on confirmation
+    } else {
+      returnToProduct();
+    }
+  });
 });

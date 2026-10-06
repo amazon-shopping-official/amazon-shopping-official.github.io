@@ -599,119 +599,88 @@
           </div>
         </aside>
       </div>
-    </div>
-
-    <!-- =====================================================================
-         3. ORDER CONFIRMATION VIEW (SUCCESS STATE)
-    ====================================================================== -->
-    <div id="viewConfirmation" class="conf-container" style="display:none;">
-      
-      <!-- Top Success Alert -->
-      <div class="conf-banner">
-        <div class="conf-banner-check">✓</div>
-        <div>
-          <h2>Order Placed, Thank You!</h2>
-          <p>
-            Confirmation has been dispatched to your email. Order #<span id="confOrderId" style="font-weight:700;"></span>
-          </p>
-        </div>
-      </div>
-
-      <!-- Logistics Tracker Card -->
-      <div class="tracker-card">
-        <div class="tracker-header">
+      <!-- 3. CLEAN AUTHENTIC AMAZON ORDER CONFIRMATION SCREEN -->
+      <div class="order-confirmation-screen" id="orderConfirmationScreen">
+        <span id="confOrderNumber" style="display:none;"></span>
+        <div class="conf-top-banner">
+          <div class="conf-check-icon">✓</div>
           <div>
-            <span class="th-label">Estimated Delivery:</span>
-            <div class="th-date" id="confDeliveryRange"></div>
-          </div>
-          <div style="text-align:right;">
-            <span class="th-label">Shipping Speed:</span>
-            <div style="font-weight:700; color:#007600;">Amazon Global Priority Express</div>
+            <h2 class="conf-h2">Order placed successfully!</h2>
+            <div class="conf-subtitle">
+              The order confirmation will be sent to your email (<strong id="confEmailNotice"></strong>). If you don't find the email, check your spam folder.
+            </div>
+            <div style="font-size:12px; color:#555; margin-top:6px;">
+              Order Placed: <strong id="confOrderDate"></strong> &bull; ✈️ International Priority Shipping
+            </div>
           </div>
         </div>
 
-        <div class="tracker-stepper">
-          <div class="step-point completed">
-            <div class="point-circle">✓</div>
-            <div class="point-label">Ordered</div>
-            <div class="point-date" id="confOrderDate">Today</div>
-          </div>
-          <div class="step-bar completed"></div>
-          <div class="step-point completed">
-            <div class="point-circle">✓</div>
-            <div class="point-label">Processed</div>
-            <div class="point-date">Apple Hub</div>
-          </div>
-          <div class="step-bar"></div>
-          <div class="step-point">
-            <div class="point-circle">🚚</div>
-            <div class="point-label">Shipped</div>
-            <div class="point-date">Air Freight</div>
-          </div>
-          <div class="step-bar"></div>
-          <div class="step-point">
-            <div class="point-circle">📦</div>
-            <div class="point-label">Delivered</div>
-            <div class="point-date">To Resident</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Alert for Ask a Friend to Pay -->
-      <div class="friend-pay-alert" id="alertFriendPending">
-        <div class="alert-icon">🤝</div>
-        <div>
-          <strong style="color:#007185; font-size:15px;">Awaiting Sponsor Payment</strong>
-          <p style="margin:4px 0 0 0; font-size:13px; color:#333;">
-            Your order is registered in the system. The secure payment link has been dispatched to your friend/sponsor. Once completed, shipment will trigger immediately.
-          </p>
-        </div>
-      </div>
-
-      <!-- Alert for Redeem Code -->
-      <div class="friend-pay-alert" id="alertRedeemSuccess" style="display:none; border-color:#007600; background:#f0fff4;">
-        <div class="alert-icon" style="font-size:24px;">🎟️</div>
-        <div>
-          <strong style="color:#007600; font-size:15px;">Paid in full with Redeem Code!</strong>
-          <p style="margin:4px 0 0 0; font-size:13px; color:#333;">
-            Your Amazon Redeem Code was applied successfully. Your official downloadable PDF receipt and tax invoice has been generated.
-          </p>
-        </div>
-      </div>
-
-      <!-- Clean Summary -->
-      <div class="conf-summary-card">
-        <div class="conf-section-title">Delivery &amp; Item Details</div>
-        
-        <div class="conf-grid-details">
+        <!-- Prominent Order Placed & Email Spam Notice Box -->
+        <div class="conf-email-alert">
+          <div class="alert-icon">✉️</div>
           <div>
-            <strong>Shipping Destination:</strong><br>
-            <span id="confRecipientName" style="font-weight:700; color:#111;"></span><br>
-            <span id="confFullAddress"></span><br>
-            Phone: <span id="confPhone"></span>
-          </div>
-
-          <div>
-            <strong>Order Details:</strong><br>
-            <span id="confItemName" style="font-weight:700; color:#111;"></span><br>
-            Quantity: <span id="confQty">1</span><br>
-            Order Total: <strong style="color:var(--price-red); font-size:15px;" id="confTotal">$3,999.00</strong><br>
-            Payment Method: <strong style="color:#007185;" id="confPayMethod">Ask a Friend to Pay</strong><br>
-            Expected Delivery: <strong style="color:#007600;" id="confExpectedDelivery"></strong><br>
-            <span style="font-size:12px; color:#555;" id="confPaymentStatus">Status: Awaiting payment by order sponsor</span>
+            <strong>Order placed successfully!</strong>
+            The order confirmation will be sent to your email. If you don't find the email, check your spam folder.
           </div>
         </div>
 
-        <div class="conf-actions-row">
-          <button type="button" class="btn-conf-secondary btn-download-pdf" id="btnDownloadReceiptBtn" style="background:#ffd814; border-color:#fcd200; font-weight:700; color:#111;">
-            <span>📥 Download Receipt (PDF)</span>
-          </button>
-          <button class="btn-conf-secondary" id="btnContinueShopping">
-            <span>Continue Shopping</span>
-          </button>
-          <button class="btn-conf-secondary" id="btnBackToProductPage">
-            <span>&larr; Back to product</span>
-          </button>
+        <!-- Friend Notice: Order Sponsor Payment Routing -->
+        <div class="conf-friend-alert" id="confFriendNoticeBox">
+          <div class="alert-icon">🤝</div>
+          <div>
+            <strong>Payment Link Sent to Order Sponsor</strong>
+            <p style="margin-top:2px;">
+              We've sent the payment link to the person who shared this item with you. Once payment is confirmed, your package will be dispatched directly to your delivery address below.
+            </p>
+          </div>
+        </div>
+
+        <!-- Redeem Code Confirmation Notice -->
+        <div class="conf-redeem-alert" id="confRedeemNoticeBox" style="display:none;">
+          <div class="alert-icon" style="font-size:24px;">🎟️</div>
+          <div>
+            <strong style="color:#007600; font-size:15px;">Paid in full with Redeem Code!</strong>
+            <p style="margin:4px 0 0 0; font-size:13px; color:#333;">
+              Your Amazon Redeem Code was applied successfully. Your official downloadable PDF receipt and tax invoice has been generated.
+            </p>
+          </div>
+        </div>
+
+        <!-- Clean Order & Delivery Summary -->
+        <div class="conf-summary-card">
+          <div class="conf-section-title">Delivery &amp; Item Details</div>
+          
+          <div class="conf-grid-details">
+            <div>
+              <strong>Shipping Destination:</strong><br>
+              <span id="confRecipientName" style="font-weight:700; color:#111;"></span><br>
+              <span id="confFullAddress"></span><br>
+              Phone: <span id="confPhone"></span>
+            </div>
+
+            <div>
+              <strong>Order Details:</strong><br>
+              <span id="confItemName" style="font-weight:700; color:#111;"></span><br>
+              Quantity: <span id="confQty">1</span><br>
+              Order Total: <strong style="color:var(--price-red); font-size:15px;" id="confTotal">$3,999.00</strong><br>
+              Payment Method: <strong style="color:#007185;" id="confPayMethod">Ask a Friend to Pay</strong><br>
+              Expected Delivery: <strong style="color:#007600;" id="confExpectedDelivery"></strong><br>
+              <span style="font-size:12px; color:#555;" id="confPaymentStatus">Status: Awaiting payment by order sponsor</span>
+            </div>
+          </div>
+
+          <!-- Clean Action Buttons for the Customer -->
+          <div class="conf-actions-row">
+            <button type="button" class="btn-conf-secondary btn-download-pdf" id="btnDownloadReceiptBtn" style="background:#ffd814; border-color:#fcd200; font-weight:700; color:#111;">
+              <span>📥 Download Receipt (PDF)</span>
+            </button>
+            <button class="btn-conf-secondary" id="btnContinueShopping">
+              <span>Continue Shopping</span>
+            </button>
+            <button class="btn-conf-secondary" id="btnBackToProductPage">
+              <span>&larr; Back to product</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -36,7 +36,7 @@
   // 2. Resolve Seller & Product Information
   function resolveSellerInfo(itemName = '') {
     const lower = itemName.toLowerCase();
-    if (lower.includes('iphone') || lower.includes('apple') || lower.includes('ipad')) {
+    if (lower.includes('iphone') || lower.includes('apple') || lower.includes('ipad') || lower.includes('macbook')) {
       return {
         seller: 'Apple Official Store on Amazon',
         operator: 'Amazon.com Services LLC',
@@ -113,7 +113,7 @@
   // 5. Render Official Amazon Invoice HTML
   function generateInvoiceHtml(order) {
     const orderId = order.orderId || ('114-' + Math.floor(100000 + Math.random() * 900000) + '-' + Math.floor(1000000 + Math.random() * 9000000));
-    const orderDate = order.dateStr || new Date().toLocaleDateString('en-US', {
+    const orderDate = order.dateStr || order.orderDate || new Date().toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -122,12 +122,13 @@
     
     const delivery = calculateDeliveryWindow(order.timestamp || new Date());
     const sellerInfo = resolveSellerInfo(order.item || '');
-    const isRedeem = (order.payMethod || '').toLowerCase().includes('redeem') || !!order.redeemCode;
-    const priceRaw = (order.price || order.total || '$1,799.00').replace(/[^0-9.]/g, '');
-    const numPrice = parseFloat(priceRaw) || 1799.00;
+    const isRedeem = (order.payMethod || order.paymentMethod || '').toLowerCase().includes('redeem') || !!order.redeemCode;
+    const priceRaw = String(order.price || order.actualAmount || order.total || '$3,999.00').replace(/[^0-9.]/g, '');
+    const numPrice = parseFloat(priceRaw) || 3999.00;
     const formattedPrice = '$' + numPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   function resolveItemRedeemCode(title = '') {
     const t = (title || '').toLowerCase();
+    if (t.includes('macbook') || t.includes('m4')) return 'AMZN-M4MX-16BP-8000';
     if (t.includes('ipad')) return 'AMZN-4X8R-9K2T-6W7L';
     if (t.includes('18')) return 'AMZN-8K3P-4M7W-9Y2L';
     if (t.includes('pixel') || t.includes('11')) return 'AMZN-6H3M-8Q7P-2L9X';
@@ -446,6 +447,7 @@
   window.calculateDeliveryWindow = calculateDeliveryWindow;
   window.generateInvoiceHtml = generateInvoiceHtml;
   window.downloadOrderInvoicePdf = downloadOrderInvoicePdf;
+  window.generateAmazonInvoicePDF = downloadOrderInvoicePdf;
   window.openInvoiceModal = openInvoiceModal;
   window.openInvoice = openInvoiceModal;
 })();
