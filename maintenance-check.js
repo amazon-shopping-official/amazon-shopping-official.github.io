@@ -1,6 +1,6 @@
 // Amazon Storefront Global Maintenance Guard
 (function() {
-  const MAINTENANCE_ACTIVE = true;
+  const MAINTENANCE_ACTIVE = false;
   if (!MAINTENANCE_ACTIVE) return;
 
   try {
