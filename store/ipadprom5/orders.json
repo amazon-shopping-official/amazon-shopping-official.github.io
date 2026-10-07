@@ -1,13 +1,9 @@
 [
   {
     "orderId": "114-167702-421345",
-    "timestamp": "2026-09-28T10:15:00.000Z",
     "orderDate": "Monday, September 28, 2026",
-    "dateStr": "Monday, September 28, 2026",
     "expectedDelivery": "October 18 – 23, 2026",
     "item": "Apple iPad Pro (M5, 11-inch Ultra Retina XDR Tandem OLED, 256 GB) - Space Black (Standard Glass, Wi-Fi)",
-    "price": "$999.00",
-    "qty": 1,
     "specs": "11-inch, 256 GB, Standard Glass, Wi-Fi",
     "color": "Space Black",
     "storage": "256 GB",
