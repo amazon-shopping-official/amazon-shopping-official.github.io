@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-454093-817623",
+    "timestamp": "2026-10-08T09:15:01.077Z",
+    "name": "Babylen Vargas",
+    "address": "281 Poblacion East Pantabangan Nueva Ecija 3124 Phillipines",
+    "phoneNumber": "9166834433",
+    "email": "ivyvargas69@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (256 GB) - Burgundy",
+    "price": "$1,799.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Thursday, October 8, 2026",
+    "expectedDelivery": "November 2 – November 7, 2026"
+  },
+  {
     "orderId": "114-139781-886859",
     "timestamp": "2026-09-28T10:16:57.579Z",
     "name": "Ma Susette Juan",
