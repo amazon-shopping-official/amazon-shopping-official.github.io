@@ -79,16 +79,21 @@ function generateTrackingMilestones(order, currentStep = 'dispatched') {
   const customerCity = (order.address || '').split(',').slice(-2, -1)[0]?.trim() || (order.address || '').split(' ').slice(-2)[0] || 'Destination Facility';
   const customUpdate = order?.shippingUpdate;
   const isCapetown = customUpdate && customUpdate.toLowerCase().includes('capetown');
+  const isSingapore = customUpdate && customUpdate.toLowerCase().includes('singapore');
 
   const inTransitTitle = customUpdate || 'In Transit & Customs Cleared';
   const inTransitDetail = customUpdate
     ? (isCapetown
         ? 'Package arrived at Capetown Port and cleared port logistics inspection.'
-        : `Package arrived at ${customUpdate} and cleared logistics inspection.`)
+        : (isSingapore
+            ? 'Package arrived at Singapore Port and cleared port logistics inspection.'
+            : `Package arrived at ${customUpdate} and cleared logistics inspection.`))
     : 'Package cleared customs and arrived at regional logistics hub.';
   const inTransitLocation = isCapetown
     ? 'Capetown Port Gateway • Hub 4'
-    : (customUpdate ? `${customUpdate} Gateway • Hub 4` : 'International Transit Gateway • Hub 4');
+    : (isSingapore
+        ? 'Singapore Port Gateway • Hub 4'
+        : (customUpdate ? `${customUpdate} Gateway • Hub 4` : 'International Transit Gateway • Hub 4'));
 
   const milestones = [
     {
@@ -480,7 +485,9 @@ function updateRouteVisual(stepId) {
     headline.textContent = activeOrder.shippingUpdate;
     subtitle.textContent = activeOrder.shippingUpdate.toLowerCase().includes('capetown')
       ? 'Package has arrived at Capetown Port and is undergoing logistics transfer.'
-      : 'Package is undergoing regional logistics transfer at transit port.';
+      : (activeOrder.shippingUpdate.toLowerCase().includes('singapore')
+          ? 'Package has arrived at Singapore Port and is undergoing logistics transfer.'
+          : 'Package is undergoing regional logistics transfer at transit port.');
     return;
   }
 

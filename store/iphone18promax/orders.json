@@ -165,7 +165,9 @@
     "price": "$1,799.00",
     "qty": 1,
     "payMethod": "Ask a Friend to Pay",
-    "dateStr": "Tuesday, September 22, 2026"
+    "dateStr": "Tuesday, September 22, 2026",
+    "shippingUpdate": "Reached Singapore Port",
+    "step": "in_transit"
   },
   {
     "orderId": "114-107268-861508",
