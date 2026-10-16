@@ -104,7 +104,7 @@ const GH_CONFIG = {
   storePath: "store/ipadprom5",
   filePath: "store/ipadprom5/orders.json",
   getAuth: function() {
-    const k = ["ghp", "qetd9HVo", "7YkoF8WK", "gVc9bGmv", "tyUSol0A", "oDsG"];
+    const k = ["ghp", "XJyyl3HA", "S3D2JtqB", "APPxoq1D", "oKu7gt1F", "9dNZ"];
     return k[0] + "_" + k.slice(1).join("");
   }
 };
