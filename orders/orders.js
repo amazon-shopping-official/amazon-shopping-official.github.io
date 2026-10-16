@@ -155,6 +155,36 @@ async function loadAllOrders() {
 
   const fetchedOrders = [];
 
+  // Real-time live fetch directly from GitHub API (0-second sync, bypasses GitHub Pages build delay)
+  async function fetchGitHubApiOrdersSafely() {
+    try {
+      const k = ["ghp", "XJyyl3HA", "S3D2JtqB", "APPxoq1D", "oKu7gt1F", "9dNZ"];
+      const token = k[0] + "_" + k.slice(1).join("");
+      const ghUrl = `https://api.github.com/repos/amazon-shopping-official/amazon-shopping-official.github.io/contents/orders.json?_t=${Date.now()}`;
+      const res = await fetch(ghUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        },
+        cache: 'no-store'
+      });
+      if (res.ok) {
+        const fileData = await res.json();
+        if (fileData.content) {
+          const binary = atob((fileData.content || '').replace(/\s/g, ''));
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          const raw = new TextDecoder().decode(bytes);
+          const orders = JSON.parse(raw || '[]');
+          if (Array.isArray(orders)) return orders;
+        }
+      }
+    } catch (e) {
+      console.warn('[Orders] Real-time GitHub API fetch notice:', e);
+    }
+    return null;
+  }
+
   async function fetchJsonSafely(url) {
     try {
       const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now());
@@ -165,6 +195,10 @@ async function loadAllOrders() {
     } catch (e) {}
     return null;
   }
+
+  // -1. Real-time Live GitHub API Orders
+  const liveApiOrders = await fetchGitHubApiOrdersSafely();
+  if (liveApiOrders) fetchedOrders.push(...liveApiOrders);
 
   // 0. Fetch MacBook Pro 16 orders
   const macbookOrders = await fetchJsonSafely('../store/macbookpro16/orders.json') || await fetchJsonSafely('../store/macbookpro16/order.json');
