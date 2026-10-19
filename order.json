@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-750367-388590",
+    "timestamp": "2026-10-19T00:42:53.663Z",
+    "name": "Josie Lou Jamela bugacia",
+    "address": "33 monico lane sto. Tomas pasig city 1600",
+    "phoneNumber": "+639614182903",
+    "email": "jbugaciazabala@gmail.com",
+    "item": "Samsung Galaxy S26 Ultra (1 TB) - Titanium Silver",
+    "price": "$1,659.99",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-5V7C-3N9J-8K4R)",
+    "redeemCode": "AMZN-5V7C-3N9J-8K4R",
+    "dateStr": "Monday, October 19, 2026",
+    "expectedDelivery": "November 13 – November 18, 2026"
+  },
+  {
     "orderId": "114-344442-420214",
     "timestamp": "2026-10-16T07:21:30.380Z",
     "name": "123123",
