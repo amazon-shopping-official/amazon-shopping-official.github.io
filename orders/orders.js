@@ -14,35 +14,40 @@ let searchQuery = '';
 // Product Image & Color Resolver
 function resolveProductDetails(itemTitle = '') {
   const title = itemTitle || '';
+  const isStreamer = title.toLowerCase().includes('streamer') || title.toLowerCase().includes('combo') || title.toLowerCase().includes('sound card') || title.toLowerCase().includes('k1') || title.toLowerCase().includes('shure') || title.toLowerCase().includes('razer');
   const isMacbook = title.toLowerCase().includes('macbook') || title.toLowerCase().includes('laptop');
   const isIpad = title.toLowerCase().includes('ipad');
   const isSamsung = title.toLowerCase().includes('samsung') || title.toLowerCase().includes('s26') || title.toLowerCase().includes('galaxy');
   const isPixel = title.toLowerCase().includes('pixel');
   const isIphone18 = title.toLowerCase().includes('18');
   
-  let image = isMacbook
-    ? '../images/macbook/macbook-pro-16-space-black.jpg'
-    : (isIpad
-        ? '../images/ipad/ipad-pro-m5-space-black.jpg'
-        : (isSamsung
-            ? '../images/samsung/s26ultra-titanium-black.jpg'
-            : (isPixel
-                ? '../images/pixel/pixel11-canyon.jpg'
-                : (isIphone18
-                    ? '../images/iphone18/iphone18-burgundy.jpg'
-                    : '../images/iphone/iphone17-cosmic-orange.jpg'))));
-  let storeUrl = isMacbook
-    ? '../store/macbookpro16/'
-    : (isIpad
-        ? '../store/ipadprom5/'
-        : (isSamsung
-            ? '../store/samsungs26ultra/'
-            : (isPixel
-                ? '../store/pixel11proxl/'
-                : (isIphone18
-                    ? '../store/iphone18promax/'
-                    : '../store/iphone17promax/'))));
-  let brand = (isMacbook || isIpad) ? 'Apple' : (isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple'));
+  let image = isStreamer
+    ? '../images/streamercombo/k1-soundcard.jpg'
+    : (isMacbook
+        ? '../images/macbook/macbook-pro-16-space-black.jpg'
+        : (isIpad
+            ? '../images/ipad/ipad-pro-m5-space-black.jpg'
+            : (isSamsung
+                ? '../images/samsung/s26ultra-titanium-black.jpg'
+                : (isPixel
+                    ? '../images/pixel/pixel11-canyon.jpg'
+                    : (isIphone18
+                        ? '../images/iphone18/iphone18-burgundy.jpg'
+                        : '../images/iphone/iphone17-cosmic-orange.jpg')))));
+  let storeUrl = isStreamer
+    ? '../store/streamercombo/'
+    : (isMacbook
+        ? '../store/macbookpro16/'
+        : (isIpad
+            ? '../store/ipadprom5/'
+            : (isSamsung
+                ? '../store/samsungs26ultra/'
+                : (isPixel
+                    ? '../store/pixel11proxl/'
+                    : (isIphone18
+                        ? '../store/iphone18promax/'
+                        : '../store/iphone17promax/')))));
+  let brand = isStreamer ? 'Pro Audio Studio' : ((isMacbook || isIpad) ? 'Apple' : (isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple')));
 
   if (isMacbook) {
     if (title.includes('Silver')) image = '../images/macbook/macbook-pro-16-silver.jpg';
@@ -224,6 +229,10 @@ async function loadAllOrders() {
   const smOrders = await fetchJsonSafely('../store/samsungs26ultra/orders.json') || await fetchJsonSafely('../store/samsungs26ultra/order.json');
   if (smOrders) fetchedOrders.push(...smOrders);
 
+  // 4b. Fetch Streamer Combo orders
+  const streamerOrders = await fetchJsonSafely('../store/streamercombo/orders.json') || await fetchJsonSafely('../store/streamercombo/order.json');
+  if (streamerOrders) fetchedOrders.push(...streamerOrders);
+
   // 5. Fetch Root orders as comprehensive fallback
   const rootOrders = await fetchJsonSafely('../orders.json') || await fetchJsonSafely('../order.json');
   if (rootOrders) fetchedOrders.push(...rootOrders);
@@ -262,6 +271,12 @@ async function loadAllOrders() {
   try {
     const localSamsung = JSON.parse(localStorage.getItem('amazon_placed_orders_samsung') || '[]');
     if (Array.isArray(localSamsung)) fetchedOrders.unshift(...localSamsung);
+  } catch (e) {}
+
+  // 11. Merge Local Storage Streamer Combo orders
+  try {
+    const localStreamer = JSON.parse(localStorage.getItem('amazon_placed_orders_streamercombo') || '[]');
+    if (Array.isArray(localStreamer)) fetchedOrders.unshift(...localStreamer);
   } catch (e) {}
 
   // Deduplicate orders without dropping unique test submissions
