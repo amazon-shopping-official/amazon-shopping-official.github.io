@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-644905-309437",
+    "timestamp": "2026-10-23T07:29:09.639Z",
+    "name": "Christina Lorenzo",
+    "address": "Purok 6 usol ,Jones, Isabela phillipines",
+    "phoneNumber": "09757589786",
+    "email": "christinalorenzo420@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (256 GB) - Burgundy",
+    "price": "$1,799.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Friday, October 23, 2026",
+    "expectedDelivery": "November 17 – November 22, 2026"
+  },
+  {
     "orderId": "114-344442-420214",
     "timestamp": "2026-10-16T07:21:30.380Z",
     "name": "123123",
