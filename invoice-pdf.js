@@ -54,6 +54,12 @@
         operator: 'Amazon.com Services LLC',
         warehouse: 'Amazon Global Logistics Gateway (KR-Direct)'
       };
+    } else if (lower.includes('urbangold') || lower.includes('u-link') || lower.includes('necklace') || lower.includes('gold')) {
+      return {
+        seller: 'UrbanGold Official Luxury Jewelry Store on Amazon',
+        operator: 'Amazon.com Services LLC',
+        warehouse: 'Amazon Global Fulfillment Center (Jewelry Vault Hub)'
+      };
     }
     return {
       seller: 'Authorized Flagship Store on Amazon',

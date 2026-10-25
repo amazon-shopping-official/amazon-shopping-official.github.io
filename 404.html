@@ -8,6 +8,10 @@
       var path = (window.location.pathname || "").toLowerCase();
       if (path.includes("order") || path.includes("track")) {
         window.location.replace("/orders/" + window.location.search + window.location.hash);
+      } else if (path.includes("gold") || path.includes("necklace") || path.includes("urban")) {
+        window.location.replace("/store/urbangold/" + window.location.search + window.location.hash);
+      } else if (path.includes("streamer") || path.includes("combo")) {
+        window.location.replace("/store/streamercombo/" + window.location.search + window.location.hash);
       } else if (path.includes("macbook")) {
         window.location.replace("/store/macbookpro16/" + window.location.search + window.location.hash);
       } else if (path.includes("ipad")) {
