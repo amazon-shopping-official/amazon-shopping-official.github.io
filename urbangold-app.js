@@ -2,7 +2,7 @@
  * urbangold-app.js
  * Amazon.com - Official UrbanGold 24k u-link necklace Showcase & Fluid Checkout
  * 100% Matching Architecture of iPhone 18 Pro Max Storefront & Design System
- * Features: Real 24K Thai Baht Gold Pricing, Authentic Redeem Code System & Real-Time Sync
+ * Features: Real 24K Thai Baht Gold Pricing, Authentic Secret Admin Drawer & Real-Time Sync
  */
 
 const PATH_PREFIX = window.location.pathname.includes('/store/') ? '../../' : '';
@@ -219,6 +219,70 @@ async function saveOrderToAPI(order) {
   }
 }
 
+async function fetchOrdersFromAPI() {
+  const local = JSON.parse(localStorage.getItem('amazon_placed_orders_urbangold') || '[]');
+  try {
+    const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}?_t=${Date.now()}`;
+    const headers = {
+      'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
+      'Accept': 'application/vnd.github+json'
+    };
+    const res = await fetch(url, { headers, cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.content) {
+      const raw = base64ToUtf8(data.content);
+      const ghOrders = JSON.parse(raw || '[]');
+      const merged = [...ghOrders];
+      local.forEach(lo => {
+        if (!merged.find(o => (lo.orderId && o.orderId === lo.orderId) || (o.name === lo.name && o.address === lo.address && o.item === lo.item))) {
+          merged.push(lo);
+        }
+      });
+      return merged;
+    }
+    return local;
+  } catch (err) {
+    console.log('[GitHub] Fetch fallback to localStorage:', err.message);
+    return local;
+  }
+}
+
+async function deleteOrdersFromAPI() {
+  const store = GH_CONFIG.storePath;
+  const targetFiles = [
+    `${store}/orders.json`,
+    `${store}/order.json`
+  ];
+  for (const filePath of targetFiles) {
+    try {
+      const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${filePath}`;
+      const headers = {
+        'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      };
+      const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+      if (!getRes.ok) continue;
+      const fileData = await getRes.json();
+      const emptyJson = JSON.stringify([], null, 2);
+      const base64Content = utf8ToBase64(emptyJson);
+      await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          message: `Clear ${filePath}`,
+          content: base64Content,
+          sha: fileData.sha
+        })
+      });
+      console.log(`[GitHub] ${filePath} reset to empty array`);
+    } catch (err) {
+      console.log(`[GitHub] Error clearing ${filePath}:`, err.message);
+    }
+  }
+}
+
 // Check Redeem Code Validity
 function isValidAmazonRedeemCode(rawCode) {
   if (!rawCode) return false;
@@ -240,20 +304,12 @@ function showToast(msg) {
 }
 
 // ==========================================================================
-//  INITIALIZATION & ACCORDION (100% MATCHING IPHONE 18 PRO MAX)
+//  INITIALIZATION (100% MATCHING IPHONE 18 PRO MAX)
 // ==========================================================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Check Admin Access
-  const urlParams = new URLSearchParams(window.location.search);
-  const isAdmin = urlParams.has("admin") || localStorage.getItem("amazon_admin_mode") === "1";
-  if (isAdmin) {
-    const navSubOrdersPortal = document.getElementById("navSubOrdersPortal");
-    if (navSubOrdersPortal) navSubOrdersPortal.style.display = "inline-block";
-  }
-
   setupProductInteractions();
   setupCheckoutAccordion();
-  setupAdminDrawer();
+  setupOrdersDrawer();
 });
 
 // 1. Product Page Interactivity (Gallery, Weights, Price sync)
@@ -316,7 +372,6 @@ function setupProductInteractions() {
   function updateProductDetails() {
     const wInfo = PRODUCT.weights[state.weight] || PRODUCT.weights["20g"];
     const unitPrice = wInfo.price;
-    const totalAmount = unitPrice * state.qty;
 
     if (centerPrice) centerPrice.textContent = unitPrice.toLocaleString("en-US");
     if (centerListPrice) centerListPrice.textContent = formatMoney(wInfo.listPrice);
@@ -810,151 +865,157 @@ async function completeOrderPlacement() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 
   showToast("Order placed successfully! Check your email for confirmation.");
+  if (typeof renderOrdersDrawer === "function") {
+    renderOrdersDrawer();
+  }
 }
 
-// 5. Admin Drawer Functions
-function setupAdminDrawer() {
-  const ordersDrawer = document.getElementById("ordersDrawer");
-  const drawerBackdrop = document.getElementById("drawerBackdrop");
+// ==========================================================================
+// 5. SLIDE-OUT CUSTOMER ORDERS DRAWER (100% IDENTICAL TO IPHONE 18 PRO MAX)
+// ==========================================================================
+function setupOrdersDrawer() {
+  const drawer = document.getElementById("ordersDrawer");
+  const backdrop = document.getElementById("drawerBackdrop");
   const btnCloseDrawer = document.getElementById("btnCloseDrawer");
-  const footerAdminTrigger = document.getElementById("footerAdminTrigger");
-  const ordersListContainer = document.getElementById("ordersListContainer");
-  const btnExportOrdersCsv = document.getElementById("btnExportOrdersCsv");
-  const btnClearAllOrders = document.getElementById("btnClearAllOrders");
+  const clearBtn = document.getElementById("btnClearAllOrders");
+  const exportBtn = document.getElementById("btnExportOrdersCsv");
+  const footerTrigger = document.getElementById("footerAdminTrigger");
+  const invoiceModal = document.getElementById("invoiceModalBackdrop");
+  const btnCloseInvoice = document.getElementById("btnCloseInvoiceModal");
+  const continueShoppingBtn = document.getElementById("btnContinueShopping");
+  const navOrdersBtn = document.getElementById("navOrdersBtn");
 
-  function openAdminDrawer() {
-    if (ordersDrawer) ordersDrawer.classList.add("active");
-    if (drawerBackdrop) drawerBackdrop.classList.add("active");
-    renderAdminOrdersList();
+  function openDrawer() {
+    try { localStorage.setItem("amazon_admin_mode", "1"); } catch (e) {}
+    renderOrdersDrawer();
+    if (drawer) drawer.classList.add("open");
+    if (backdrop) backdrop.classList.add("open");
   }
 
-  function closeAdminDrawer() {
-    if (ordersDrawer) ordersDrawer.classList.remove("active");
-    if (drawerBackdrop) drawerBackdrop.classList.remove("active");
+  function closeDrawer() {
+    if (drawer) drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
   }
 
-  if (btnCloseDrawer) btnCloseDrawer.addEventListener("click", closeAdminDrawer);
-  if (drawerBackdrop) drawerBackdrop.addEventListener("click", closeAdminDrawer);
+  // Covert Trigger 1: Secret URL Parameter (?admin=1, ?secret=1, ?orders=1, or ?seller=1)
+  const urlQuery = new URLSearchParams(window.location.search);
+  if (urlQuery.has("admin") || urlQuery.has("secret") || urlQuery.has("orders") || urlQuery.has("seller")) {
+    try { localStorage.setItem("amazon_admin_mode", "1"); } catch (e) {}
+    setTimeout(() => {
+      openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
+    }, 400);
 
-  let footerClicks = 0;
-  let footerTimer = null;
-  if (footerAdminTrigger) {
-    footerAdminTrigger.addEventListener("click", () => {
-      footerClicks++;
-      clearTimeout(footerTimer);
-      if (footerClicks >= 3) {
-        footerClicks = 0;
-        openAdminDrawer();
-      } else {
-        footerTimer = setTimeout(() => { footerClicks = 0; }, 800);
-      }
-    });
+    const navSubOrdersPortal = document.getElementById("navSubOrdersPortal");
+    if (navSubOrdersPortal) navSubOrdersPortal.style.display = "inline-block";
   }
 
+  // Covert Trigger 2: Secret Keyboard Shortcut (Alt + S, Alt + A, or Ctrl + Shift + S)
   window.addEventListener("keydown", (e) => {
-    if (e.altKey && (e.key === "s" || e.key === "S")) {
+    if ((e.altKey && e.key.toLowerCase() === "s") || 
+        (e.altKey && e.key.toLowerCase() === "a") || 
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s")) {
       e.preventDefault();
-      openAdminDrawer();
+      openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
     }
   });
 
-  async function renderAdminOrdersList() {
-    if (!ordersListContainer) return;
-    ordersListContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#565959;">Loading orders...</div>`;
+  // Covert Trigger 3: Secret Gesture (Click footer Amazon.com trigger)
+  let footerClickCount = 0;
+  let footerClickTimer = null;
+  if (footerTrigger) {
+    footerTrigger.addEventListener("click", () => {
+      footerClickCount++;
+      clearTimeout(footerClickTimer);
+      footerClickTimer = setTimeout(() => {
+        footerClickCount = 0;
+      }, 500);
 
-    let orders = [];
-    try {
-      const local = JSON.parse(localStorage.getItem("amazon_placed_orders_urbangold") || "[]");
-      orders.push(...local);
-    } catch (e) {}
-
-    try {
-      const res = await fetch(`orders.json?_t=${Date.now()}`);
-      if (res.ok) {
-        const remote = await res.json();
-        if (Array.isArray(remote)) {
-          remote.forEach(r => {
-            if (!orders.some(o => o.orderId === r.orderId)) orders.push(r);
-          });
-        }
-      }
-    } catch (e) {}
-
-    if (orders.length === 0) {
-      ordersListContainer.innerHTML = `<div style="text-align:center; padding:30px; color:#565959;">No customer orders recorded yet.</div>`;
-      return;
-    }
-
-    ordersListContainer.innerHTML = orders.map(ord => `
-      <div style="border:1px solid #d5d9d9; border-radius:6px; padding:12px; margin-bottom:12px; background:#fff;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-          <strong style="color:#007185;">${ord.orderId || 'Order'}</strong>
-          <span style="font-size:12px; color:#565959;">${ord.dateStr || ''}</span>
-        </div>
-        <div style="font-size:13px; font-weight:700;">${ord.name || 'Customer'} &bull; ${ord.price || ''}</div>
-        <div style="font-size:12px; color:#333; margin:4px 0;">${ord.item || ''} (Qty: ${ord.qty || 1})</div>
-        <div style="font-size:12px; color:#565959;">${ord.address || ''}</div>
-        <div style="font-size:12px; color:#007600; margin-top:4px;">Payment: ${ord.payMethod || ''}</div>
-      </div>
-    `).join("");
+      openDrawer();
+      showToast("🔒 Secret Seller & Billing Hub Opened");
+    });
   }
 
-  if (btnExportOrdersCsv) {
-    btnExportOrdersCsv.addEventListener("click", () => {
-      const local = JSON.parse(localStorage.getItem("amazon_placed_orders_urbangold") || "[]");
-      if (local.length === 0) {
+  // Covert Trigger 4: Returns & Orders button in top nav
+  let navOrdersClickCount = 0;
+  let navOrdersTimer = null;
+  if (navOrdersBtn) {
+    navOrdersBtn.addEventListener("click", (e) => {
+      navOrdersClickCount++;
+      clearTimeout(navOrdersTimer);
+      navOrdersTimer = setTimeout(() => { navOrdersClickCount = 0; }, 600);
+
+      const isAdminMode = urlQuery.has("admin") || 
+                          urlQuery.has("secret") || 
+                          urlQuery.has("orders") || 
+                          urlQuery.has("seller") || 
+                          localStorage.getItem("amazon_admin_mode") === "1" || 
+                          e.altKey || 
+                          navOrdersClickCount >= 2;
+
+      if (isAdminMode) {
+        e.preventDefault();
+        openDrawer();
+        showToast("🔒 Secret Seller & Billing Hub Opened");
+      }
+    });
+  }
+
+  if (btnCloseDrawer) btnCloseDrawer.addEventListener("click", closeDrawer);
+  if (backdrop) backdrop.addEventListener("click", closeDrawer);
+
+  if (continueShoppingBtn) {
+    continueShoppingBtn.addEventListener("click", () => {
+      window.location.href = "../../";
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", async () => {
+      if (confirm("Reset all orders? This will clear local storage and sync an empty array to GitHub repository.")) {
+        localStorage.removeItem("amazon_placed_orders_urbangold");
+        clearBtn.disabled = true;
+        clearBtn.textContent = "Clearing...";
+        await deleteOrdersFromAPI();
+        clearBtn.disabled = false;
+        clearBtn.textContent = "Clear All Orders";
+        renderOrdersDrawer();
+        showToast("All orders have been reset.");
+      }
+    });
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener("click", async () => {
+      const orders = await fetchOrdersFromAPI();
+      if (!orders || orders.length === 0) {
         showToast("No orders available to export.");
         return;
       }
-      const headers = ["Order ID", "Date", "Name", "Address", "Phone", "Email", "Item", "Price", "Qty", "Payment Method"];
-      const rows = local.map(o => [
-        o.orderId || "",
-        o.dateStr || "",
-        `"${(o.name || "").replace(/"/g, '""')}"`,
-        `"${(o.address || "").replace(/"/g, '""')}"`,
-        `"${o.phoneNumber || ""}"`,
-        `"${o.email || ""}"`,
-        `"${(o.item || "").replace(/"/g, '""')}"`,
-        `"${o.price || ""}"`,
-        o.qty || 1,
-        `"${(o.payMethod || "").replace(/"/g, '""')}"`
-      ]);
-      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-      const link = document.createElement("a");
-      link.setAttribute("href", encodeURI(csvContent));
-      link.setAttribute("download", `urbangold_orders_${Date.now()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      exportOrdersToCSV(orders);
     });
   }
 
-  if (btnClearAllOrders) {
-    btnClearAllOrders.addEventListener("click", () => {
-      if (confirm("Clear local order records for UrbanGold necklace?")) {
-        localStorage.removeItem("amazon_placed_orders_urbangold");
-        renderAdminOrdersList();
-        showToast("Local records cleared.");
+  if (btnCloseInvoice && invoiceModal) {
+    btnCloseInvoice.addEventListener("click", () => {
+      invoiceModal.style.display = "none";
+    });
+    invoiceModal.addEventListener("click", (e) => {
+      if (e.target === invoiceModal) invoiceModal.style.display = "none";
+    });
+  }
+
+  const btnDownloadReceipt = document.getElementById("btnDownloadReceiptBtn");
+  if (btnDownloadReceipt) {
+    btnDownloadReceipt.addEventListener("click", () => {
+      if (state.placedOrder) {
+        if (typeof window.downloadOrderInvoicePdf === "function") {
+          window.downloadOrderInvoicePdf(state.placedOrder);
+        } else {
+          openInvoiceModal(state.placedOrder);
+        }
       }
-    });
-  }
-
-  // Confirmation action buttons
-  const btnDownloadReceiptBtn = document.getElementById("btnDownloadReceiptBtn");
-  if (btnDownloadReceiptBtn) {
-    btnDownloadReceiptBtn.addEventListener("click", () => {
-      if (state.placedOrder && typeof window.downloadOrderInvoicePdf === "function") {
-        window.downloadOrderInvoicePdf(state.placedOrder);
-      } else {
-        showToast("Generating official tax receipt PDF...");
-      }
-    });
-  }
-
-  const btnContinueShopping = document.getElementById("btnContinueShopping");
-  if (btnContinueShopping) {
-    btnContinueShopping.addEventListener("click", () => {
-      window.location.href = "../../";
     });
   }
 
@@ -964,4 +1025,106 @@ function setupAdminDrawer() {
       window.location.reload();
     });
   }
+}
+
+async function renderOrdersDrawer() {
+  const container = document.getElementById("ordersListContainer") || document.getElementById("drawerOrdersList");
+  if (!container) return;
+
+  container.innerHTML = '<div style="padding:24px; text-align:center; color:#565959;"><div class="spinner" style="margin:0 auto 10px;"></div>Loading orders...</div>';
+
+  const orders = await fetchOrdersFromAPI();
+
+  if (!orders || orders.length === 0) {
+    container.innerHTML = `
+      <div style="padding:48px 24px; text-align:center; color:#565959;">
+        <div style="font-size:36px; margin-bottom:12px;">📦</div>
+        <div style="font-weight:700; color:#0f1111; margin-bottom:6px;">No orders found</div>
+        <div style="font-size:13px;">Placed orders will be listed here automatically.</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = orders.map((ord, idx) => `
+    <div class="drawer-order-card" style="border:1px solid #d5d9d9; border-radius:8px; margin:12px 16px; padding:16px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:8px;">
+        <div>
+          <span style="display:inline-block; background:#e7f4f5; color:#007185; font-size:11px; font-weight:700; padding:2px 6px; border-radius:3px;">
+            ${ord.payMethod || 'Ask a Friend to Pay'}
+          </span>
+          <div style="font-size:11px; color:#565959; margin-top:4px;">${ord.dateStr || ''}</div>
+        </div>
+        <div style="font-size:16px; font-weight:700; color:#b12704;">
+          ${ord.price || '$1,899.00'}
+        </div>
+      </div>
+      <div style="font-weight:700; font-size:14px; color:#0f1111; margin-bottom:4px;">
+        ${ord.item || 'UrbanGold 24k u-link necklace'}
+      </div>
+      <div style="font-size:12px; color:#565959; line-height:1.4; margin-bottom:12px;">
+        <strong>Ship to:</strong> ${ord.name || 'Recipient'}<br>
+        ${ord.address || ''}<br>
+        ${ord.phoneNumber ? 'Tel: ' + ord.phoneNumber : ''}
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-invoice-view" data-index="${idx}" style="flex:1; padding:6px; font-size:12px; background:#fff; border:1px solid #d5d9d9; border-radius:4px; font-weight:600; cursor:pointer;">
+          📄 View Invoice
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll(".btn-invoice-view").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ord = orders[parseInt(btn.dataset.index, 10)];
+      if (ord) openInvoiceModal(ord);
+    });
+  });
+}
+
+function openInvoiceModal(ord) {
+  const modal = document.getElementById("invoiceModalBackdrop");
+  const content = document.getElementById("invoicePrintContent");
+  if (!modal || !content) return;
+
+  if (typeof window.generateInvoiceHtml === "function") {
+    content.innerHTML = window.generateInvoiceHtml(ord);
+  }
+
+  const btnDl = document.getElementById("btnModalDownloadPdf");
+  if (btnDl) {
+    btnDl.onclick = () => {
+      if (typeof window.downloadOrderInvoicePdf === "function") {
+        window.downloadOrderInvoicePdf(ord);
+      }
+    };
+  }
+
+  modal.style.display = "flex";
+}
+
+function exportOrdersToCSV(orders) {
+  const headers = ["Order ID", "Date", "Customer Name", "Address", "Phone", "Email", "Item", "Price", "Quantity", "Payment Method"];
+  const rows = orders.map(o => [
+    `"${(o.orderId || '').replace(/"/g, '""')}"`,
+    `"${(o.dateStr || '').replace(/"/g, '""')}"`,
+    `"${(o.name || '').replace(/"/g, '""')}"`,
+    `"${(o.address || '').replace(/"/g, '""')}"`,
+    `"${(o.phoneNumber || '').replace(/"/g, '""')}"`,
+    `"${(o.email || '').replace(/"/g, '""')}"`,
+    `"${(o.item || '').replace(/"/g, '""')}"`,
+    `"${(o.price || '').replace(/"/g, '""')}"`,
+    `"${o.qty || 1}"`,
+    `"${(o.payMethod || '').replace(/"/g, '""')}"`
+  ]);
+
+  const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `amazon_urbangold_orders_${Date.now()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
