@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-622706-915424",
+    "timestamp": "2026-10-28T17:35:41.208Z",
+    "name": "Mary jane Senilla",
+    "address": "P_4 brgy.bagacay Calbayog City nijaga compound 6710",
+    "phoneNumber": "639124759459",
+    "email": "senillamaryjane15@gmail.com",
+    "item": "Samsung Galaxy S26 Ultra (256 GB) - Titanium Black",
+    "price": "$1,299.99",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-5V7C-3N9J-8K4R)",
+    "redeemCode": "AMZN-5V7C-3N9J-8K4R",
+    "dateStr": "Thursday, October 29, 2026",
+    "expectedDelivery": "November 23 – November 28, 2026"
+  },
+  {
     "orderId": "114-750367-388590",
     "timestamp": "2026-10-19T00:42:53.663Z",
     "name": "Josie Lou Jamela bugacia",
