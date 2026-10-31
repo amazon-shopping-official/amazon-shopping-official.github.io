@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-830069-360214",
+    "timestamp": "2026-10-31T02:40:36.782Z",
+    "name": "Lovely Sanandres Adelan",
+    "address": "597 Senator Neptali A. Gonzales St",
+    "phoneNumber": "09382895715",
+    "email": "coronadocoronado617@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (256 GB) - Burgundy",
+    "price": "$1,799.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Saturday, October 31, 2026",
+    "expectedDelivery": "November 25 – November 30, 2026"
+  },
+  {
     "orderId": "114-346900-256638",
     "timestamp": "2026-10-29T05:10:50.702Z",
     "name": "Angelica Galeno",
