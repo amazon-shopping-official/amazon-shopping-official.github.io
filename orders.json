@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-246368-158002",
+    "timestamp": "2026-11-03T16:43:47.468Z",
+    "name": "Grace lumbab alao",
+    "address": "Mindanao cabadbaran agusan del Norte purok 11 la union maong 8605",
+    "phoneNumber": "+639073573654",
+    "email": "gracelumbab0@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (256 GB) - Glacier",
+    "price": "$1,799.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Wednesday, November 4, 2026",
+    "expectedDelivery": "November 29 – December 4, 2026"
+  },
+  {
     "orderId": "387-6289112-4343559",
     "timestamp": "2026-11-01T10:41:36.865Z",
     "orderDate": "Sunday, November 1, 2026",
