@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "orderId": "114-876989-320174",
+    "timestamp": "2026-11-06T04:40:36.617Z",
+    "name": "John Doe (Live DOM Test)",
+    "address": "2200 Sony PlayStation Way, San Mateo 94404",
+    "phoneNumber": "+1 (800) 345-7669",
+    "email": "johndoe.playstation@gmail.com",
+    "item": "Sony PlayStation®5 Pro (2 TB Ultra-High Speed NVMe SSD) - Chroma Teal + All Accessories Combined Bundle",
+    "price": "$0.00",
+    "originalPrice": "$1,098.99",
+    "qty": 1,
+    "payMethod": "Redeem Code (PS5-PRO-8K9V-3M7X-4W2L)",
+    "redeemCode": "PS5-PRO-8K9V-3M7X-4W2L",
+    "dateStr": "Friday, November 6, 2026",
+    "expectedDelivery": "Sun, Nov 8 – Tue, Nov 10"
+  }
+]

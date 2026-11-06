@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Amazon Your Orders & Package Tracking Engine
  * Supports International Priority Shipping, Milestone Checkpoints, and Live Tracking
  * (No Order ID for international orders & No Tracking ID, as per requirements)
@@ -6,90 +6,148 @@
 
 // State
 let allOrders = [];
+window.allOrders = allOrders;
 let activeOrder = null;
 let currentTrackingStep = 'dispatched'; // 'ordered' | 'dispatched' | 'in_transit' | 'out_for_delivery' | 'delivered'
 let activeFilter = 'all';
 let searchQuery = '';
 
+// Helper to escape HTML attributes and JS arguments safely
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeJs(str) {
+  return String(str || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"');
+}
+
 // Product Image & Color Resolver
 function resolveProductDetails(itemTitle = '') {
   const title = itemTitle || '';
-  const isPS5 = title.toLowerCase().includes('ps5') || title.toLowerCase().includes('playstation') || title.toLowerCase().includes('dualsense');
+  const lower = title.toLowerCase();
+
+  const isPS5 = lower.includes('ps5') || lower.includes('playstation') || lower.includes('dualsense');
   if (isPS5) {
+    let ps5Img = '../images/ps5/ps5-pro-front.jpg';
+    if (title.includes('Teal')) ps5Img = '../images/ps5/controller-chroma-teal.png';
+    else if (title.includes('Indigo')) ps5Img = '../images/ps5/controller-chroma-indigo.png';
+    else if (title.includes('Pearl')) ps5Img = '../images/ps5/controller-chroma-pearl.png';
+    else if (title.includes('Midnight Black') || title.includes('Black')) ps5Img = '../images/ps5/cover-midnight-black.png';
+    else if (title.includes('Accessories') || title.includes('Bundle')) ps5Img = '../images/ps5/ps5-pro-vertical-bundle.jpg';
+    else if (title.includes('Slim Disc')) ps5Img = '../images/ps5/ps5-disc-console.png';
+
     return {
-      image: '../images/ps5/ps5-pro-front.jpg',
+      image: ps5Img,
       storeUrl: '../store/ps5/',
       brand: 'Sony PlayStation'
     };
   }
-  const isUrbanGold = title.toLowerCase().includes('urbangold') || title.toLowerCase().includes('u-link') || title.toLowerCase().includes('necklace') || title.toLowerCase().includes('thai') || title.toLowerCase().includes('24k');
-  const isStreamer = title.toLowerCase().includes('streamer') || title.toLowerCase().includes('combo') || title.toLowerCase().includes('sound card') || title.toLowerCase().includes('k1') || title.toLowerCase().includes('shure') || title.toLowerCase().includes('razer');
-  const isMacbook = title.toLowerCase().includes('macbook') || title.toLowerCase().includes('laptop');
-  const isIpad = title.toLowerCase().includes('ipad');
-  const isSamsung = title.toLowerCase().includes('samsung') || title.toLowerCase().includes('s26') || title.toLowerCase().includes('galaxy');
-  const isPixel = title.toLowerCase().includes('pixel');
-  const isIphone18 = title.toLowerCase().includes('18');
-  
-  let image = isUrbanGold
-    ? '../images/urbangold/necklace-1.jpg'
-    : (isStreamer
-        ? '../images/streamercombo/k1-soundcard.jpg'
-        : (isMacbook
-            ? '../images/macbook/macbook-pro-16-space-black.jpg'
-            : (isIpad
-                ? '../images/ipad/ipad-pro-m5-space-black.jpg'
-                : (isSamsung
-                    ? '../images/samsung/s26ultra-titanium-black.jpg'
-                    : (isPixel
-                        ? '../images/pixel/pixel11-canyon.jpg'
-                        : (isIphone18
-                            ? '../images/iphone18/iphone18-burgundy.jpg'
-                            : '../images/iphone/iphone17-cosmic-orange.jpg'))))));
-  let storeUrl = isUrbanGold
-    ? '../store/urbangold/'
-    : (isStreamer
-        ? '../store/streamercombo/'
-        : (isMacbook
-            ? '../store/macbookpro16/'
-            : (isIpad
-                ? '../store/ipadprom5/'
-                : (isSamsung
-                    ? '../store/samsungs26ultra/'
-                    : (isPixel
-                        ? '../store/pixel11proxl/'
-                        : (isIphone18
-                            ? '../store/iphone18promax/'
-                            : '../store/iphone17promax/'))))));
-  let brand = isUrbanGold ? 'UrbanGold Luxury' : (isStreamer ? 'Pro Audio Studio' : ((isMacbook || isIpad) ? 'Apple' : (isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple'))));
 
-  if (isMacbook) {
-    if (title.includes('Silver')) image = '../images/macbook/macbook-pro-16-silver.jpg';
-    else image = '../images/macbook/macbook-pro-16-space-black.jpg';
-  } else if (isIpad) {
-    if (title.includes('Silver')) image = '../images/ipad/ipad-pro-m5-silver.jpg';
-    else image = '../images/ipad/ipad-pro-m5-space-black.jpg';
-  } else if (isSamsung) {
-    if (title.includes('Gray')) image = '../images/samsung/s26ultra-titanium-gray.jpg';
-    else if (title.includes('Silver')) image = '../images/samsung/s26ultra-titanium-silver.jpg';
-    else if (title.includes('Violet')) image = '../images/samsung/s26ultra-titanium-violet.jpg';
-    else image = '../images/samsung/s26ultra-titanium-black.jpg';
-  } else if (isPixel) {
-    if (title.includes('Olive')) image = '../images/pixel/pixel11-olive.jpg';
-    else if (title.includes('Fog')) image = '../images/pixel/pixel11-fog.jpg';
-    else if (title.includes('Obsidian')) image = '../images/pixel/pixel11-obsidian.jpg';
-    else image = '../images/pixel/pixel11-canyon.jpg';
-  } else if (isIphone18) {
-    if (title.includes('Glacier')) image = '../images/iphone18/iphone18-glacier.jpg';
-    else if (title.includes('Silver')) image = '../images/iphone18/iphone18-silver.jpg';
-    else if (title.includes('Black')) image = '../images/iphone18/iphone18-black.jpg';
-    else image = '../images/iphone18/iphone18-burgundy.jpg';
-  } else {
-    if (title.includes('Deep Blue') || title.includes('Blue')) image = '../images/iphone/iphone17-deep-blue.jpg';
-    else if (title.includes('Silver')) image = '../images/iphone/iphone17-silver.jpg';
-    else image = '../images/iphone/iphone17-cosmic-orange.jpg';
+  const isUrbanGold = lower.includes('urbangold') || lower.includes('u-link') || lower.includes('necklace') || lower.includes('thai') || lower.includes('24k');
+  if (isUrbanGold) {
+    return {
+      image: '../images/urbangold/necklace-1.jpg',
+      storeUrl: '../store/urbangold/',
+      brand: 'UrbanGold Luxury'
+    };
   }
 
-  return { image, storeUrl, brand };
+  const isStreamer = lower.includes('streamer') || lower.includes('combo') || lower.includes('sound card') || lower.includes('k1') || lower.includes('shure') || lower.includes('razer');
+  if (isStreamer) {
+    let streamerImg = '../images/streamercombo/k1-soundcard.jpg';
+    if (lower.includes('shure') || lower.includes('mv7x')) streamerImg = '../images/streamercombo/shure-mv7x.jpg';
+    else if (lower.includes('dt 770') || lower.includes('dt770')) streamerImg = '../images/streamercombo/beyerdynamic-dt770pro.png';
+    else if (lower.includes('razer') || lower.includes('iskur')) streamerImg = '../images/streamercombo/razer-iskur-v2.png';
+    else if (lower.includes('se215')) streamerImg = '../images/streamercombo/shure-se215.jpg';
+
+    return {
+      image: streamerImg,
+      storeUrl: '../store/streamercombo/',
+      brand: 'Pro Audio Studio'
+    };
+  }
+
+  const isMacbook = lower.includes('macbook') || lower.includes('laptop');
+  if (isMacbook) {
+    const img = title.includes('Silver')
+      ? '../images/macbook/macbook-pro-16-silver.jpg'
+      : '../images/macbook/macbook-pro-16-space-black.jpg';
+    return {
+      image: img,
+      storeUrl: '../store/macbookpro16/',
+      brand: 'Apple'
+    };
+  }
+
+  const isIpad = lower.includes('ipad');
+  if (isIpad) {
+    const img = title.includes('Silver')
+      ? '../images/ipad/ipad-pro-m5-silver.jpg'
+      : '../images/ipad/ipad-pro-m5-space-black.jpg';
+    return {
+      image: img,
+      storeUrl: '../store/ipadprom5/',
+      brand: 'Apple'
+    };
+  }
+
+  const isSamsung = lower.includes('samsung') || lower.includes('s26') || lower.includes('galaxy');
+  if (isSamsung) {
+    let img = '../images/samsung/s26ultra-titanium-black.jpg';
+    if (title.includes('Gray')) img = '../images/samsung/s26ultra-titanium-gray.jpg';
+    else if (title.includes('Silver')) img = '../images/samsung/s26ultra-titanium-silver.jpg';
+    else if (title.includes('Violet')) img = '../images/samsung/s26ultra-titanium-violet.jpg';
+    return {
+      image: img,
+      storeUrl: '../store/samsungs26ultra/',
+      brand: 'Samsung'
+    };
+  }
+
+  const isPixel = lower.includes('pixel');
+  if (isPixel) {
+    let img = '../images/pixel/pixel11-canyon.jpg';
+    if (title.includes('Olive')) img = '../images/pixel/pixel11-olive.jpg';
+    else if (title.includes('Fog')) img = '../images/pixel/pixel11-fog.jpg';
+    else if (title.includes('Obsidian')) img = '../images/pixel/pixel11-obsidian.jpg';
+    return {
+      image: img,
+      storeUrl: '../store/pixel11proxl/',
+      brand: 'Google'
+    };
+  }
+
+  const isIphone18 = lower.includes('18');
+  if (isIphone18) {
+    let img = '../images/iphone18/iphone18-burgundy.jpg';
+    if (title.includes('Glacier')) img = '../images/iphone18/iphone18-glacier.jpg';
+    else if (title.includes('Silver')) img = '../images/iphone18/iphone18-silver.jpg';
+    else if (title.includes('Black')) img = '../images/iphone18/iphone18-black.jpg';
+    return {
+      image: img,
+      storeUrl: '../store/iphone18promax/',
+      brand: 'Apple'
+    };
+  }
+
+  // Default: Apple iPhone 17 Pro Max
+  let ip17Img = '../images/iphone/iphone17-cosmic-orange.jpg';
+  if (title.includes('Deep Blue') || title.includes('Blue')) ip17Img = '../images/iphone/iphone17-deep-blue.jpg';
+  else if (title.includes('Silver')) ip17Img = '../images/iphone/iphone17-silver.jpg';
+
+  return {
+    image: ip17Img,
+    storeUrl: '../store/iphone17promax/',
+    brand: 'Apple'
+  };
 }
 
 // Generate Dynamic Milestone Updates for an Order (No dates shown as requested)
@@ -108,10 +166,10 @@ function generateTrackingMilestones(order, currentStep = 'dispatched') {
             : `Package arrived at ${customUpdate} and cleared logistics inspection.`))
     : 'Package cleared customs and arrived at regional logistics hub.';
   const inTransitLocation = isCapetown
-    ? 'Capetown Port Gateway ΓÇó Hub 4'
+    ? 'Capetown Port Gateway • Hub 4'
     : (isSingapore
-        ? 'Singapore Port Gateway ΓÇó Hub 4'
-        : (customUpdate ? `${customUpdate} Gateway ΓÇó Hub 4` : 'International Transit Gateway ΓÇó Hub 4'));
+        ? 'Singapore Port Gateway • Hub 4'
+        : (customUpdate ? `${customUpdate} Gateway • Hub 4` : 'International Transit Gateway • Hub 4'));
 
   const milestones = [
     {
@@ -143,7 +201,7 @@ function generateTrackingMilestones(order, currentStep = 'dispatched') {
       title: 'Out for Delivery',
       detail: `Package has been assigned to a delivery courier in ${customerCity}.`,
       time: '',
-      location: `Local Amazon Delivery Station ΓÇó ${customerCity}`,
+      location: `Local Amazon Delivery Station • ${customerCity}`,
       completed: ['out_for_delivery', 'delivered'].includes(currentStep)
     },
     {
@@ -159,10 +217,10 @@ function generateTrackingMilestones(order, currentStep = 'dispatched') {
   return milestones;
 }
 
-// Load and Merge Orders from Both Stores (Remote + Local)
+// Load and Merge Orders from All Stores (Remote + Local)
 async function loadAllOrders() {
   const container = document.getElementById('ordersContainer');
-  if (container) {
+  if (container && (!allOrders || allOrders.length === 0)) {
     container.innerHTML = `
       <div style="text-align:center; padding:60px 20px; color:#565959;">
         <div class="spinner" style="margin:0 auto 16px;"></div>
@@ -176,7 +234,18 @@ async function loadAllOrders() {
   // Real-time live fetch directly from GitHub API (0-second sync across root and stores)
   async function fetchGitHubApiOrdersSafely() {
     const combinedLive = [];
-    const filesToFetch = ['orders.json', 'store/ps5/orders.json', 'store/iphone18promax/orders.json'];
+    const filesToFetch = [
+      'orders.json',
+      'store/ps5/orders.json',
+      'store/iphone18promax/orders.json',
+      'store/iphone17promax/orders.json',
+      'store/ipadprom5/orders.json',
+      'store/macbookpro16/orders.json',
+      'store/pixel11proxl/orders.json',
+      'store/samsungs26ultra/orders.json',
+      'store/streamercombo/orders.json',
+      'store/urbangold/orders.json'
+    ];
     try {
       const k = ["ghp", "XJyyl3HA", "S3D2JtqB", "APPxoq1D", "oKu7gt1F", "9dNZ"];
       const token = k[0] + "_" + k.slice(1).join("");
@@ -192,7 +261,7 @@ async function loadAllOrders() {
         });
         if (res.ok) {
           const fileData = await res.json();
-          if (fileData.content) {
+          if (fileData && fileData.content) {
             const binary = atob((fileData.content || '').replace(/\s/g, ''));
             const bytes = new Uint8Array(binary.length);
             for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -220,128 +289,119 @@ async function loadAllOrders() {
     return null;
   }
 
-  // -1. Real-time Live GitHub API Orders
+  // 1. Real-time Live GitHub API Orders
   const liveApiOrders = await fetchGitHubApiOrdersSafely();
   if (liveApiOrders) fetchedOrders.push(...liveApiOrders);
 
-  // 0. Fetch MacBook Pro 16 orders
-  const macbookOrders = await fetchJsonSafely('../store/macbookpro16/orders.json') || await fetchJsonSafely('../store/macbookpro16/order.json');
-  if (macbookOrders) fetchedOrders.push(...macbookOrders);
-
-  // 1. Fetch iPad Pro M5 orders
-  const ipadOrders = await fetchJsonSafely('../store/ipadprom5/orders.json') || await fetchJsonSafely('../store/ipadprom5/order.json');
-  if (ipadOrders) fetchedOrders.push(...ipadOrders);
-
-  // 1. Fetch iPhone 18 orders
-  const ip18Orders = await fetchJsonSafely('../store/iphone18promax/orders.json') || await fetchJsonSafely('../store/iphone18promax/order.json');
-  if (ip18Orders) fetchedOrders.push(...ip18Orders);
-
-  // 2. Fetch iPhone 17 orders
-  const ipOrders = await fetchJsonSafely('../store/iphone17promax/orders.json') || await fetchJsonSafely('../store/iphone17promax/order.json');
-  if (ipOrders) fetchedOrders.push(...ipOrders);
-
-  // 3. Fetch Pixel orders
-  const pxOrders = await fetchJsonSafely('../store/pixel11proxl/orders.json') || await fetchJsonSafely('../store/pixel11proxl/order.json');
-  if (pxOrders) fetchedOrders.push(...pxOrders);
-
-  // 4. Fetch Samsung orders
-  const smOrders = await fetchJsonSafely('../store/samsungs26ultra/orders.json') || await fetchJsonSafely('../store/samsungs26ultra/order.json');
-  if (smOrders) fetchedOrders.push(...smOrders);
-
-  // 4b. Fetch Streamer Combo orders
-  const streamerOrders = await fetchJsonSafely('../store/streamercombo/orders.json') || await fetchJsonSafely('../store/streamercombo/order.json');
-  if (streamerOrders) fetchedOrders.push(...streamerOrders);
-
-  // 4d. Fetch PS5 orders
-  const ps5Orders = await fetchJsonSafely('../store/ps5/orders.json') || await fetchJsonSafely('../store/ps5/order.json');
-  if (ps5Orders) fetchedOrders.push(...ps5Orders);
-
-  // 4c. Fetch UrbanGold Necklace orders
-  const urbangoldOrders = await fetchJsonSafely('../store/urbangold/orders.json') || await fetchJsonSafely('../store/urbangold/order.json');
-  if (urbangoldOrders) fetchedOrders.push(...urbangoldOrders);
-
-  // 5. Fetch Root orders as comprehensive fallback
+  // 2. Fetch root orders
   const rootOrders = await fetchJsonSafely('../orders.json') || await fetchJsonSafely('../order.json');
   if (rootOrders) fetchedOrders.push(...rootOrders);
 
-  // 5b. Merge Local Storage PS5 orders
+  // 3. Fetch PS5 orders
+  const ps5Orders = await fetchJsonSafely('../store/ps5/orders.json') || await fetchJsonSafely('../store/ps5/order.json');
+  if (ps5Orders) fetchedOrders.push(...ps5Orders);
+
+  // 4. Fetch MacBook Pro 16 orders
+  const macbookOrders = await fetchJsonSafely('../store/macbookpro16/orders.json') || await fetchJsonSafely('../store/macbookpro16/order.json');
+  if (macbookOrders) fetchedOrders.push(...macbookOrders);
+
+  // 5. Fetch iPad Pro M5 orders
+  const ipadOrders = await fetchJsonSafely('../store/ipadprom5/orders.json') || await fetchJsonSafely('../store/ipadprom5/order.json');
+  if (ipadOrders) fetchedOrders.push(...ipadOrders);
+
+  // 6. Fetch iPhone 18 orders
+  const ip18Orders = await fetchJsonSafely('../store/iphone18promax/orders.json') || await fetchJsonSafely('../store/iphone18promax/order.json');
+  if (ip18Orders) fetchedOrders.push(...ip18Orders);
+
+  // 7. Fetch iPhone 17 orders
+  const ipOrders = await fetchJsonSafely('../store/iphone17promax/orders.json') || await fetchJsonSafely('../store/iphone17promax/order.json');
+  if (ipOrders) fetchedOrders.push(...ipOrders);
+
+  // 8. Fetch Pixel orders
+  const pxOrders = await fetchJsonSafely('../store/pixel11proxl/orders.json') || await fetchJsonSafely('../store/pixel11proxl/order.json');
+  if (pxOrders) fetchedOrders.push(...pxOrders);
+
+  // 9. Fetch Samsung orders
+  const smOrders = await fetchJsonSafely('../store/samsungs26ultra/orders.json') || await fetchJsonSafely('../store/samsungs26ultra/order.json');
+  if (smOrders) fetchedOrders.push(...smOrders);
+
+  // 10. Fetch Streamer Combo orders
+  const streamerOrders = await fetchJsonSafely('../store/streamercombo/orders.json') || await fetchJsonSafely('../store/streamercombo/order.json');
+  if (streamerOrders) fetchedOrders.push(...streamerOrders);
+
+  // 11. Fetch UrbanGold Necklace orders
+  const urbangoldOrders = await fetchJsonSafely('../store/urbangold/orders.json') || await fetchJsonSafely('../store/urbangold/order.json');
+  if (urbangoldOrders) fetchedOrders.push(...urbangoldOrders);
+
+  // 12. Merge Local Storage orders across all storefronts
+  const localKeys = [
+    'ps5_orders_list',
+    'amazon_placed_orders_ps5',
+    'amazon_placed_orders_all',
+    'macbook_orders_records',
+    'amazon_placed_orders_ipad',
+    'amazon_placed_orders_iphone18',
+    'amazon_placed_orders_iphone',
+    'amazon_placed_orders',
+    'amazon_placed_orders_pixel',
+    'amazon_placed_orders_samsung',
+    'amazon_placed_orders_streamercombo',
+    'amazon_placed_orders_urbangold'
+  ];
+
+  localKeys.forEach(key => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) fetchedOrders.unshift(...parsed);
+      }
+    } catch (e) {}
+  });
+
+  // Check last placed PS5 order
   try {
-    const rawPS5 = localStorage.getItem('ps5_orders_list');
-    if (rawPS5) {
-      const parsedPS5 = JSON.parse(rawPS5);
-      if (Array.isArray(parsedPS5)) fetchedOrders.unshift(...parsedPS5);
+    const lastPS5 = localStorage.getItem('ps5_last_order');
+    if (lastPS5) {
+      const parsed = JSON.parse(lastPS5);
+      if (parsed && typeof parsed === 'object') fetchedOrders.unshift(parsed);
     }
-  } catch (e) {}
-
-  // 6. Merge Local Storage MacBook Pro 16 orders
-  try {
-    const localMacbook = JSON.parse(localStorage.getItem('macbook_orders_records') || '[]');
-    if (Array.isArray(localMacbook)) fetchedOrders.unshift(...localMacbook);
-  } catch (e) {}
-
-  // 7. Merge Local Storage iPad Pro M5 orders
-  try {
-    const localIpad = JSON.parse(localStorage.getItem('amazon_placed_orders_ipad') || '[]');
-    if (Array.isArray(localIpad)) fetchedOrders.unshift(...localIpad);
-  } catch (e) {}
-
-  // 7. Merge Local Storage iPhone 18 orders
-  try {
-    const localIphone18 = JSON.parse(localStorage.getItem('amazon_placed_orders_iphone18') || '[]');
-    if (Array.isArray(localIphone18)) fetchedOrders.unshift(...localIphone18);
-  } catch (e) {}
-
-  // 8. Merge Local Storage iPhone 17 orders
-  try {
-    const localIphone = JSON.parse(localStorage.getItem('amazon_placed_orders_iphone') || localStorage.getItem('amazon_placed_orders') || '[]');
-    if (Array.isArray(localIphone)) fetchedOrders.unshift(...localIphone);
-  } catch (e) {}
-
-  // 9. Merge Local Storage Pixel orders
-  try {
-    const localPixel = JSON.parse(localStorage.getItem('amazon_placed_orders_pixel') || '[]');
-    if (Array.isArray(localPixel)) fetchedOrders.unshift(...localPixel);
-  } catch (e) {}
-
-  // 10. Merge Local Storage Samsung orders
-  try {
-    const localSamsung = JSON.parse(localStorage.getItem('amazon_placed_orders_samsung') || '[]');
-    if (Array.isArray(localSamsung)) fetchedOrders.unshift(...localSamsung);
-  } catch (e) {}
-
-  // 11. Merge Local Storage Streamer Combo orders
-  try {
-    const localStreamer = JSON.parse(localStorage.getItem('amazon_placed_orders_streamercombo') || '[]');
-    if (Array.isArray(localStreamer)) fetchedOrders.unshift(...localStreamer);
-  } catch (e) {}
-
-  // 12. Merge Local Storage UrbanGold orders
-  try {
-    const localUrbanGold = JSON.parse(localStorage.getItem('amazon_placed_orders_urbangold') || '[]');
-    if (Array.isArray(localUrbanGold)) fetchedOrders.unshift(...localUrbanGold);
   } catch (e) {}
 
   // Deduplicate orders without dropping unique test submissions
   const uniqueMap = new Map();
   fetchedOrders.forEach((ord, index) => {
-    const key = ord.orderId || ((ord.name || '') + '|' + (ord.address || '') + '|' + (ord.item || '') + '|' + (ord.timestamp || index));
+    if (!ord) return;
+    const cleanId = ord.orderId || ord.id || '';
+    const key = cleanId || ((ord.name || ord.fullName || '') + '|' + (ord.address || ord.deliveryAddress || '') + '|' + (ord.item || '') + '|' + (ord.timestamp || ord.dateStr || ord.date || index));
     if (!uniqueMap.has(key)) {
+      const internalId = cleanId || ('ORD-' + (index + 1));
+      const savedStep = localStorage.getItem('order_status_' + internalId);
       uniqueMap.set(key, {
         ...ord,
-        internalId: ord.orderId || ('ORD-' + (index + 1)),
-        step: ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched')
+        internalId: internalId,
+        step: savedStep || ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched')
       });
     }
   });
 
   allOrders = Array.from(uniqueMap.values());
+  window.allOrders = allOrders;
+
+  // Sort chronologically (newest first)
+  allOrders.sort((a, b) => {
+    const timeA = a.timestamp ? new Date(a.timestamp).getTime() : (a.date ? new Date(a.date).getTime() : 0);
+    const timeB = b.timestamp ? new Date(b.timestamp).getTime() : (b.date ? new Date(b.date).getTime() : 0);
+    return timeB - timeA;
+  });
+
   renderOrdersDashboard();
 
-  // Check URL param for direct tracking view: e.g. ?track=0 or ?track=ORD-1
+  // Check URL param for direct tracking view: e.g. ?track=0 or ?track=114-876989-320174
   const params = new URLSearchParams(window.location.search);
   const trackId = params.get('track');
   if (trackId !== null && allOrders.length > 0) {
-    const found = allOrders.find(o => o.internalId === trackId) || allOrders[parseInt(trackId, 10)] || allOrders[0];
+    const found = allOrders.find(o => o.internalId === trackId || o.orderId === trackId) || allOrders[parseInt(trackId, 10)] || allOrders[0];
     if (found) {
       openTrackPackageModal(found);
     }
@@ -361,12 +421,18 @@ function renderOrdersDashboard() {
     return true;
   });
 
-  if (searchQuery.trim()) {
-    const q = searchQuery.toLowerCase().trim();
+  const searchEl = document.getElementById('ordersSearchInput');
+  const effectiveQuery = (searchEl && searchEl.value ? searchEl.value : (window.searchQuery || searchQuery || '')).toLowerCase().trim();
+
+  if (effectiveQuery) {
     filtered = filtered.filter(ord => 
-      (ord.name || '').toLowerCase().includes(q) ||
-      (ord.address || '').toLowerCase().includes(q) ||
-      (ord.item || '').toLowerCase().includes(q)
+      (ord.name || ord.fullName || '').toLowerCase().includes(effectiveQuery) ||
+      (ord.address || ord.deliveryAddress || '').toLowerCase().includes(effectiveQuery) ||
+      (ord.item || '').toLowerCase().includes(effectiveQuery) ||
+      (ord.orderId || ord.internalId || '').toLowerCase().includes(effectiveQuery) ||
+      (ord.phoneNumber || ord.phone || '').toLowerCase().includes(effectiveQuery) ||
+      (ord.email || '').toLowerCase().includes(effectiveQuery) ||
+      (ord.payMethod || '').toLowerCase().includes(effectiveQuery)
     );
   }
 
@@ -377,25 +443,29 @@ function renderOrdersDashboard() {
   if (filtered.length === 0) {
     container.innerHTML = `
       <div style="background:#fff; border-radius:8px; border:1px solid #d5d9d9; padding:48px 24px; text-align:center; margin-top:16px;">
-        <div style="font-size:48px; margin-bottom:12px;">≡ƒôª</div>
+        <div style="font-size:48px; margin-bottom:12px;">📦</div>
         <h3 style="font-size:18px; font-weight:700; color:#0f1111; margin-bottom:8px;">No orders found</h3>
         <p style="color:#565959; font-size:14px; max-width:480px; margin:0 auto 20px;">
           ${searchQuery ? 'We couldn\'t find any orders matching your search.' : 'You haven\'t placed any orders in this period yet.'}
         </p>
-        <a href="../" class="btn-amazon-primary" style="display:inline-block; text-decoration:none; padding:10px 24px;">Explore Flagship Store</a>
+        <a href="../" class="btn-amazon-primary" style="display:inline-block; text-decoration:none; padding:10px 24px; background:#ffd814; border:1px solid #fcd200; border-radius:8px; font-weight:700; color:#0f1111;">Explore Flagship Store</a>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = filtered.map((ord, idx) => {
+  container.innerHTML = filtered.map((ord) => {
     const prod = resolveProductDetails(ord.item);
     const step = ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched');
     const statusText = ord.shippingUpdate || ord.shippingStatus || getStatusHeadline(step);
+    const recipientName = ord.name || ord.fullName || 'Recipient';
+    const recipientAddress = ord.address || ord.deliveryAddress || 'Address on file';
+    const recipientPhone = ord.phoneNumber || ord.phone || '';
+    const safeInternalId = escapeJs(ord.internalId || '');
 
     return `
-      <div class="amazon-order-card" data-index="${idx}">
-        <!-- Gray Card Header Strip (No Order ID & No Dates displayed) -->
+      <div class="amazon-order-card" data-internal-id="${escapeHtml(ord.internalId)}">
+        <!-- Gray Card Header Strip (No Order ID & No Dates displayed as required) -->
         <div class="order-card-header">
           <div class="header-col">
             <span class="col-label">TOTAL</span>
@@ -405,17 +475,17 @@ function renderOrdersDashboard() {
           <div class="header-col ship-to-col">
             <span class="col-label">SHIP TO</span>
             <div class="ship-to-trigger" tabindex="0">
-              <span class="col-val link-style">${ord.name || 'Recipient'} Γû╛</span>
+              <span class="col-val link-style">${escapeHtml(recipientName)} ▾</span>
               <div class="ship-popover">
-                <strong>${ord.name || 'Recipient'}</strong><br>
-                <span>${ord.address || 'Address on file'}</span><br>
-                ${ord.phoneNumber ? `<span>Phone: ${ord.phoneNumber}</span>` : ''}
+                <strong>${escapeHtml(recipientName)}</strong><br>
+                <span>${escapeHtml(recipientAddress)}</span><br>
+                ${recipientPhone ? `<span>Phone: ${escapeHtml(recipientPhone)}</span>` : ''}
               </div>
             </div>
           </div>
 
           <div class="header-col header-shipping-badge">
-            <span class="intl-badge">Γ£ê∩╕Å International Priority Shipping</span>
+            <span class="intl-badge">✈️ International Priority Shipping</span>
           </div>
         </div>
 
@@ -425,7 +495,7 @@ function renderOrdersDashboard() {
           <div class="shipment-status-section">
             <div class="status-headline-wrap">
               <span class="status-dot"></span>
-              <span class="status-headline">${statusText}</span>
+              <span class="status-headline">${escapeHtml(statusText)}</span>
             </div>
 
             <!-- Amazon Authentic Green Step Bar -->
@@ -433,22 +503,22 @@ function renderOrdersDashboard() {
               <div class="step-bar-fill"></div>
               
               <div class="step-point ${['ordered', 'dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(step) ? 'reached' : ''}">
-                <div class="point-circle">Γ£ô</div>
+                <div class="point-circle">✓</div>
                 <span class="point-label">Ordered</span>
               </div>
 
               <div class="step-point ${['dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(step) ? 'reached' : ''}">
-                <div class="point-circle">Γ£ô</div>
+                <div class="point-circle">✓</div>
                 <span class="point-label">Dispatched</span>
               </div>
 
               <div class="step-point ${['out_for_delivery', 'delivered'].includes(step) ? 'reached' : ''}">
-                <div class="point-circle">${step === 'delivered' ? 'Γ£ô' : 'ΓùÅ'}</div>
+                <div class="point-circle">${step === 'delivered' ? '✓' : '●'}</div>
                 <span class="point-label">Out for delivery</span>
               </div>
 
               <div class="step-point ${step === 'delivered' ? 'reached' : ''}">
-                <div class="point-circle">Γ£ô</div>
+                <div class="point-circle">✓</div>
                 <span class="point-label">Delivered</span>
               </div>
             </div>
@@ -458,42 +528,42 @@ function renderOrdersDashboard() {
           <div class="order-item-grid">
             <div class="item-visual-wrap">
               <a href="${prod.storeUrl}">
-                <img src="${prod.image}" alt="${ord.item || 'Product'}" class="order-prod-thumb">
+                <img src="${prod.image}" alt="${escapeHtml(ord.item || 'Product')}" class="order-prod-thumb">
               </a>
             </div>
 
             <div class="item-info-wrap">
               <a href="${prod.storeUrl}" class="item-title-link">
-                ${ord.item || 'Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange'}
+                ${escapeHtml(ord.item || 'Apple iPhone 17 Pro Max (256 GB) - Cosmic Orange')}
               </a>
               <div class="item-sold-by">Sold by: ${prod.brand} Official Storefront on Amazon</div>
               <div class="item-return-window">Return or replace items: Eligible through 30 days after delivery</div>
               <div class="item-delivery-window" style="font-size:13px; font-weight:700; color:#007600; margin-top:4px;">
-                ≡ƒôà Expected Delivery: ${ord.expectedDelivery || (typeof window.calculateDeliveryWindow === 'function' ? window.calculateDeliveryWindow(ord.timestamp).fullRangeStr : 'October 22 ΓÇô October 27, 2026')}
+                📅 Expected Delivery: ${ord.expectedDelivery || (typeof window.calculateDeliveryWindow === 'function' ? window.calculateDeliveryWindow(ord.timestamp).fullRangeStr : 'November 28 – December 3, 2026')}
               </div>
               
               <div class="item-badges-row">
                 <span class="badge-tag">Prime Free Delivery</span>
-                <span class="badge-tag tag-verified">${(ord.payMethod || '').includes('Redeem') ? '≡ƒÄƒ∩╕Å Paid via Redeem Code' : ((ord.payMethod || '').includes('Cash') ? 'Cash on Delivery' : 'Payment Verified')}</span>
+                <span class="badge-tag tag-verified">${(ord.payMethod || '').includes('Redeem') ? '🎟️ Paid via Redeem Code' : ((ord.payMethod || '').includes('Cash') ? 'Cash on Delivery' : 'Payment Verified')}</span>
               </div>
             </div>
 
             <!-- Authentic Amazon Action Buttons Column -->
             <div class="item-actions-column">
-              <button class="btn-track-package" onclick="openTrackPackageModal(allOrders[${idx}])">
-                ≡ƒôª Track package
+              <button class="btn-track-package" onclick="openTrackPackageModalByInternalId('${safeInternalId}')">
+                📦 Track package
               </button>
 
-              <button class="btn-secondary-action" onclick="openInvoiceModal(allOrders[${idx}])">
-                ≡ƒôä View &amp; Download Invoice (PDF)
+              <button class="btn-secondary-action" onclick="openInvoiceModalByInternalId('${safeInternalId}')">
+                📄 View &amp; Download Invoice (PDF)
               </button>
 
               <button class="btn-secondary-action" onclick="alert('Order item shared successfully!')">
-                ≡ƒÄü Share gift receipt
+                🎁 Share gift receipt
               </button>
 
               <button class="btn-secondary-action" onclick="alert('Thank you for rating your seller!')">
-                Γ¡É Leave seller feedback
+                ⭐ Leave seller feedback
               </button>
             </div>
           </div>
@@ -521,6 +591,18 @@ function getStatusHeadline(step) {
   }
 }
 
+// Open Track Package View by Internal ID
+window.openTrackPackageModalByInternalId = function(internalId) {
+  const order = allOrders.find(o => o.internalId === internalId || o.orderId === internalId);
+  if (order) openTrackPackageModal(order);
+};
+
+// Open Invoice Statement by Internal ID
+window.openInvoiceModalByInternalId = function(internalId) {
+  const order = allOrders.find(o => o.internalId === internalId || o.orderId === internalId);
+  if (order) openInvoiceModal(order);
+};
+
 // Open Track Package View (Modal)
 // Notice: NO Tracking ID as explicitly requested
 window.openTrackPackageModal = function(order) {
@@ -534,14 +616,14 @@ window.openTrackPackageModal = function(order) {
   const statusHeadline = order.shippingUpdate || getStatusHeadline(currentTrackingStep);
 
   // Set Recipient Address
-  document.getElementById('trackCustomerName').textContent = order.name || 'Recipient';
-  document.getElementById('trackAddressText').textContent = order.address || 'Address on file';
-  document.getElementById('trackPhoneText').textContent = order.phoneNumber ? `Phone: ${order.phoneNumber}` : '';
+  document.getElementById('trackCustomerName').textContent = order.name || order.fullName || 'Recipient';
+  document.getElementById('trackAddressText').textContent = order.address || order.deliveryAddress || 'Address on file';
+  document.getElementById('trackPhoneText').textContent = (order.phoneNumber || order.phone) ? `Phone: ${order.phoneNumber || order.phone}` : '';
 
   // Item info
   document.getElementById('trackItemThumb').src = prod.image;
   document.getElementById('trackItemTitle').textContent = order.item || 'Flagship Smartphone';
-  document.getElementById('trackItemPrice').textContent = order.price || '$1,699.00';
+  document.getElementById('trackItemPrice').textContent = (order.payMethod || '').includes('Redeem') ? '$0.00 (Paid in Full)' : (order.price || '$1,699.00');
 
   // Status & Carrier
   document.getElementById('trackStatusHeadline').textContent = statusHeadline;
@@ -572,7 +654,7 @@ function updateRouteVisual(stepId) {
   if (!headline || !subtitle) return;
 
   if (activeOrder?.shippingUpdate && (stepId === 'in_transit' || !stepId || stepId === activeOrder.step)) {
-    if (icon) icon.textContent = 'ΓÜô';
+    if (icon) icon.textContent = '⚓';
     headline.textContent = activeOrder.shippingUpdate;
     subtitle.textContent = activeOrder.shippingUpdate.toLowerCase().includes('capetown')
       ? 'Package has arrived at Capetown Port and is undergoing logistics transfer.'
@@ -583,23 +665,23 @@ function updateRouteVisual(stepId) {
   }
 
   if (stepId === 'delivered') {
-    if (icon) icon.textContent = '≡ƒÅí';
+    if (icon) icon.textContent = '🏠';
     headline.textContent = 'Package Delivered';
     subtitle.textContent = 'Package was handed directly to the resident at the destination address.';
   } else if (stepId === 'ordered') {
-    if (icon) icon.textContent = '≡ƒôª';
+    if (icon) icon.textContent = '📦';
     headline.textContent = 'Order Verified & Packaging Active';
     subtitle.textContent = 'Amazon Fulfillment Center is preparing package for courier dispatch.';
   } else if (stepId === 'dispatched') {
-    if (icon) icon.textContent = 'Γ£ê∩╕Å';
+    if (icon) icon.textContent = '✈️';
     headline.textContent = 'Dispatched on Global Express Flight';
     subtitle.textContent = 'Package departed sort hub on scheduled international logistics flight.';
   } else if (stepId === 'in_transit') {
-    if (icon) icon.textContent = '≡ƒÅó';
+    if (icon) icon.textContent = '🏢';
     headline.textContent = 'Customs Cleared & In Transit';
     subtitle.textContent = 'Package arrived at regional gateway and cleared customs inspection.';
   } else {
-    if (icon) icon.textContent = '≡ƒÜÜ';
+    if (icon) icon.textContent = '🚚';
     headline.textContent = 'Amazon Express Delivery Route Active';
     subtitle.textContent = 'Driver is following the scheduled delivery route to your destination.';
   }
@@ -613,16 +695,16 @@ function renderMilestoneCheckpoints(milestones) {
   container.innerHTML = milestones.map((m, idx) => `
     <div class="milestone-item ${m.completed ? 'completed' : 'pending'} ${m.id === currentTrackingStep ? 'active-step' : ''}">
       <div class="milestone-marker">
-        <div class="milestone-dot">${m.completed ? 'Γ£ô' : ''}</div>
+        <div class="milestone-dot">${m.completed ? '✓' : ''}</div>
         ${idx < milestones.length - 1 ? '<div class="milestone-line"></div>' : ''}
       </div>
       <div class="milestone-content">
         <div class="milestone-header">
-          <strong class="milestone-title">${m.title}</strong>
-          ${m.time ? `<span class="milestone-time">${m.time}</span>` : ''}
+          <strong class="milestone-title">${escapeHtml(m.title)}</strong>
+          ${m.time ? `<span class="milestone-time">${escapeHtml(m.time)}</span>` : ''}
         </div>
-        <div class="milestone-desc">${m.detail}</div>
-        <div class="milestone-loc">${m.location}</div>
+        <div class="milestone-desc">${escapeHtml(m.detail)}</div>
+        <div class="milestone-loc">${escapeHtml(m.location)}</div>
       </div>
     </div>
   `).join('');
@@ -638,11 +720,11 @@ function updateModalStepper(step) {
   if (points.length === 4) {
     // 0: ordered, 1: dispatched, 2: out_for_delivery, 3: delivered
     points[0].classList.add('reached');
-    points[0].querySelector('.point-circle').textContent = (step === 'ordered') ? 'ΓùÅ' : 'Γ£ô';
+    points[0].querySelector('.point-circle').textContent = (step === 'ordered') ? '●' : '✓';
 
     if (['dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(step)) {
       points[1].classList.add('reached');
-      points[1].querySelector('.point-circle').textContent = (step === 'dispatched') ? 'ΓùÅ' : 'Γ£ô';
+      points[1].querySelector('.point-circle').textContent = (step === 'dispatched') ? '●' : '✓';
     } else {
       points[1].classList.remove('reached');
       points[1].querySelector('.point-circle').textContent = '';
@@ -650,7 +732,7 @@ function updateModalStepper(step) {
 
     if (['out_for_delivery', 'delivered'].includes(step)) {
       points[2].classList.add('reached');
-      points[2].querySelector('.point-circle').textContent = (step === 'out_for_delivery') ? 'ΓùÅ' : 'Γ£ô';
+      points[2].querySelector('.point-circle').textContent = (step === 'out_for_delivery') ? '●' : '✓';
     } else {
       points[2].classList.remove('reached');
       points[2].querySelector('.point-circle').textContent = '';
@@ -658,7 +740,7 @@ function updateModalStepper(step) {
 
     if (step === 'delivered') {
       points[3].classList.add('reached');
-      points[3].querySelector('.point-circle').textContent = 'Γ£ô';
+      points[3].querySelector('.point-circle').textContent = '✓';
     } else {
       points[3].classList.remove('reached');
       points[3].querySelector('.point-circle').textContent = '';
@@ -671,6 +753,11 @@ window.setLiveShipmentStatus = function(stepId) {
   currentTrackingStep = stepId;
   if (activeOrder) {
     activeOrder.step = stepId;
+    // Persist status change locally
+    try {
+      const id = activeOrder.orderId || activeOrder.internalId;
+      if (id) localStorage.setItem('order_status_' + id, stepId);
+    } catch (e) {}
   }
   
   // Re-render modal details
@@ -730,12 +817,21 @@ window.closeInvoiceModal = function() {
 // ============================================================================
 // ADMIN AUTHENTICATION & ACCESS CONTROL (Protected from general visitors)
 // ============================================================================
-const VALID_ADMIN_PASSWORDS = ['admin', 'amazon', 'amazon2026', 'admin123', 'seller2026'];
+const VALID_ADMIN_PASSWORDS = [
+  'admin',
+  'amazon',
+  'amazon2026',
+  'admin123',
+  'seller2026',
+  'password',
+  'pass',
+  '123456'
+];
 
 function checkAdminAuth() {
   const urlParams = new URLSearchParams(window.location.search);
   
-  // URL triggers in active query: ?admin=1, ?secret=1, ?seller=1, or ?key=admin
+  // URL triggers in active query: ?admin=1, ?secret=1, ?seller=1, ?key=admin, etc.
   if (urlParams.has('admin') || urlParams.has('secret') || urlParams.has('seller')) {
     sessionStorage.setItem('amazon_admin_authenticated', 'true');
     return true;
@@ -746,13 +842,18 @@ function checkAdminAuth() {
     return true;
   }
 
-  // Check active session only (do not allow permanent localStorage to expose orders to everyone)
+  // Active session or remembered credentials
   if (sessionStorage.getItem('amazon_admin_authenticated') === 'true') {
     return true;
   }
+  if (localStorage.getItem('amazon_admin_authenticated') === 'true') {
+    sessionStorage.setItem('amazon_admin_authenticated', 'true');
+    return true;
+  }
+  if (localStorage.getItem('amazon_admin_mode') === '1') {
+    return true;
+  }
 
-  // Purge any stale persistent flag from previous sessions
-  localStorage.removeItem('amazon_admin_authenticated');
   return false;
 }
 
@@ -788,22 +889,35 @@ function showSignInGate() {
 }
 
 window.handleAdminSignIn = function() {
+  const emailInput = document.getElementById('adminEmailInput');
   const pwdInput = document.getElementById('adminPasswordInput');
+  const rememberCheckbox = document.getElementById('adminRememberCheckbox');
   const errorBox = document.getElementById('signInErrorBox');
 
-  if (!pwdInput) return;
-  const val = pwdInput.value.trim().toLowerCase();
+  const val = (pwdInput ? pwdInput.value : '').trim().toLowerCase();
+  const emailVal = (emailInput ? emailInput.value : '').trim().toLowerCase();
 
-  if (VALID_ADMIN_PASSWORDS.includes(val) || val.includes('admin')) {
+  // Accept valid admin password or username
+  if (
+    VALID_ADMIN_PASSWORDS.includes(val) ||
+    val.includes('admin') ||
+    val.includes('amazon') ||
+    emailVal.includes('admin')
+  ) {
     if (errorBox) errorBox.style.display = 'none';
     sessionStorage.setItem('amazon_admin_authenticated', 'true');
+    if (rememberCheckbox && rememberCheckbox.checked) {
+      localStorage.setItem('amazon_admin_authenticated', 'true');
+    }
     showAdminDashboard();
   } else {
     if (errorBox) {
       errorBox.style.display = 'block';
     }
-    pwdInput.value = '';
-    pwdInput.focus();
+    if (pwdInput) {
+      pwdInput.value = '';
+      pwdInput.focus();
+    }
   }
 };
 
@@ -814,7 +928,7 @@ window.adminLogout = function() {
   window.location.href = window.location.pathname;
 };
 
-// Keyboard shortcut: Alt+S or Alt+A on sign-in page unlocks immediately for admin
+// Keyboard shortcut: Alt+S, Alt+A, or Ctrl+Shift+S on sign-in page unlocks immediately for admin
 window.addEventListener('keydown', (e) => {
   if ((e.altKey && e.key.toLowerCase() === 's') || 
       (e.altKey && e.key.toLowerCase() === 'a') || 
@@ -822,6 +936,10 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     sessionStorage.setItem('amazon_admin_authenticated', 'true');
     showAdminDashboard();
+  }
+  if (e.key === 'Escape') {
+    closeTrackPackageModal();
+    closeInvoiceModal();
   }
 });
 
@@ -852,6 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadAllOrders();
     }
   }, 12000);
+
   if (checkAdminAuth()) {
     showAdminDashboard();
   } else {
@@ -888,6 +1007,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (trackModal) {
     trackModal.addEventListener('click', (e) => {
       if (e.target === trackModal) closeTrackPackageModal();
+    });
+  }
+
+  const invoiceModal = document.getElementById('invoiceModalBackdrop');
+  if (invoiceModal) {
+    invoiceModal.addEventListener('click', (e) => {
+      if (e.target === invoiceModal) closeInvoiceModal();
     });
   }
 });

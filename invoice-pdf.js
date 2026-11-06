@@ -66,6 +66,12 @@
         operator: 'Amazon.com Services LLC',
         warehouse: 'Amazon Global Fulfillment Center (Sony Interactive Entertainment Hub)'
       };
+    } else if (lower.includes('streamer') || lower.includes('combo') || lower.includes('sound card') || lower.includes('k1') || lower.includes('shure') || lower.includes('razer')) {
+      return {
+        seller: 'Pro Audio Studio Official Storefront on Amazon',
+        operator: 'Amazon.com Services LLC',
+        warehouse: 'Amazon Global Logistics Hub (Audio & Studio Fulfillment)'
+      };
     }
     return {
       seller: 'Authorized Flagship Store on Amazon',
@@ -140,11 +146,14 @@
     const formattedPrice = '$' + numPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   function resolveItemRedeemCode(title = '') {
     const t = (title || '').toLowerCase();
+    if (t.includes('ps5') || t.includes('playstation')) return 'PS5-PRO-8K9V-3M7X-4W2L';
     if (t.includes('macbook') || t.includes('m4')) return 'AMZN-M4MX-16BP-8000';
     if (t.includes('ipad')) return 'AMZN-4X8R-9K2T-6W7L';
     if (t.includes('18')) return 'AMZN-8K3P-4M7W-9Y2L';
     if (t.includes('pixel') || t.includes('11')) return 'AMZN-6H3M-8Q7P-2L9X';
     if (t.includes('samsung') || t.includes('s26') || t.includes('galaxy')) return 'AMZN-5V7C-3N9J-8K4R';
+    if (t.includes('urbangold') || t.includes('u-link') || t.includes('necklace')) return 'AMZN-GOLD-24KT-8888';
+    if (t.includes('streamer') || t.includes('combo')) return 'AMZN-STRM-5IN1-7777';
     return 'AMZN-9B2N-5F8K-3P4V';
   }
 
