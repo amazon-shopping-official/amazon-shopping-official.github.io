@@ -2249,3 +2249,64 @@ footer {
     size: auto;
   }
 }
+
+
+/* ==========================================================================
+   OFFICIAL PLAYSTATION 5 STORE STYLES & SWATCHES
+   ========================================================================== */
+.swatch-ps5-white { background: #f0f2f5; border: 1px solid #c8cbcf; }
+.swatch-ps5-midnight-black { background: #111215; border: 1px solid #333; }
+.swatch-ps5-volcanic-red { background: linear-gradient(135deg, #b01b2a 0%, #680d16 100%); }
+.swatch-ps5-cobalt-blue { background: linear-gradient(135deg, #1b4588 0%, #0c2142 100%); }
+.swatch-ps5-sterling-silver { background: linear-gradient(135deg, #d8dbe0 0%, #8c939c 100%); }
+.swatch-ps5-chroma-teal { background: linear-gradient(135deg, #0dc8bc 0%, #ebd435 100%); }
+.swatch-ps5-chroma-indigo { background: linear-gradient(135deg, #3d46bc 0%, #8921a4 100%); }
+.swatch-ps5-chroma-pearl { background: linear-gradient(135deg, #f4ebed 0%, #d9c5d3 50%, #bde5f0 100%); }
+.swatch-ps5-cosmic-red { background: #bd1d49; }
+.swatch-ps5-nova-pink { background: #e6247c; }
+.swatch-ps5-starlight-blue { background: #2f8ee8; }
+.swatch-ps5-galactic-purple { background: #5c3590; }
+.swatch-ps5-gray-camo { background: repeating-linear-gradient(45deg, #5c6269, #5c6269 4px, #3c4046 4px, #3c4046 8px, #868d95 8px, #868d95 12px); }
+
+/* PS5 Special Accessories Box */
+.ps5-accessories-bundle-card {
+  background: linear-gradient(135deg, #001f3f 0%, #00439c 100%);
+  color: #fff;
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin-top: 18px;
+  box-shadow: 0 4px 14px rgba(0, 67, 156, 0.25);
+  border: 1px solid #0056cc;
+}
+.ps5-accessories-bundle-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ps5-accessories-bundle-card p {
+  font-size: 13px;
+  color: #e0ecff;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.ps5-acc-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+.ps5-acc-item-chip {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
