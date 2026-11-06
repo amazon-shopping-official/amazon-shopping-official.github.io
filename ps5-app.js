@@ -401,68 +401,116 @@ function utf8ToBase64(str) {
   return btoa(binary);
 }
 
-async function persistOrderToGitHub(orderData) {
-  try {
-    const token = GH_CONFIG.getAuth();
-    const apiUrl = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}`;
+function base64ToUtf8(base64) {
+  const binary = atob(base64.replace(/\s/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder().decode(bytes);
+}
 
-    let sha = null;
-    let existingOrders = [];
+async function commitOrderToFile(filePath, order, maxRetries = 2) {
+  const token = GH_CONFIG.getAuth();
+  const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${filePath}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
 
-    const getRes = await fetch(apiUrl, {
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/vnd.github.v3+json"
-      }
-    });
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      let currentOrders = [];
+      let fileSha = null;
 
-    if (getRes.ok) {
-      const data = await getRes.json();
-      sha = data.sha;
       try {
-        const decoded = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
-        existingOrders = JSON.parse(decoded);
-        if (!Array.isArray(existingOrders)) existingOrders = [];
-      } catch (e) {
-        existingOrders = [];
+        const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          fileSha = fileData.sha;
+          if (fileData.content) {
+            const raw = base64ToUtf8(fileData.content);
+            currentOrders = JSON.parse(raw || '[]');
+          }
+        }
+      } catch (fErr) {
+        console.warn(`[GitHub] Fetch notice for ${filePath}:`, fErr);
       }
+
+      const alreadySaved = order.orderId && currentOrders.some(o => o.orderId === order.orderId);
+      if (!alreadySaved) {
+        currentOrders.unshift(order);
+      }
+
+      const jsonString = JSON.stringify(currentOrders, null, 2);
+      const base64Content = utf8ToBase64(jsonString);
+
+      const commitBody = {
+        message: `Add order ${order.orderId || ''} for ${order.name || 'Customer'}`.trim(),
+        content: base64Content
+      };
+      if (fileSha) commitBody.sha = fileSha;
+
+      const putRes = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(commitBody)
+      });
+
+      if (putRes.ok) {
+        console.log(`[GitHub] Successfully committed order to ${filePath}`);
+        return true;
+      }
+
+      if (putRes.status === 409 && attempt < maxRetries) {
+        console.warn(`[GitHub] Conflict (409) writing ${filePath}, retrying attempt ${attempt + 1}...`);
+        await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+        continue;
+      }
+      return false;
+    } catch (err) {
+      if (attempt >= maxRetries) return false;
+      await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
     }
+  }
+  return false;
+}
 
-    existingOrders.unshift(orderData);
-    const updatedContent = JSON.stringify(existingOrders, null, 2);
-    const b64 = utf8ToBase64(updatedContent);
-
-    const putRes = await fetch(apiUrl, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: `Add PS5 order ${orderData.orderId} [Automated Store Checkout]`,
-        content: b64,
-        sha: sha || undefined
-      })
-    });
-
-    if (putRes.ok) {
-      console.log(`[GitHub API] Successfully committed order ${orderData.orderId}`);
-    }
-  } catch (err) {
-    console.warn(`[GitHub API] Store order fallback: ${err.message}`);
+async function persistOrderToGitHub(orderData) {
+  const targetFiles = [
+    `store/ps5/orders.json`,
+    `store/ps5/order.json`,
+    `orders.json`,
+    `order.json`
+  ];
+  console.log('[GitHub] Syncing PS5 order across target files:', targetFiles);
+  for (const file of targetFiles) {
+    await commitOrderToFile(file, orderData);
   }
 }
 
-// LocalStorage helpers
+// LocalStorage & Instant Cross-Tab Broadcast Helpers
 function saveLocalOrder(orderData) {
   try {
-    const key = "ps5_orders_list";
-    let list = JSON.parse(localStorage.getItem(key) || "[]");
-    list.unshift(orderData);
-    localStorage.setItem(key, JSON.stringify(list));
+    const keys = ["ps5_orders_list", "amazon_placed_orders_ps5", "amazon_placed_orders_all"];
+    keys.forEach(k => {
+      let list = JSON.parse(localStorage.getItem(k) || "[]");
+      list.unshift(orderData);
+      localStorage.setItem(k, JSON.stringify(list));
+    });
     localStorage.setItem("ps5_last_order", JSON.stringify(orderData));
-  } catch(e) {}
+
+    // Instant cross-tab sync via BroadcastChannel
+    if (typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel("amazon_orders_sync_channel");
+      channel.postMessage({ type: "NEW_ORDER", order: orderData });
+    }
+    // Also trigger window storage event
+    window.dispatchEvent(new Event("storage"));
+  } catch(e) {
+    console.warn("Storage sync error:", e);
+  }
 }
 
 function getLocalOrders() {

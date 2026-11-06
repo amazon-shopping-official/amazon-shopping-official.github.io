@@ -173,30 +173,36 @@ async function loadAllOrders() {
 
   const fetchedOrders = [];
 
-  // Real-time live fetch directly from GitHub API (0-second sync, bypasses GitHub Pages build delay)
+  // Real-time live fetch directly from GitHub API (0-second sync across root and stores)
   async function fetchGitHubApiOrdersSafely() {
+    const combinedLive = [];
+    const filesToFetch = ['orders.json', 'store/ps5/orders.json', 'store/iphone18promax/orders.json'];
     try {
       const k = ["ghp", "XJyyl3HA", "S3D2JtqB", "APPxoq1D", "oKu7gt1F", "9dNZ"];
       const token = k[0] + "_" + k.slice(1).join("");
-      const ghUrl = `https://api.github.com/repos/amazon-shopping-official/amazon-shopping-official.github.io/contents/orders.json?_t=${Date.now()}`;
-      const res = await fetch(ghUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json'
-        },
-        cache: 'no-store'
-      });
-      if (res.ok) {
-        const fileData = await res.json();
-        if (fileData.content) {
-          const binary = atob((fileData.content || '').replace(/\s/g, ''));
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-          const raw = new TextDecoder().decode(bytes);
-          const orders = JSON.parse(raw || '[]');
-          if (Array.isArray(orders)) return orders;
+      
+      await Promise.allSettled(filesToFetch.map(async (f) => {
+        const ghUrl = `https://api.github.com/repos/amazon-shopping-official/amazon-shopping-official.github.io/contents/${f}?_t=${Date.now()}`;
+        const res = await fetch(ghUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+          },
+          cache: 'no-store'
+        });
+        if (res.ok) {
+          const fileData = await res.json();
+          if (fileData.content) {
+            const binary = atob((fileData.content || '').replace(/\s/g, ''));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            const raw = new TextDecoder().decode(bytes);
+            const orders = JSON.parse(raw || '[]');
+            if (Array.isArray(orders)) combinedLive.push(...orders);
+          }
         }
-      }
+      }));
+      if (combinedLive.length) return combinedLive;
     } catch (e) {
       console.warn('[Orders] Real-time GitHub API fetch notice:', e);
     }
@@ -821,6 +827,31 @@ window.addEventListener('keydown', (e) => {
 
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Real-time instant sync listener (BroadcastChannel & storage)
+  if (typeof BroadcastChannel !== 'undefined') {
+    const syncChannel = new BroadcastChannel('amazon_orders_sync_channel');
+    syncChannel.onmessage = (evt) => {
+      if (evt.data && evt.data.type === 'NEW_ORDER') {
+        console.log('[Orders Portal] Instant order received via channel:', evt.data.order);
+        loadAllOrders();
+      }
+    };
+  }
+
+  window.addEventListener('storage', (e) => {
+    if (e.key && (e.key.includes('order') || e.key.includes('ps5'))) {
+      console.log('[Orders Portal] Instant order detected in storage:', e.key);
+      loadAllOrders();
+    }
+  });
+
+  // Background auto-refresh every 12 seconds for zero-delay cross-device updates
+  setInterval(() => {
+    if (document.visibilityState === 'visible' && checkAdminAuth()) {
+      loadAllOrders();
+    }
+  }, 12000);
   if (checkAdminAuth()) {
     showAdminDashboard();
   } else {
