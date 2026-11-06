@@ -72,6 +72,12 @@
         operator: 'Amazon.com Services LLC',
         warehouse: 'Amazon Global Logistics Hub (Audio & Studio Fulfillment)'
       };
+    } else if (lower.includes('legion') || lower.includes('lenovo')) {
+      return {
+        seller: 'Lenovo Legion Official Store on Amazon',
+        operator: 'Amazon.com Services LLC',
+        warehouse: 'Amazon Global Fulfillment Center (Lenovo Flagship Depot)'
+      };
     }
     return {
       seller: 'Authorized Flagship Store on Amazon',
@@ -154,6 +160,7 @@
     if (t.includes('samsung') || t.includes('s26') || t.includes('galaxy')) return 'AMZN-5V7C-3N9J-8K4R';
     if (t.includes('urbangold') || t.includes('u-link') || t.includes('necklace')) return 'AMZN-GOLD-24KT-8888';
     if (t.includes('streamer') || t.includes('combo')) return 'AMZN-STRM-5IN1-7777';
+    if (t.includes('legion') || t.includes('lenovo')) return 'AMZN-LG7U-9K2T-8X4P';
     return 'AMZN-9B2N-5F8K-3P4V';
   }
 

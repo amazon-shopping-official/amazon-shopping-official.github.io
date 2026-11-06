@@ -873,6 +873,10 @@ body {
 .swatch-space-black { background: #1d1e20; border: 1px solid #444; }
 .swatch-silver { background: #e3e4e5; border: 1px solid #c0c0c0; }
 
+/* Official Lenovo Legion Pro 7 Finishes (Eclipse Black, Onyx Grey) */
+.swatch-eclipse-black { background: #1b1c1e; border: 1px solid #3a3b40; box-shadow: inset 0 0 4px rgba(0,255,200,0.15); }
+.swatch-onyx-grey { background: #3d3e42; border: 1px solid #5a5c63; }
+
 
 .storage-grid {
   display: flex;

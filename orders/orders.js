@@ -75,6 +75,15 @@ function resolveProductDetails(itemTitle = '') {
     };
   }
 
+  const isLegion = lower.includes('legion') || lower.includes('lenovo');
+  if (isLegion) {
+    return {
+      image: '../images/legion/legion-pro-7-01.png',
+      storeUrl: '../store/lenovolegionpro7/',
+      brand: 'Lenovo'
+    };
+  }
+
   const isMacbook = lower.includes('macbook') || lower.includes('laptop');
   if (isMacbook) {
     const img = title.includes('Silver')
@@ -236,6 +245,7 @@ async function loadAllOrders() {
     const combinedLive = [];
     const filesToFetch = [
       'orders.json',
+      'store/lenovolegionpro7/orders.json',
       'store/ps5/orders.json',
       'store/iphone18promax/orders.json',
       'store/iphone17promax/orders.json',
@@ -333,8 +343,14 @@ async function loadAllOrders() {
   const urbangoldOrders = await fetchJsonSafely('../store/urbangold/orders.json') || await fetchJsonSafely('../store/urbangold/order.json');
   if (urbangoldOrders) fetchedOrders.push(...urbangoldOrders);
 
-  // 12. Merge Local Storage orders across all storefronts
+  // 12. Fetch Lenovo Legion Pro 7 orders
+  const legionOrders = await fetchJsonSafely('../store/lenovolegionpro7/orders.json') || await fetchJsonSafely('../store/lenovolegionpro7/order.json');
+  if (legionOrders) fetchedOrders.push(...legionOrders);
+
+  // 13. Merge Local Storage orders across all storefronts
   const localKeys = [
+    'amazon_placed_orders_legion',
+    'legion_orders_list',
     'ps5_orders_list',
     'amazon_placed_orders_ps5',
     'amazon_placed_orders_all',
