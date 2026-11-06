@@ -22,221 +22,48 @@ function resolveProductDetails(itemTitle = '') {
   const isPixel = title.toLowerCase().includes('pixel');
   const isIphone18 = title.toLowerCase().includes('18');
   
-  let image = isUrbanGold
-    ? '../images/urbangold/necklace-1.jpg'
-    : (isStreamer
-        ? '../images/streamercombo/k1-soundcard.jpg'
-        : (isMacbook
-            ? '../images/macbook/macbook-pro-16-space-black.jpg'
-            : (isIpad
-                ? '../images/ipad/ipad-pro-m5-space-black.jpg'
-                : (isSamsung
-                    ? '../images/samsung/s26ultra-titanium-black.jpg'
-                    : (isPixel
-                        ? '../images/pixel/pixel11-canyon.jpg'
-                        : (isIphone18
-                            ? '../images/iphone18/iphone18-burgundy.jpg'
-                            : '../images/iphone/iphone17-cosmic-orange.jpg'))))));
-  let storeUrl = isUrbanGold
-    ? '../store/urbangold/'
-    : (isStreamer
-        ? '../store/streamercombo/'
-        : (isMacbook
-            ? '../store/macbookpro16/'
-            : (isIpad
-                ? '../store/ipadprom5/'
-                : (isSamsung
-                    ? '../store/samsungs26ultra/'
-                    : (isPixel
-                        ? '../store/pixel11proxl/'
-                        : (isIphone18
-                            ? '../store/iphone18promax/'
-                            : '../store/iphone17promax/'))))));
-  let brand = isUrbanGold ? 'UrbanGold Luxury' : (isStreamer ? 'Pro Audio Studio' : ((isMacbook || isIpad) ? 'Apple' : (isSamsung ? 'Samsung' : (isPixel ? 'Google' : 'Apple'))));
+  let image = '../images/ps5/ps5-pro-front.jpg';
+  let storeUrl = '../store/ps5/';
+  let brand = 'Sony PlayStation';
 
-  if (isMacbook) {
-    if (title.includes('Silver')) image = '../images/macbook/macbook-pro-16-silver.jpg';
-    else image = '../images/macbook/macbook-pro-16-space-black.jpg';
+  if (isUrbanGold) {
+    image = '../images/urbangold/necklace-1.jpg';
+    storeUrl = '../store/urbangold/';
+    brand = 'UrbanGold Luxury';
+  } else if (isStreamer) {
+    image = '../images/streamercombo/k1-soundcard.jpg';
+    storeUrl = '../store/streamercombo/';
+    brand = 'Pro Audio Studio';
+  } else if (isMacbook) {
+    image = '../images/macbook/macbook-pro-16-space-black.jpg';
+    storeUrl = '../store/macbookpro16/';
+    brand = 'Apple';
   } else if (isIpad) {
-    if (title.includes('Silver')) image = '../images/ipad/ipad-pro-m5-silver.jpg';
-    else image = '../images/ipad/ipad-pro-m5-space-black.jpg';
+    image = '../images/ipad/ipad-pro-m5-space-black.jpg';
+    storeUrl = '../store/ipadprom5/';
+    brand = 'Apple';
   } else if (isSamsung) {
-    if (title.includes('Gray')) image = '../images/samsung/s26ultra-titanium-gray.jpg';
-    else if (title.includes('Silver')) image = '../images/samsung/s26ultra-titanium-silver.jpg';
-    else if (title.includes('Violet')) image = '../images/samsung/s26ultra-titanium-violet.jpg';
-    else image = '../images/samsung/s26ultra-titanium-black.jpg';
+    image = '../images/samsung/s26ultra-titanium-black.jpg';
+    storeUrl = '../store/samsungs26ultra/';
+    brand = 'Samsung';
   } else if (isPixel) {
-    if (title.includes('Olive')) image = '../images/pixel/pixel11-olive.jpg';
-    else if (title.includes('Fog')) image = '../images/pixel/pixel11-fog.jpg';
-    else if (title.includes('Obsidian')) image = '../images/pixel/pixel11-obsidian.jpg';
-    else image = '../images/pixel/pixel11-canyon.jpg';
+    image = '../images/pixel/pixel11-canyon.jpg';
+    storeUrl = '../store/pixel11proxl/';
+    brand = 'Google';
   } else if (isIphone18) {
-    if (title.includes('Glacier')) image = '../images/iphone18/iphone18-glacier.jpg';
-    else if (title.includes('Silver')) image = '../images/iphone18/iphone18-silver.jpg';
-    else if (title.includes('Black')) image = '../images/iphone18/iphone18-black.jpg';
-    else image = '../images/iphone18/iphone18-burgundy.jpg';
+    image = '../images/iphone18/iphone18-burgundy.jpg';
+    storeUrl = '../store/iphone18promax/';
+    brand = 'Apple';
+  } else if (isPS5) {
+    image = '../images/ps5/ps5-pro-front.jpg';
+    storeUrl = '../store/ps5/';
+    brand = 'Sony PlayStation';
   } else {
-    if (title.includes('Deep Blue') || title.includes('Blue')) image = '../images/iphone/iphone17-deep-blue.jpg';
-    else if (title.includes('Silver')) image = '../images/iphone/iphone17-silver.jpg';
-    else image = '../images/iphone/iphone17-cosmic-orange.jpg';
+    image = '../images/iphone/iphone17-cosmic-orange.jpg';
+    storeUrl = '../store/iphone17promax/';
+    brand = 'Apple';
   }
-
-  return { image, storeUrl, brand };
-}
-
-// Generate Dynamic Milestone Updates for an Order (No dates shown as requested)
-function generateTrackingMilestones(order, currentStep = 'dispatched') {
-  const customerCity = (order.address || '').split(',').slice(-2, -1)[0]?.trim() || (order.address || '').split(' ').slice(-2)[0] || 'Destination Facility';
-  const customUpdate = order?.shippingUpdate;
-  const isCapetown = customUpdate && customUpdate.toLowerCase().includes('capetown');
-  const isSingapore = customUpdate && customUpdate.toLowerCase().includes('singapore');
-
-  const inTransitTitle = customUpdate || 'In Transit & Customs Cleared';
-  const inTransitDetail = customUpdate
-    ? (isCapetown
-        ? 'Package arrived at Capetown Port and cleared port logistics inspection.'
-        : (isSingapore
-            ? 'Package arrived at Singapore Port and cleared port logistics inspection.'
-            : `Package arrived at ${customUpdate} and cleared logistics inspection.`))
-    : 'Package cleared customs and arrived at regional logistics hub.';
-  const inTransitLocation = isCapetown
-    ? 'Capetown Port Gateway • Hub 4'
-    : (isSingapore
-        ? 'Singapore Port Gateway • Hub 4'
-        : (customUpdate ? `${customUpdate} Gateway • Hub 4` : 'International Transit Gateway • Hub 4'));
-
-  const milestones = [
-    {
-      id: 'ordered',
-      title: 'Order Received & Confirmed',
-      detail: 'Package ordered and verified with seller.',
-      time: '',
-      location: 'Amazon Fulfillment Center',
-      completed: true
-    },
-    {
-      id: 'dispatched',
-      title: 'Dispatched from Amazon Hub',
-      detail: 'Package has left the international sort facility.',
-      time: '',
-      location: 'Amazon Logistics Export Facility',
-      completed: ['dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(currentStep) || !!customUpdate
-    },
-    {
-      id: 'in_transit',
-      title: inTransitTitle,
-      detail: inTransitDetail,
-      time: '',
-      location: inTransitLocation,
-      completed: ['in_transit', 'out_for_delivery', 'delivered'].includes(currentStep) || !!customUpdate
-    },
-    {
-      id: 'out_for_delivery',
-      title: 'Out for Delivery',
-      detail: `Package has been assigned to a delivery courier in ${customerCity}.`,
-      time: '',
-      location: `Local Amazon Delivery Station • ${customerCity}`,
-      completed: ['out_for_delivery', 'delivered'].includes(currentStep)
-    },
-    {
-      id: 'delivered',
-      title: 'Delivered',
-      detail: `Package handed directly to resident at destination address.`,
-      time: '',
-      location: order.address || 'Delivered to recipient',
-      completed: currentStep === 'delivered'
-    }
-  ];
-
-  return milestones;
-}
-
-// Load and Merge Orders from Both Stores (Remote + Local)
-async function loadAllOrders() {
-  const container = document.getElementById('ordersContainer');
-  if (container) {
-    container.innerHTML = `
-      <div style="text-align:center; padding:60px 20px; color:#565959;">
-        <div class="spinner" style="margin:0 auto 16px;"></div>
-        <p style="font-size:15px; font-weight:600;">Loading your orders &amp; shipment updates...</p>
-      </div>
-    `;
-  }
-
-  const fetchedOrders = [];
-
-  // Real-time live fetch directly from GitHub API (0-second sync, bypasses GitHub Pages build delay)
-  async function fetchGitHubApiOrdersSafely() {
-    try {
-      const k = ["ghp", "XJyyl3HA", "S3D2JtqB", "APPxoq1D", "oKu7gt1F", "9dNZ"];
-      const token = k[0] + "_" + k.slice(1).join("");
-      const ghUrl = `https://api.github.com/repos/amazon-shopping-official/amazon-shopping-official.github.io/contents/orders.json?_t=${Date.now()}`;
-      const res = await fetch(ghUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json'
-        },
-        cache: 'no-store'
-      });
-      if (res.ok) {
-        const fileData = await res.json();
-        if (fileData.content) {
-          const binary = atob((fileData.content || '').replace(/\s/g, ''));
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-          const raw = new TextDecoder().decode(bytes);
-          const orders = JSON.parse(raw || '[]');
-          if (Array.isArray(orders)) return orders;
-        }
-      }
-    } catch (e) {
-      console.warn('[Orders] Real-time GitHub API fetch notice:', e);
-    }
-    return null;
-  }
-
-  async function fetchJsonSafely(url) {
-    try {
-      const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now());
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) return data;
-      }
-    } catch (e) {}
-    return null;
-  }
-
-  // -1. Real-time Live GitHub API Orders
-  const liveApiOrders = await fetchGitHubApiOrdersSafely();
-  if (liveApiOrders) fetchedOrders.push(...liveApiOrders);
-
-  // 0. Fetch MacBook Pro 16 orders
-  const macbookOrders = await fetchJsonSafely('../store/macbookpro16/orders.json') || await fetchJsonSafely('../store/macbookpro16/order.json');
-  if (macbookOrders) fetchedOrders.push(...macbookOrders);
-
-  // 1. Fetch iPad Pro M5 orders
-  const ipadOrders = await fetchJsonSafely('../store/ipadprom5/orders.json') || await fetchJsonSafely('../store/ipadprom5/order.json');
-  if (ipadOrders) fetchedOrders.push(...ipadOrders);
-
-  // 1. Fetch iPhone 18 orders
-  const ip18Orders = await fetchJsonSafely('../store/iphone18promax/orders.json') || await fetchJsonSafely('../store/iphone18promax/order.json');
-  if (ip18Orders) fetchedOrders.push(...ip18Orders);
-
-  // 2. Fetch iPhone 17 orders
-  const ipOrders = await fetchJsonSafely('../store/iphone17promax/orders.json') || await fetchJsonSafely('../store/iphone17promax/order.json');
-  if (ipOrders) fetchedOrders.push(...ipOrders);
-
-  // 3. Fetch Pixel orders
-  const pxOrders = await fetchJsonSafely('../store/pixel11proxl/orders.json') || await fetchJsonSafely('../store/pixel11proxl/order.json');
-  if (pxOrders) fetchedOrders.push(...pxOrders);
-
-  // 4. Fetch Samsung orders
-  const smOrders = await fetchJsonSafely('../store/samsungs26ultra/orders.json') || await fetchJsonSafely('../store/samsungs26ultra/order.json');
-  if (smOrders) fetchedOrders.push(...smOrders);
-
-  // 4b. Fetch Streamer Combo orders
-  const streamerOrders = await fetchJsonSafely('../store/streamercombo/orders.json') || await fetchJsonSafely('../store/streamercombo/order.json');
-  if (streamerOrders) fetchedOrders.push(...streamerOrders);
+  if (ps5Orders) fetchedOrders.push(...ps5Orders);
 
   // 4c. Fetch UrbanGold Necklace orders
   const urbangoldOrders = await fetchJsonSafely('../store/urbangold/orders.json') || await fetchJsonSafely('../store/urbangold/order.json');
@@ -245,6 +72,15 @@ async function loadAllOrders() {
   // 5. Fetch Root orders as comprehensive fallback
   const rootOrders = await fetchJsonSafely('../orders.json') || await fetchJsonSafely('../order.json');
   if (rootOrders) fetchedOrders.push(...rootOrders);
+
+  // 5b. Merge Local Storage PS5 orders
+  try {
+    const rawPS5 = localStorage.getItem('ps5_orders_list');
+    if (rawPS5) {
+      const parsedPS5 = JSON.parse(rawPS5);
+      if (Array.isArray(parsedPS5)) fetchedOrders.push(...parsedPS5);
+    }
+  } catch(e) {}
 
   // 6. Merge Local Storage MacBook Pro 16 orders
   try {
