@@ -60,6 +60,12 @@
         operator: 'Amazon.com Services LLC',
         warehouse: 'Amazon Global Fulfillment Center (Jewelry Vault Hub)'
       };
+    } else if (lower.includes('ps5') || lower.includes('playstation') || lower.includes('sony')) {
+      return {
+        seller: 'Sony PlayStation Official Store on Amazon',
+        operator: 'Amazon.com Services LLC',
+        warehouse: 'Amazon Global Fulfillment Center (Sony Interactive Entertainment Hub)'
+      };
     }
     return {
       seller: 'Authorized Flagship Store on Amazon',
