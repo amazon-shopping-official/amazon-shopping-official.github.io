@@ -317,14 +317,16 @@ const state = {
   qty: 1,
   address: null,
   paymentMethod: "Redeem Code", // Highlight the requested redeem code payment
-  redeemCode: "",
-  isRedeemApplied: false,
+  redeemCode: "PS5-PRO-8K9V-3M7X-4W2L",
+  isRedeemApplied: true,
   placedOrder: null
 };
 
 // Valid Promotional & Amazon / PlayStation Redeem Codes
-const ASSIGNED_REDEEM_CODE = "PS5-PLAY-HAS-NO-LIMITS";
+const ASSIGNED_REDEEM_CODE = "PS5-PRO-8K9V-3M7X-4W2L";
 const VALID_REDEEM_CODES = [
+  "PS5-PRO-8K9V-3M7X-4W2L",
+  "SONY-9X7K-2M4V-8W1Q",
   "PS5-PLAY-HAS-NO-LIMITS",
   "PSN-9K3P-4M7W-9Y2L",
   "AMZN-8K3P-4M7W-9Y2L",
