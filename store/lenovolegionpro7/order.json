@@ -1,1 +1,44 @@
-[]
+[
+  {
+    "orderId": "363-5690077-8415890",
+    "orderNumber": "363-5690077-8415890",
+    "date": "Friday, November 6, 2026",
+    "orderDate": "Friday, November 6, 2026",
+    "dateStr": "Friday, November 6, 2026",
+    "timestamp": "2026-11-06T12:05:38.301Z",
+    "expectedDelivery": "November 26 – December 1, 2026",
+    "item": "Lenovo Legion Pro 7 16\" Gaming Laptop: Intel Core Ultra 9 275HX, RTX 4090 16GB, 16.0\" 3.2K 240Hz PureSight OLED, 64 GB DDR5-6400, 4 TB Dual NVMe SSD, Windows 11 Pro; Eclipse Black",
+    "productTitle": "Lenovo Legion Pro 7 16\" Gaming Laptop: Intel Core Ultra 9 275HX, RTX 4090 16GB, 16.0\" 3.2K 240Hz PureSight OLED, 64 GB DDR5-6400, 4 TB Dual NVMe SSD, Windows 11 Pro; Eclipse Black",
+    "specs": {
+      "gpu": "NVIDIA GeForce RTX 4090 16GB",
+      "color": "Eclipse Black",
+      "ram": "64 GB DDR5-6400",
+      "storage": "4 TB Dual NVMe SSD",
+      "display": "16.0 3.2K PureSight OLED 240Hz",
+      "os": "Windows 11 Pro"
+    },
+    "quantity": 1,
+    "qty": 1,
+    "unitPrice": "$4,199.00",
+    "price": "$4,199.00",
+    "total": 0,
+    "actualAmount": 4199,
+    "currency": "USD",
+    "name": "Daniel Raaj J",
+    "fullName": "Daniel Raaj J",
+    "buyerName": "Daniel Raaj J",
+    "address": "Erumankulam, Elippara, Kozhippara (PO)",
+    "deliveryAddress": "Erumankulam, Elippara, Kozhippara (PO)",
+    "shippingAddress": "Erumankulam, Elippara, Kozhippara (PO)",
+    "phone": "09747395158",
+    "phoneNumber": "09747395158",
+    "email": "raajdaniel14@gmail.com",
+    "paymentMethod": "Redeem Code",
+    "payMethod": "Redeem Code (AMZN-LG7U-9K2T-8X4P)",
+    "redeemCode": "AMZN-LG7U-9K2T-8X4P",
+    "status": "Paid in full via Amazon Redeem Code",
+    "seller": "Lenovo Legion Official Store on Amazon",
+    "storePath": "store/lenovolegionpro7",
+    "image": "../../images/legion/legion-pro-7-01.png"
+  }
+]
