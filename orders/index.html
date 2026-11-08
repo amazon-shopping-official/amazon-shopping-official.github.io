@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#131921">
   <title>Your Orders &amp; Package Tracking - Amazon.com</title>
   <link rel="stylesheet" href="../style.css">
+  <script src="../amazon-translate.js"></script>
   <style>
     /* ==========================================================================
        YOUR ORDERS & SHIPMENT TRACKING CUSTOM STYLES
@@ -880,11 +881,32 @@
       <!-- Nav Actions -->
       <div class="nav-actions">
         <!-- Language Selector -->
-        <div class="nav-item nav-lang" title="Change Language">
+        <div class="nav-item nav-lang" id="navLangBtn" title="Change Language / Palitan ang Wika">
           <div class="lang-btn-inner notranslate">
-            <span class="lang-flag">🌐</span>
-            <span class="lang-code">EN</span>
+            <span class="lang-flag" id="navLangFlag">🌐</span>
+            <span class="lang-code" id="navCurrentLangText">EN</span>
             <span class="lang-caret">▾</span>
+          </div>
+          <!-- Flyout Dropdown -->
+          <div class="lang-dropdown" id="langDropdown">
+            <div class="lang-dropdown-title">
+              <span>Change language</span>
+              <span style="color:#007185; font-size:11px; font-weight:normal;">Auto-translate</span>
+            </div>
+            <div class="lang-options">
+              <label class="lang-radio-label active" data-lang="en">
+                <input type="radio" name="amazonLangRadio" value="en" checked>
+                <span>English - EN</span>
+              </label>
+              <label class="lang-radio-label" data-lang="tl">
+                <input type="radio" name="amazonLangRadio" value="tl">
+                <span>Tagalog - TL (Pilipinas)</span>
+              </label>
+              <label class="lang-radio-label" data-lang="es">
+                <input type="radio" name="amazonLangRadio" value="es">
+                <span>Español - ES</span>
+              </label>
+            </div>
           </div>
         </div>
 

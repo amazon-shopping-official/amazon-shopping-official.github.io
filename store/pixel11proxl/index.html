@@ -9,29 +9,7 @@
   <title>Amazon.com : Google Pixel 11 Pro XL (256 GB) - Canyon (Unlocked)</title>
   <meta name="description" content="Buy Google Pixel 11 Pro XL on Amazon. Powered by Tensor G6, Super Actua display, and Pro triple camera with 120x Pro Zoom. Select your address, choose Ask a Friend to Pay, and complete your order.">
   <link rel="stylesheet" href="../../style.css">
-  <!-- Google Translate & Translation Preference (Asks before translating) -->
-  <script type="text/javascript">
-    (function() {
-      var decided = localStorage.getItem("amazon_translation_decided");
-      var saved = localStorage.getItem("amazon_preferred_lang");
-      if (decided === "true" && saved && saved !== "en") {
-        document.cookie = "googtrans=/en/" + saved + "; path=/";
-      } else {
-        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + location.hostname + "; path=/;";
-      }
-    })();
-
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({
-        pageLanguage: 'en',
-        includedLanguages: 'en,tl,es,fr,de,it,pt,ar,ja,ko,zh-CN,hi,vi,th,id,ms,ru',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
-      }, 'google_translate_element');
-    }
-  </script>
-  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script src="../../amazon-translate.js"></script>
 </head>
 <body>
   <!-- Hidden Google Translate Element Anchor -->
