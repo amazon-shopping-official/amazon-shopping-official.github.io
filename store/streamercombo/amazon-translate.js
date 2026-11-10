@@ -178,7 +178,11 @@
     if (!el) {
       el = document.createElement('div');
       el.id = 'google_translate_element';
-      (document.body || document.documentElement).appendChild(el);
+      if (document.body) {
+        document.body.insertBefore(el, document.body.firstChild);
+      } else {
+        (document.documentElement || document).appendChild(el);
+      }
     }
     el.style.position = 'absolute';
     el.style.left = '-9999px';
@@ -417,11 +421,17 @@
     navLangBtn.addEventListener('click', (e) => {
       if (e.target.closest('#langDropdown')) return;
       navLangBtn.classList.toggle('active');
+      navLangBtn.classList.toggle('open');
+      const dd = document.getElementById('langDropdown');
+      if (dd) dd.classList.toggle('open');
     });
 
     document.addEventListener('click', (e) => {
       if (!navLangBtn.contains(e.target)) {
         navLangBtn.classList.remove('active');
+        navLangBtn.classList.remove('open');
+        const dd = document.getElementById('langDropdown');
+        if (dd) dd.classList.remove('open');
       }
     });
 
@@ -436,7 +446,12 @@
         if (input) input.checked = true;
 
         const lang = label.getAttribute('data-lang') || (input ? input.value : 'en');
-        if (navLangBtn) navLangBtn.classList.remove('active');
+        if (navLangBtn) {
+          navLangBtn.classList.remove('active');
+          navLangBtn.classList.remove('open');
+        }
+        const dd = document.getElementById('langDropdown');
+        if (dd) dd.classList.remove('open');
 
         const banner = document.getElementById('amazonTranslateBanner');
         if (banner) banner.style.display = 'none';
@@ -445,7 +460,30 @@
       });
     });
 
-    // Sync radio with saved language
+    // Support for list-item style dropdowns (#langSelectList li, .lang-list li)
+    const listItems = document.querySelectorAll('#langSelectList li, .lang-list li');
+    listItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        listItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        const lang = item.getAttribute('data-lang') || 'en';
+        if (navLangBtn) {
+          navLangBtn.classList.remove('active');
+          navLangBtn.classList.remove('open');
+        }
+        const dd = document.getElementById('langDropdown');
+        if (dd) dd.classList.remove('open');
+
+        const banner = document.getElementById('amazonTranslateBanner');
+        if (banner) banner.style.display = 'none';
+
+        triggerGoogleTranslate(lang);
+      });
+    });
+
+    // Sync radio and list items with saved language
     const current = localStorage.getItem('amazon_preferred_lang') || 'en';
     updateNavUi(current.toUpperCase());
     radioLabels.forEach(l => {
@@ -456,6 +494,14 @@
         if (inp) inp.checked = true;
       } else {
         l.classList.remove('active');
+      }
+    });
+    listItems.forEach(i => {
+      const code = i.getAttribute('data-lang');
+      if (code === current) {
+        i.classList.add('active');
+      } else {
+        i.classList.remove('active');
       }
     });
   }

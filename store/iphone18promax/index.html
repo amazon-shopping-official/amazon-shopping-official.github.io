@@ -41,6 +41,9 @@
 </head>
 <body>
 
+  <!-- Google Translate Tool Element -->
+  <div id="google_translate_element" style="display:none;"></div>
+
   <!-- AUTHENTIC AMAZON HEADER -->
   <header>
     <div class="nav-main">
@@ -152,6 +155,24 @@
       </div>
     </div>
   </header>
+
+  <!-- Authentic Amazon Translation Permission Banner (Asks before translating) -->
+  <div class="amazon-translate-banner" id="amazonTranslateBanner" style="display:none;">
+    <div class="atb-inner">
+      <div class="atb-content">
+        <span class="atb-icon">🌐</span>
+        <div class="atb-text">
+          <strong id="atbTitle">Translate this page?</strong>
+          <span id="atbSub">Would you like to translate this page to <span id="atbTargetLangName" style="font-weight:700; color:#ff9900;">Filipino</span>?</span>
+        </div>
+      </div>
+      <div class="atb-actions">
+        <button class="atb-btn-translate" id="btnAcceptTranslate">Translate</button>
+        <button class="atb-btn-dismiss" id="btnDismissTranslate">Keep in English</button>
+        <button class="atb-close" id="btnCloseTranslateBanner" aria-label="Close">&times;</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 1. MAIN PRODUCT DETAIL PAGE -->
   <main class="main-wrapper" id="viewProductPage">

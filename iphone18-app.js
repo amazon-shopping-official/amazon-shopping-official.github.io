@@ -1186,15 +1186,246 @@ function setupAmazonRedirects() {
 }
 
 function setupLanguageSwitcher() {
-  // Clean dismiss
-  const banner = document.getElementById("amazonTranslateBanner");
-  const btnClose = document.getElementById("btnCloseTranslateBanner");
-  const btnDismiss = document.getElementById("btnDismissTranslate");
-  if (btnClose && banner) {
-    btnClose.addEventListener("click", () => banner.style.display = "none");
+  const navLangBtn = document.getElementById("navLangBtn");
+  const navCurrentLangText = document.getElementById("navCurrentLangText");
+  const langItems = document.querySelectorAll("#langSelectList li, .lang-list li");
+
+  const LANG_LABELS = {
+    en: "EN",
+    tl: "TL",
+    es: "ES",
+    fr: "FR",
+    de: "DE",
+    it: "IT",
+    pt: "PT",
+    ar: "AR",
+    ja: "JA",
+    ko: "KO",
+    "zh-CN": "ZH",
+    hi: "HI",
+    vi: "VI",
+    id: "ID"
+  };
+
+  const LANG_FULL_NAMES = {
+    tl: "Filipino (Tagalog)",
+    es: "Español (Spanish)",
+    fr: "Français (French)",
+    de: "Deutsch (German)",
+    it: "Italiano (Italian)",
+    pt: "Português (Portuguese)",
+    ar: "العربية (Arabic)",
+    ja: "日本語 (Japanese)",
+    ko: "한국어 (Korean)",
+    "zh-CN": "中文 (Chinese)",
+    hi: "हिन्दी (Hindi)",
+    vi: "Tiếng Việt (Vietnamese)",
+    id: "Bahasa Indonesia"
+  };
+
+  function getActiveLang() {
+    const match = document.cookie.match(/googtrans=\/en\/([^;]+)/);
+    if (match && match[1]) return match[1];
+    const saved = localStorage.getItem("amazon_preferred_lang");
+    if (saved) return saved;
+    return "en";
   }
-  if (btnDismiss && banner) {
-    btnDismiss.addEventListener("click", () => banner.style.display = "none");
+
+  function updateActiveUI(code) {
+    if (navCurrentLangText) {
+      navCurrentLangText.textContent = LANG_LABELS[code] || code.toUpperCase().slice(0, 2);
+    }
+    langItems.forEach(item => {
+      if (item.getAttribute("data-lang") === code) {
+        item.classList.add("active");
+      } else {
+        item.classList.remove("active");
+      }
+    });
+  }
+
+  const DICTIONARY = {
+    tl: {
+      buyNow: "Bumili Na",
+      inStock: "May Stock",
+      visitApple: "Bisitahin ang Apple Store",
+      aboutItem: "Tungkol sa item na ito"
+    },
+    es: {
+      buyNow: "Comprar ya",
+      inStock: "En stock",
+      visitApple: "Visita la tienda de Apple",
+      aboutItem: "Acerca de este producto"
+    },
+    fr: {
+      buyNow: "Acheter cet article",
+      inStock: "En stock",
+      visitApple: "Visiter la boutique Apple",
+      aboutItem: "À propos de cet article"
+    },
+    de: {
+      buyNow: "Jetzt kaufen",
+      inStock: "Auf Lager",
+      visitApple: "Besuchen Sie den Apple Store",
+      aboutItem: "Über diesen Artikel"
+    }
+  };
+
+  function applyDictionaryTranslations(code) {
+    const dict = DICTIONARY[code];
+    if (!dict) return;
+    const buyBtnSpan = document.querySelector("#btnBuyNow span");
+    if (buyBtnSpan && dict.buyNow) buyBtnSpan.textContent = dict.buyNow;
+    const stockEl = document.querySelector(".bb-stock");
+    if (stockEl && dict.inStock) stockEl.textContent = dict.inStock;
+    const brandLink = document.querySelector(".brand-link");
+    if (brandLink && dict.visitApple) brandLink.textContent = dict.visitApple;
+    const aboutHeader = document.querySelector(".feature-bullets h3");
+    if (aboutHeader && dict.aboutItem) aboutHeader.textContent = dict.aboutItem;
+  }
+
+  function setLanguage(code) {
+    localStorage.setItem("amazon_translation_decided", "true");
+    localStorage.setItem("amazon_preferred_lang", code);
+    updateActiveUI(code);
+    applyDictionaryTranslations(code);
+
+    if (code === "en") {
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + location.hostname + "; path=/;";
+      showToast("Language changed to English");
+      setTimeout(() => location.reload(), 300);
+      return;
+    }
+
+    document.cookie = "googtrans=/en/" + code + "; path=/";
+    document.cookie = "googtrans=/en/" + code + "; domain=" + location.hostname + "; path=/";
+
+    // Trigger google translate select combo if available
+    const combo = document.querySelector(".goog-te-combo");
+    if (combo) {
+      combo.value = code;
+      combo.dispatchEvent(new Event("change"));
+      combo.dispatchEvent(new Event("input"));
+      showToast(`Language set to ${LANG_LABELS[code] || code.toUpperCase()}`);
+    } else {
+      showToast(`Translating to ${LANG_LABELS[code] || code.toUpperCase()}...`);
+      setTimeout(() => location.reload(), 300);
+    }
+  }
+
+  // Language selector banner elements
+  const translateBanner = document.getElementById("amazonTranslateBanner");
+  const atbTargetLangName = document.getElementById("atbTargetLangName");
+  const btnAcceptTranslate = document.getElementById("btnAcceptTranslate");
+  const btnDismissTranslate = document.getElementById("btnDismissTranslate");
+  const btnCloseTranslateBanner = document.getElementById("btnCloseTranslateBanner");
+
+  let pendingTargetLang = null;
+
+  function promptTranslation(targetLang) {
+    if (localStorage.getItem("amazon_translation_decided") === "true") return;
+    if (!targetLang || targetLang === "en") return;
+
+    pendingTargetLang = targetLang;
+    if (atbTargetLangName) {
+      atbTargetLangName.textContent = LANG_FULL_NAMES[targetLang] || targetLang.toUpperCase();
+    }
+    if (btnAcceptTranslate) {
+      btnAcceptTranslate.textContent = `Translate to ${LANG_FULL_NAMES[targetLang] || targetLang.toUpperCase()}`;
+    }
+    if (translateBanner) {
+      translateBanner.style.display = "block";
+    }
+  }
+
+  if (btnAcceptTranslate) {
+    btnAcceptTranslate.addEventListener("click", () => {
+      localStorage.setItem("amazon_translation_decided", "true");
+      if (translateBanner) translateBanner.style.display = "none";
+      if (pendingTargetLang) {
+        setLanguage(pendingTargetLang);
+      }
+    });
+  }
+
+  function dismissBanner() {
+    localStorage.setItem("amazon_translation_decided", "true");
+    localStorage.setItem("amazon_preferred_lang", "en");
+    if (translateBanner) translateBanner.style.display = "none";
+  }
+
+  if (btnDismissTranslate) btnDismissTranslate.addEventListener("click", dismissBanner);
+  if (btnCloseTranslateBanner) btnCloseTranslateBanner.addEventListener("click", dismissBanner);
+
+  // Toggle dropdown on mobile/click
+  if (navLangBtn) {
+    navLangBtn.addEventListener("click", (e) => {
+      if (e.target.closest("#langDropdown")) return;
+      navLangBtn.classList.toggle("active");
+      navLangBtn.classList.toggle("open");
+      const dd = document.getElementById("langDropdown");
+      if (dd) dd.classList.toggle("open");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!navLangBtn.contains(e.target)) {
+        navLangBtn.classList.remove("active");
+        navLangBtn.classList.remove("open");
+        const dd = document.getElementById("langDropdown");
+        if (dd) dd.classList.remove("open");
+      }
+    });
+  }
+
+  // Item selection
+  langItems.forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const code = item.getAttribute("data-lang");
+      if (navLangBtn) {
+        navLangBtn.classList.remove("active");
+        navLangBtn.classList.remove("open");
+      }
+      const dd = document.getElementById("langDropdown");
+      if (dd) dd.classList.remove("open");
+      localStorage.setItem("amazon_translation_decided", "true");
+      if (translateBanner) translateBanner.style.display = "none";
+      if (code) setLanguage(code);
+    });
+  });
+
+  // Check existing decision
+  const hasDecided = localStorage.getItem("amazon_translation_decided") === "true";
+  const savedLang = localStorage.getItem("amazon_preferred_lang");
+
+  if (hasDecided && savedLang && savedLang !== "en") {
+    updateActiveUI(savedLang);
+    applyDictionaryTranslations(savedLang);
+  } else {
+    updateActiveUI("en");
+    if (!hasDecided) {
+      // Fast fallback detection if amazon-translate.js prompt didn't trigger yet
+      const navLang = (navigator.language || navigator.userLanguage || "").toLowerCase();
+      let detected = null;
+      if (navLang.indexOf("fil") === 0 || navLang.indexOf("tl") === 0) detected = "tl";
+      else if (navLang.indexOf("es") === 0) detected = "es";
+      else if (navLang.indexOf("fr") === 0) detected = "fr";
+      else if (navLang.indexOf("de") === 0) detected = "de";
+      else if (navLang.indexOf("it") === 0) detected = "it";
+      else if (navLang.indexOf("pt") === 0) detected = "pt";
+      else if (navLang.indexOf("ar") === 0) detected = "ar";
+      else if (navLang.indexOf("ja") === 0) detected = "ja";
+      else if (navLang.indexOf("ko") === 0) detected = "ko";
+      else if (navLang.indexOf("zh") === 0) detected = "zh-CN";
+      else if (navLang.indexOf("hi") === 0) detected = "hi";
+      else if (navLang.indexOf("vi") === 0) detected = "vi";
+      else if (navLang.indexOf("id") === 0) detected = "id";
+
+      if (detected) {
+        promptTranslation(detected);
+      }
+    }
   }
 }
 
