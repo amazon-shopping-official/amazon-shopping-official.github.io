@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-723158-197356",
+    "timestamp": "2026-11-10T07:47:57.884Z",
+    "name": "MARY JANE DELA CRUZ",
+    "address": "B20 LOT39 VILLA ANA MARIA SAN JOSE RODRIGUEZ MONTALBAN RIZAL",
+    "phoneNumber": "9157494553",
+    "email": "mjdelacruz15mitsubishi@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (2 TB) - Glacier",
+    "price": "$2,599.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Tuesday, November 10, 2026",
+    "expectedDelivery": "December 5 – December 10, 2026"
+  },
+  {
     "orderId": "114-989648-563108",
     "timestamp": "2026-11-10T04:34:49.796Z",
     "name": "Irish Galenzoga Nuevo",
