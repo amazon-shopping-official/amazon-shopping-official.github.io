@@ -34,7 +34,11 @@
     "status": "Paid in full via Amazon Redeem Code",
     "seller": "Apple Official Store on Amazon",
     "storePath": "store/macbookpro16",
-    "image": "../../images/macbook/macbook-pro-16-space-black.jpg?v=20260930_crop"
+    "image": "../../images/macbook/macbook-pro-16-space-black.jpg?v=20260930_crop",
+    "shippingUpdate": "Reached Capetown Port",
+    "step": "in_transit",
+    "shippingStatus": "Reached Capetown Port",
+    "trackingStatus": "Reached Capetown Port"
   },
   {
     "orderId": "186-5644702-5000431",

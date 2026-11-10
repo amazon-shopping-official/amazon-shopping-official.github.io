@@ -63,7 +63,15 @@
     "status": "Paid in full via Amazon Redeem Code",
     "seller": "Apple Official Store on Amazon",
     "storePath": "store/ipadprom5",
-    "image": "../../images/ipad/ipad-pro-m5-silver.jpg"
+    "image": "../../images/ipad/ipad-pro-m5-silver.jpg",
+    "timestamp": "2026-11-03T11:22:15.000Z",
+    "dateStr": "Tuesday, November 3, 2026",
+    "qty": 1,
+    "price": "$1,899.00",
+    "shippingUpdate": "Reached Capetown Port",
+    "step": "in_transit",
+    "shippingStatus": "Reached Capetown Port",
+    "trackingStatus": "Reached Capetown Port"
   },
   {
     "orderId": "114-167702-421345",
