@@ -12,7 +12,10 @@
     "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
     "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
     "dateStr": "Thursday, November 12, 2026",
-    "expectedDelivery": "December 7 – December 12, 2026"
+    "expectedDelivery": "December 7 – December 12, 2026",
+    "step": "ordered",
+    "shippingStatus": "Ordered",
+    "trackingStatus": "Ordered"
   },
   {
     "orderId": "114-710597-506643",
