@@ -77,20 +77,22 @@
               <span>Change language</span>
               <span style="color:#007185; font-size:11px; font-weight:normal;">Auto-translate</span>
             </div>
-            <div class="lang-options">
-              <label class="lang-radio-label active" data-lang="en">
-                <input type="radio" name="amazonLangRadio" value="en" checked>
-                <span>English - EN</span>
-              </label>
-              <label class="lang-radio-label" data-lang="tl">
-                <input type="radio" name="amazonLangRadio" value="tl">
-                <span>Tagalog - TL (Pilipinas)</span>
-              </label>
-              <label class="lang-radio-label" data-lang="es">
-                <input type="radio" name="amazonLangRadio" value="es">
-                <span>Español - ES</span>
-              </label>
-            </div>
+            <ul class="lang-list" id="langSelectList">
+              <li data-lang="en" class="active"><span class="lang-radio-circle"></span> English - EN</li>
+              <li data-lang="tl"><span class="lang-radio-circle"></span> Filipino (Tagalog) - TL</li>
+              <li data-lang="es"><span class="lang-radio-circle"></span> Español - ES</li>
+              <li data-lang="fr"><span class="lang-radio-circle"></span> Français - FR</li>
+              <li data-lang="de"><span class="lang-radio-circle"></span> Deutsch - DE</li>
+              <li data-lang="it"><span class="lang-radio-circle"></span> Italiano - IT</li>
+              <li data-lang="pt"><span class="lang-radio-circle"></span> Português - PT</li>
+              <li data-lang="ar"><span class="lang-radio-circle"></span> العربية - AR</li>
+              <li data-lang="ja"><span class="lang-radio-circle"></span> 日本語 - JA</li>
+              <li data-lang="ko"><span class="lang-radio-circle"></span> 한국어 - KO</li>
+              <li data-lang="zh-CN"><span class="lang-radio-circle"></span> 中文 (简体) - ZH</li>
+              <li data-lang="hi"><span class="lang-radio-circle"></span> हिन्दी - HI</li>
+              <li data-lang="vi"><span class="lang-radio-circle"></span> Tiếng Việt - VI</li>
+              <li data-lang="id"><span class="lang-radio-circle"></span> Bahasa Indonesia - ID</li>
+            </ul>
           </div>
         </div>
 
@@ -130,6 +132,24 @@
       </div>
     </div>
   </header>
+
+  <!-- Authentic Amazon Translation Permission Banner (Asks before translating) -->
+  <div class="amazon-translate-banner" id="amazonTranslateBanner" style="display:none;">
+    <div class="atb-inner">
+      <div class="atb-content">
+        <span class="atb-icon">🌐</span>
+        <div class="atb-text">
+          <strong id="atbTitle">Translate this page?</strong>
+          <span id="atbSub">Would you like to translate this page to <span id="atbTargetLangName" style="font-weight:700; color:#ff9900;">Filipino</span>?</span>
+        </div>
+      </div>
+      <div class="atb-actions">
+        <button class="atb-btn-translate" id="btnAcceptTranslate">Translate</button>
+        <button class="atb-btn-dismiss" id="btnDismissTranslate">Keep in English</button>
+        <button class="atb-close" id="btnCloseTranslateBanner" aria-label="Close">&times;</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MAIN CONTAINER -->
   <main class="page-container">
