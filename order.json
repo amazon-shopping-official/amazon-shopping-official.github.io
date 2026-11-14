@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-696699-720031",
+    "timestamp": "2026-11-14T07:29:58.712Z",
+    "name": "Cristy B Francisco",
+    "address": "5104, barangay Batongbuhay Yapang Sablayan, Occidental Mindoro, Philippines",
+    "phoneNumber": "9754497824",
+    "email": "cristyfrancisco.0104@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (1 TB) - Silver",
+    "price": "$2,299.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Saturday, November 14, 2026",
+    "expectedDelivery": "December 9 – December 14, 2026"
+  },
+  {
     "orderId": "114-201706-4889402",
     "timestamp": "2026-11-12T11:55:04.686Z",
     "name": "Rhenalyn pagsibigan",
