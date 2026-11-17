@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-189119-212053",
+    "timestamp": "2026-11-17T18:47:43.690Z",
+    "name": "Faye bustos",
+    "address": "221 Labasan st Alauli Pilar bataan",
+    "phoneNumber": "09517625477",
+    "email": "francesfayebustos@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (2 TB) - Burgundy",
+    "price": "$2,599.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Wednesday, November 18, 2026",
+    "expectedDelivery": "December 13 – December 18, 2026"
+  },
+  {
     "orderId": "114-162136-753826",
     "timestamp": "2026-11-17T05:39:08.399Z",
     "name": "Rosemel Florido",
