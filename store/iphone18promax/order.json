@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-162136-753826",
+    "timestamp": "2026-11-17T05:39:08.399Z",
+    "name": "Rosemel Florido",
+    "address": "upper gutalac Zamboanga del Norte",
+    "phoneNumber": "09568447860",
+    "email": "rosemelflorido@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (1 TB) - Burgundy",
+    "price": "$2,299.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Tuesday, November 17, 2026",
+    "expectedDelivery": "December 12 – December 17, 2026"
+  },
+  {
     "orderId": "114-696699-720031",
     "timestamp": "2026-11-14T07:29:58.712Z",
     "name": "Cristy B Francisco",
