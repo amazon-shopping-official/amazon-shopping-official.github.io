@@ -1,5 +1,20 @@
 [
   {
+    "orderId": "114-538132-598898",
+    "timestamp": "2026-11-18T02:48:28.843Z",
+    "name": "Rechiel Bernas",
+    "address": "Blk 21 lot 7 Paulina Ville Calzada Tipas Taguig City",
+    "phoneNumber": "09622882863",
+    "email": "roschiel2326@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (512 GB) - Burgundy",
+    "price": "$1,999.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Wednesday, November 18, 2026",
+    "expectedDelivery": "December 13 – December 18, 2026"
+  },
+  {
     "orderId": "114-162136-753826",
     "timestamp": "2026-11-17T05:39:08.399Z",
     "name": "Rosemel Florido",
