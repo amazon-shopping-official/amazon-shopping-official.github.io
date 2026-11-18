@@ -818,7 +818,10 @@
       status: isRedeem ? 'Paid in full via Amazon Redeem Code' : (state.paymentMethod === 'Ask a Friend to Pay' ? 'Awaiting Sponsor Payment' : 'Cash on Delivery'),
       seller: PRODUCT.seller,
       storePath: 'store/lenovolegionpro7',
-      image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + 'images/legion/legion-pro-7-01.png')
+      image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + 'images/legion/legion-pro-7-01.png'),
+      step: 'ordered',
+      trackingStatus: 'Ordered',
+      shippingStatus: 'Ordered'
     };
 
     state.placedOrder = orderRecord;

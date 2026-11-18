@@ -851,7 +851,10 @@ function finalizeOrderPlacement() {
       : state.paymentMethod,
     redeemCode: state.redeemCode || ASSIGNED_REDEEM_CODE,
     expectedDelivery: deliveryInfo.windowStr,
-    dateStr: dynamicOrderDate
+    dateStr: dynamicOrderDate,
+    step: "ordered",
+    trackingStatus: "Ordered",
+    shippingStatus: "Ordered"
   };
 
   state.placedOrder = orderRecord;

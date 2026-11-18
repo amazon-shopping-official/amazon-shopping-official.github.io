@@ -910,7 +910,10 @@ async function completeOrderPlacement() {
       : "Awaiting payment by order sponsor",
     seller: PRODUCT.seller,
     storePath: "store/ipadprom5",
-    image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + "images/ipad/ipad-pro-m5-space-black.jpg")
+    image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + "images/ipad/ipad-pro-m5-space-black.jpg"),
+    step: "ordered",
+    trackingStatus: "Ordered",
+    shippingStatus: "Ordered"
   };
 
   state.placedOrder = placedOrder;

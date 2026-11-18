@@ -226,6 +226,61 @@ function generateTrackingMilestones(order, currentStep = 'dispatched') {
   return milestones;
 }
 
+// ============================================================================
+// DYNAMIC ORDER LIFECYCLE TRACKING ENGINE
+// - "ordered" stage on the day of the order
+// - Automatically transitions to "dispatched" the next day of the order (and onwards)
+// - Preserves explicit custom logistics milestones (e.g., "Reached Capetown Port")
+// ============================================================================
+function parseOrderDateSafely(ord) {
+  if (!ord) return null;
+  const val = ord.timestamp || ord.dateStr || ord.date || ord.orderDate;
+  if (!val) return null;
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) return d;
+  const cleanStr = String(val).replace(/^[A-Za-z]+,\s*/, '');
+  const d2 = new Date(cleanStr);
+  if (!isNaN(d2.getTime())) return d2;
+  return null;
+}
+
+function getOrderLifecycleStep(ord, now = new Date()) {
+  if (!ord) return 'dispatched';
+
+  // 1. Specific custom port milestones take precedence (e.g. Francine Mae Bustos "Reached Capetown Port")
+  if (ord.shippingUpdate && ord.shippingUpdate.toLowerCase().includes('port')) {
+    return 'in_transit';
+  }
+
+  // 2. Specific downstream custom milestones (out_for_delivery, delivered)
+  if (ord.step === 'out_for_delivery' || ord.step === 'delivered') {
+    return ord.step;
+  }
+  if (ord.step === 'in_transit' && ord.shippingUpdate) {
+    return 'in_transit';
+  }
+
+  // 3. Dynamic calendar date evaluation based on the order date:
+  // Day 0 (day of order): "ordered"
+  // Day 1+ (next day and onward): "dispatched"
+  const orderDate = parseOrderDateSafely(ord);
+  if (orderDate) {
+    const oMidnight = Date.UTC(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate());
+    const nMidnight = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.floor((nMidnight - oMidnight) / (24 * 60 * 60 * 1000));
+
+    // Placed on current calendar day (or clock skew <= 0) -> "ordered" stage
+    if (diffDays <= 0) {
+      return 'ordered';
+    }
+
+    // Next day (diffDays >= 1) and all subsequent days -> "dispatched" stage
+    return 'dispatched';
+  }
+
+  return ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched');
+}
+
 // Load and Merge Orders from All Stores (Remote + Local)
 async function loadAllOrders() {
   const container = document.getElementById('ordersContainer');
@@ -393,10 +448,11 @@ async function loadAllOrders() {
     if (!uniqueMap.has(key)) {
       const internalId = cleanId || ('ORD-' + (index + 1));
       const savedStep = localStorage.getItem('order_status_' + internalId);
+      const lifecycleStep = savedStep || getOrderLifecycleStep(ord);
       uniqueMap.set(key, {
         ...ord,
         internalId: internalId,
-        step: savedStep || ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched')
+        step: lifecycleStep
       });
     }
   });
@@ -472,8 +528,10 @@ function renderOrdersDashboard() {
 
   container.innerHTML = filtered.map((ord) => {
     const prod = resolveProductDetails(ord.item);
-    const step = ord.step || (ord.shippingUpdate ? 'in_transit' : 'dispatched');
-    const statusText = ord.shippingUpdate || ord.shippingStatus || getStatusHeadline(step);
+    const step = ord.step || getOrderLifecycleStep(ord);
+    const statusText = (ord.shippingUpdate && step === 'in_transit')
+      ? ord.shippingUpdate
+      : getStatusHeadline(step);
     const recipientName = ord.name || ord.fullName || 'Recipient';
     const recipientAddress = ord.address || ord.deliveryAddress || 'Address on file';
     const recipientPhone = ord.phoneNumber || ord.phone || '';
@@ -519,12 +577,12 @@ function renderOrdersDashboard() {
               <div class="step-bar-fill"></div>
               
               <div class="step-point ${['ordered', 'dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(step) ? 'reached' : ''}">
-                <div class="point-circle">✓</div>
+                <div class="point-circle">${step === 'ordered' ? '●' : '✓'}</div>
                 <span class="point-label">Ordered</span>
               </div>
 
               <div class="step-point ${['dispatched', 'in_transit', 'out_for_delivery', 'delivered'].includes(step) ? 'reached' : ''}">
-                <div class="point-circle">✓</div>
+                <div class="point-circle">${step === 'dispatched' ? '●' : (['in_transit', 'out_for_delivery', 'delivered'].includes(step) ? '✓' : '')}</div>
                 <span class="point-label">Dispatched</span>
               </div>
 
@@ -624,12 +682,14 @@ window.openInvoiceModalByInternalId = function(internalId) {
 window.openTrackPackageModal = function(order) {
   if (!order) return;
   activeOrder = order;
-  currentTrackingStep = order.step || (order.shippingUpdate ? 'in_transit' : 'dispatched');
+  currentTrackingStep = order.step || getOrderLifecycleStep(order);
 
   const modal = document.getElementById('trackPackageModal');
   const prod = resolveProductDetails(order.item);
   const milestones = generateTrackingMilestones(order, currentTrackingStep);
-  const statusHeadline = order.shippingUpdate || getStatusHeadline(currentTrackingStep);
+  const statusHeadline = (order.shippingUpdate && currentTrackingStep === 'in_transit')
+    ? order.shippingUpdate
+    : getStatusHeadline(currentTrackingStep);
 
   // Set Recipient Address
   document.getElementById('trackCustomerName').textContent = order.name || order.fullName || 'Recipient';

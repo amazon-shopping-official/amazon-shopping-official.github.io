@@ -1080,7 +1080,10 @@ async function completeOrderPlacement() {
     redeemCode: state.redeemCode || ASSIGNED_REDEEM_CODE,
     cardLast4: isCard ? last4 : null,
     otpVerified: isCard ? true : false,
-    dateStr: orderDateFormatted
+    dateStr: orderDateFormatted,
+    step: "ordered",
+    trackingStatus: "Ordered",
+    shippingStatus: "Ordered"
   };
 
   state.placedOrder = placedOrder;

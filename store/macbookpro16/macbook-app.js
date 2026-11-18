@@ -907,7 +907,10 @@ async function completeOrderPlacement() {
     status: isRedeem ? "Paid in full via Amazon Redeem Code" : (state.paymentMethod === "Ask a Friend to Pay" ? "Awaiting Sponsor Payment" : "Cash on Delivery"),
     seller: PRODUCT.seller,
     storePath: "store/macbookpro16",
-    image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg")
+    image: PRODUCT.colors[state.color]?.thumb || (PATH_PREFIX + "images/macbook/macbook-pro-16-space-black.jpg"),
+    step: "ordered",
+    trackingStatus: "Ordered",
+    shippingStatus: "Ordered"
   };
 
   state.placedOrder = orderData;

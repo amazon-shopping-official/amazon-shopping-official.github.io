@@ -1045,7 +1045,10 @@ document.addEventListener("DOMContentLoaded", () => {
         : state.paymentMethod,
       redeemCode: state.paymentMethod === "Redeem Code" ? state.redeemCode : null,
       dateStr: dateStr,
-      expectedDelivery: deliveryRange
+      expectedDelivery: deliveryRange,
+      step: "ordered",
+      trackingStatus: "Ordered",
+      shippingStatus: "Ordered"
     };
 
     state.placedOrder = orderRecord;

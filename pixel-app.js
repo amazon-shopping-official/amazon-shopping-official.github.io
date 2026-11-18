@@ -862,7 +862,10 @@ async function completeOrderPlacement() {
       ? `Redeem Code (${state.redeemCode || ASSIGNED_REDEEM_CODE})` 
       : state.paymentMethod,
     redeemCode: state.redeemCode || ASSIGNED_REDEEM_CODE,
-    dateStr: orderDateFormatted
+    dateStr: orderDateFormatted,
+    step: "ordered",
+    trackingStatus: "Ordered",
+    shippingStatus: "Ordered"
   };
 
   state.placedOrder = placedOrder;
