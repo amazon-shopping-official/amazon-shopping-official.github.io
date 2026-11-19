@@ -320,18 +320,33 @@ async function loadAllOrders() {
         const res = await fetch(ghUrl, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json'
-          },
-          cache: 'no-store'
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+          }
         });
         if (res.ok) {
           const fileData = await res.json();
           if (fileData && fileData.content) {
-            const binary = atob((fileData.content || '').replace(/\s/g, ''));
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-            const raw = new TextDecoder().decode(bytes);
-            const orders = JSON.parse(raw || '[]');
+            let clean = (fileData.content || '').replace(/\s/g, '');
+            while (clean.length % 4 !== 0) clean += '=';
+            let orders = [];
+            try {
+              if (typeof TextDecoder !== 'undefined') {
+                const binary = atob(clean);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                const raw = new TextDecoder().decode(bytes);
+                orders = JSON.parse(raw || '[]');
+              } else {
+                orders = JSON.parse(decodeURIComponent(escape(atob(clean))) || '[]');
+              }
+            } catch (decErr) {
+              try {
+                orders = JSON.parse(decodeURIComponent(escape(atob(clean))) || '[]');
+              } catch (decErr2) {
+                console.warn('Decode fallback error for ' + f, decErr2);
+              }
+            }
             if (Array.isArray(orders)) combinedLive.push(...orders);
           }
         }

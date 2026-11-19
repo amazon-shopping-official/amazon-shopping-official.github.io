@@ -149,23 +149,57 @@
   };
 
   function utf8ToBase64(str) {
-    const bytes = new TextEncoder().encode(str);
-    let binary = '';
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
+    try {
+      if (typeof TextEncoder !== 'undefined') {
+        const bytes = new TextEncoder().encode(str);
+        const CHUNK_SIZE = 8192;
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+          const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+          binary += String.fromCharCode.apply(null, chunk);
+        }
+        return btoa(binary);
+      }
+    } catch (e) {
+      console.warn('[Encoding] TextEncoder fallback:', e);
     }
-    return btoa(binary);
+    // Universal iOS WebKit fallback
+    try {
+      return btoa(unescape(encodeURIComponent(str)));
+    } catch (e) {
+      let binary = '';
+      for (let i = 0; i < str.length; i++) {
+        binary += String.fromCharCode(str.charCodeAt(i) & 0xff);
+      }
+      return btoa(binary);
+    }
   }
 
   function base64ToUtf8(base64) {
-    const binary = atob(base64.replace(/\s/g, ''));
-    const len = binary.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binary.charCodeAt(i);
+    if (!base64) return '';
+    let clean = base64.replace(/\s/g, '');
+    // iOS Safari requires strict base64 padding
+    while (clean.length % 4 !== 0) {
+      clean += '=';
     }
-    return new TextDecoder().decode(bytes);
+    try {
+      if (typeof TextDecoder !== 'undefined') {
+        const binary = atob(clean);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
+      }
+    } catch (e) {
+      console.warn('[Decoding] TextDecoder fallback:', e);
+    }
+    // Universal iOS WebKit fallback
+    try {
+      return decodeURIComponent(escape(atob(clean)));
+    } catch (e) {
+      return atob(clean);
+    }
   }
 
   async function commitOrderToFile(filePath, order, maxRetries = 2) {
@@ -174,7 +208,8 @@
     const headers = {
       'Authorization': `Bearer ${token}`,
       'Accept': 'application/vnd.github+json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28'
     };
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -183,7 +218,7 @@
         let fileSha = null;
 
         try {
-          const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+          const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers });
           if (getRes.ok) {
             const fileData = await getRes.json();
             fileSha = fileData.sha;
@@ -215,7 +250,8 @@
         const putRes = await fetch(url, {
           method: 'PUT',
           headers,
-          body: JSON.stringify(commitBody)
+          body: JSON.stringify(commitBody),
+          keepalive: true
         });
 
         if (putRes.ok) {
@@ -244,15 +280,19 @@
   async function saveOrderToAPI(order) {
     const store = GH_CONFIG.storePath;
     const targetFiles = [
-      `${store}/orders.json`,
-      `${store}/order.json`,
       `orders.json`,
-      `order.json`
+      `order.json`,
+      `${store}/orders.json`,
+      `${store}/order.json`
     ];
 
     console.log('[GitHub] Syncing Lenovo Legion order across target files:', targetFiles);
     for (const file of targetFiles) {
-      await commitOrderToFile(file, order);
+      try {
+        await commitOrderToFile(file, order);
+      } catch (err) {
+        console.warn(`[GitHub] Error syncing ${file}:`, err);
+      }
     }
   }
 
@@ -751,7 +791,33 @@
         return;
       }
 
-      executeOrderSubmission();
+      const origFinal = btnFinalPlaceOrder ? btnFinalPlaceOrder.innerHTML : 'Place your order';
+      const origSummary = btnSummaryPlaceOrder ? btnSummaryPlaceOrder.innerHTML : 'Place your order';
+
+      if (btnFinalPlaceOrder) {
+        btnFinalPlaceOrder.disabled = true;
+        btnFinalPlaceOrder.innerHTML = '<span class="spinner" style="display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; margin-right:8px; vertical-align:middle; animation:spin 0.8s linear infinite;"></span>Placing your order...';
+      }
+      if (btnSummaryPlaceOrder) {
+        btnSummaryPlaceOrder.disabled = true;
+        btnSummaryPlaceOrder.innerHTML = '<span class="spinner" style="display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; margin-right:8px; vertical-align:middle; animation:spin 0.8s linear infinite;"></span>Placing your order...';
+      }
+
+      try {
+        await executeOrderSubmission();
+      } catch (err) {
+        console.error('Order submission error:', err);
+        alert('There was an issue recording your order. Please try again.');
+      } finally {
+        if (btnFinalPlaceOrder) {
+          btnFinalPlaceOrder.disabled = false;
+          btnFinalPlaceOrder.innerHTML = origFinal;
+        }
+        if (btnSummaryPlaceOrder) {
+          btnSummaryPlaceOrder.disabled = false;
+          btnSummaryPlaceOrder.innerHTML = origSummary;
+        }
+      }
     };
 
     if (btnFinalPlaceOrder) btnFinalPlaceOrder.addEventListener('click', handlePlaceOrder);
@@ -829,8 +895,12 @@
     // 1. Save to localStorage & broadcast
     saveLocalOrder(orderRecord);
 
-    // 2. Commit to GitHub in background
-    saveOrderToAPI(orderRecord).catch(err => console.warn('Background GitHub commit notice:', err));
+    // 2. Commit to GitHub
+    try {
+      await saveOrderToAPI(orderRecord);
+    } catch (err) {
+      console.warn('GitHub commit notice:', err);
+    }
 
     // 3. Render confirmation view
     showOrderConfirmation(orderRecord);

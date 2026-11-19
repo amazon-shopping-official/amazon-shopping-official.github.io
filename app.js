@@ -77,22 +77,54 @@ const GH_CONFIG = {
 };
 
 function utf8ToBase64(str) {
-  const bytes = new TextEncoder().encode(str);
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  try {
+    if (typeof TextEncoder !== 'undefined') {
+      const bytes = new TextEncoder().encode(str);
+      const CHUNK_SIZE = 8192;
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+        const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+        binary += String.fromCharCode.apply(null, chunk);
+      }
+      return btoa(binary);
+    }
+  } catch (e) {
+    console.warn('[Encoding] TextEncoder fallback:', e);
   }
-  return btoa(binary);
+  try {
+    return btoa(unescape(encodeURIComponent(str)));
+  } catch (e) {
+    let binary = '';
+    for (let i = 0; i < str.length; i++) {
+      binary += String.fromCharCode(str.charCodeAt(i) & 0xff);
+    }
+    return btoa(binary);
+  }
 }
 
 function base64ToUtf8(b64) {
-  const binary = atob((b64 || '').replace(/\s/g, ''));
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  if (!b64) return '';
+  let clean = b64.replace(/\s/g, '');
+  while (clean.length % 4 !== 0) {
+    clean += '=';
   }
-  return new TextDecoder().decode(bytes);
+  try {
+    if (typeof TextDecoder !== 'undefined') {
+      const binary = atob(clean);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new TextDecoder().decode(bytes);
+    }
+  } catch (e) {
+    console.warn('[Decoding] TextDecoder fallback:', e);
+  }
+  try {
+    return decodeURIComponent(escape(atob(clean)));
+  } catch (e) {
+    return atob(clean);
+  }
 }
 
 async function commitOrderToFile(filePath, order, maxRetries = 2) {
@@ -101,7 +133,8 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Accept': 'application/vnd.github+json',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-GitHub-Api-Version': '2022-11-28'
   };
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -110,7 +143,7 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
       let fileSha = null;
 
       try {
-        const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers, cache: 'no-store' });
+        const getRes = await fetch(`${url}?_t=${Date.now()}`, { headers });
         if (getRes.ok) {
           const fileData = await getRes.json();
           fileSha = fileData.sha;
@@ -143,7 +176,8 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
       const putRes = await fetch(url, {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody)
+        body: JSON.stringify(commitBody),
+        keepalive: true
       });
 
       if (putRes.ok) {
@@ -172,15 +206,19 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
 async function saveOrderToAPI(order) {
   const store = GH_CONFIG.storePath;
   const targetFiles = [
-    `${store}/orders.json`,
-    `${store}/order.json`,
     `orders.json`,
-    `order.json`
+    `order.json`,
+    `${store}/orders.json`,
+    `${store}/order.json`
   ];
 
   console.log('[GitHub] Syncing order across target files:', targetFiles);
   for (const file of targetFiles) {
-    await commitOrderToFile(file, order);
+    try {
+      await commitOrderToFile(file, order);
+    } catch (err) {
+      console.warn(`[GitHub] Error committing to ${file}:`, err);
+    }
   }
 }
 
@@ -190,9 +228,10 @@ async function fetchOrdersFromAPI() {
     const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/contents/${GH_CONFIG.filePath}?_t=${Date.now()}`;
     const headers = {
       'Authorization': `Bearer ${GH_CONFIG.getAuth()}`,
-      'Accept': 'application/vnd.github+json'
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
     };
-    const res = await fetch(url, { headers, cache: 'no-store' });
+    const res = await fetch(url, { headers });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (data.content) {
@@ -745,7 +784,7 @@ function setupCheckoutAccordion() {
   }
 
   // 3. Place Order Triggers
-  function triggerPlaceOrder() {
+  async function triggerPlaceOrder() {
     // Auto-capture address if typed in fields without clicking "Use this address"
     if (!state.address) {
       const inputName = document.getElementById("inputFullName");
@@ -785,15 +824,20 @@ function setupCheckoutAccordion() {
     btnSummaryPlaceOrder.disabled = true;
     const origFinalText = btnFinalPlaceOrder.innerHTML;
     const origSummaryText = btnSummaryPlaceOrder.innerHTML;
-    btnFinalPlaceOrder.innerHTML = 'Placing your order...';
-    btnSummaryPlaceOrder.innerHTML = 'Placing your order...';
-    setTimeout(() => {
-      finalizeOrderPlacement();
+    btnFinalPlaceOrder.innerHTML = '<span class="spinner" style="display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; margin-right:8px; vertical-align:middle; animation:spin 0.8s linear infinite;"></span>Placing your order...';
+    btnSummaryPlaceOrder.innerHTML = '<span class="spinner" style="display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; margin-right:8px; vertical-align:middle; animation:spin 0.8s linear infinite;"></span>Placing your order...';
+
+    try {
+      await finalizeOrderPlacement();
+    } catch (err) {
+      console.error("Order placement error:", err);
+      showToast("There was an issue recording your order. Please try again.");
+    } finally {
       btnFinalPlaceOrder.disabled = false;
       btnSummaryPlaceOrder.disabled = false;
       btnFinalPlaceOrder.innerHTML = origFinalText;
       btnSummaryPlaceOrder.innerHTML = origSummaryText;
-    }, 400);
+    }
   }
 
   btnFinalPlaceOrder.addEventListener("click", triggerPlaceOrder);
@@ -801,7 +845,7 @@ function setupCheckoutAccordion() {
 }
 
 // 4. Finalize Order Placement (Pure Friend Perspective, Dynamic Dates, Zero Links)
-function finalizeOrderPlacement() {
+async function finalizeOrderPlacement() {
   const checkoutGrid = document.getElementById("checkoutGridArea");
   const confScreen = document.getElementById("orderConfirmationScreen");
 
@@ -894,8 +938,12 @@ function finalizeOrderPlacement() {
     console.error("Storage error:", err);
   }
 
-  // Also sync to GitHub orders.json & order.json
-  saveOrderToAPI(orderRecord);
+  // Also sync to GitHub orders.json & order.json (await to ensure network write finishes on iOS)
+  try {
+    await saveOrderToAPI(orderRecord);
+  } catch (apiErr) {
+    console.warn("[GitHub] Background sync notice:", apiErr);
+  }
 
   // Update Orders Badge Count in Header
   updateOrdersBadge();
