@@ -1,5 +1,22 @@
 [
   {
+    "orderId": "114-308394-634638",
+    "timestamp": "2026-11-19T07:10:25.607Z",
+    "name": "Jersey Micah Dublois",
+    "address": "Purok Alfonso, Bongbong Valencia Negros Oriental",
+    "phoneNumber": "09108800770",
+    "email": "jerseydublois@gmail.com",
+    "item": "Google Pixel 11 Pro XL (256 GB) - Canyon",
+    "price": "$1,199.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-6H3M-8Q7P-2L9X)",
+    "redeemCode": "AMZN-6H3M-8Q7P-2L9X",
+    "dateStr": "Thursday, November 19, 2026",
+    "step": "ordered",
+    "trackingStatus": "Ordered",
+    "shippingStatus": "Ordered"
+  },
+  {
     "orderId": "114-144685-888045",
     "timestamp": "2026-09-18T07:04:13.487Z",
     "name": "Preethi Rani P",
