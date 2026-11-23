@@ -1,5 +1,22 @@
 [
   {
+    "orderId": "114-863512-671882",
+    "timestamp": "2026-11-23T07:52:22.656Z",
+    "name": "Novimaulida",
+    "address": "Komplek jatinegara indah blok BD no 15 Cakung Jakarta",
+    "phoneNumber": "081288844597",
+    "email": "novi.maulida1984@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (2 TB) - Burgundy",
+    "price": "$2,599.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Monday, November 23, 2026",
+    "step": "ordered",
+    "trackingStatus": "Ordered",
+    "shippingStatus": "Ordered"
+  },
+  {
     "orderId": "114-798252-718915",
     "timestamp": "2026-11-20T08:32:24.700Z",
     "name": "Chennie aquiles",
