@@ -1,5 +1,22 @@
 [
   {
+    "orderId": "114-404193-339757",
+    "timestamp": "2026-11-24T07:08:44.451Z",
+    "name": "Nguyễn Thị Hồng Đào",
+    "address": "Phú Mỹ 1 Phước Lộc Tuy Phước Bình Định",
+    "phoneNumber": "0976717489",
+    "email": "nguyenhongdao.032011@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (256 GB) - Burgundy",
+    "price": "$1,799.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Tuesday, November 24, 2026",
+    "step": "ordered",
+    "trackingStatus": "Ordered",
+    "shippingStatus": "Ordered"
+  },
+  {
     "orderId": "114-863512-671882",
     "timestamp": "2026-11-23T07:52:22.656Z",
     "name": "Novimaulida",
