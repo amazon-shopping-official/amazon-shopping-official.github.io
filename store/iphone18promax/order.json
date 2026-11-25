@@ -1,5 +1,22 @@
 [
   {
+    "orderId": "114-892850-909718",
+    "timestamp": "2026-11-25T12:49:04.284Z",
+    "name": "Võ Thị Kim Hạnh",
+    "address": "Trung học phổ thông Nguyễn Hồng Đạo- Hoà Hội- Gia Lai",
+    "phoneNumber": "0896324020",
+    "email": "kimhanh13112003@gmail.com",
+    "item": "Apple iPhone 18 Pro Max (512 GB) - Burgundy",
+    "price": "$1,999.00",
+    "qty": 1,
+    "payMethod": "Redeem Code (AMZN-8K3P-4M7W-9Y2L)",
+    "redeemCode": "AMZN-8K3P-4M7W-9Y2L",
+    "dateStr": "Wednesday, November 25, 2026",
+    "step": "ordered",
+    "trackingStatus": "Ordered",
+    "shippingStatus": "Ordered"
+  },
+  {
     "orderId": "114-404193-339757",
     "timestamp": "2026-11-24T07:08:44.451Z",
     "name": "Nguyễn Thị Hồng Đào",
