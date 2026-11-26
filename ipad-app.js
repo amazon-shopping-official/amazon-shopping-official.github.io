@@ -208,12 +208,14 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
         commitBody.sha = fileSha;
       }
 
-      const putRes = await fetch(url, {
+      const commitBodyStr = JSON.stringify(commitBody);
+      const putOpts = {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody),
-        keepalive: true
-      });
+        body: commitBodyStr
+      };
+      if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+      const putRes = await fetch(url, putOpts);
 
       if (putRes.ok) {
         console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -888,7 +890,7 @@ function setupCheckoutAccordion() {
 // ==========================================================================
 //  4. ORDER PLACEMENT & CONFIRMATION
 // ==========================================================================
-async function triggerOrderPlacement() {
+function triggerOrderPlacement() {
   const btnFinal = document.getElementById("btnFinalPlaceOrder");
   const btnSummary = document.getElementById("btnSummaryPlaceOrder");
 
@@ -905,7 +907,7 @@ async function triggerOrderPlacement() {
   }
 
   try {
-    await completeOrderPlacement();
+    completeOrderPlacement();
   } catch (e) {
     console.error("Order error:", e);
     showToast("There was an issue recording your order. Please try again.");
@@ -915,7 +917,7 @@ async function triggerOrderPlacement() {
   }
 }
 
-async function completeOrderPlacement() {
+function completeOrderPlacement() {
   const unitPrice = calculateTotalPrice();
   const totalAmount = unitPrice * state.qty;
   const orderNumber = `114-${Math.floor(100000 + Math.random() * 900000)}-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -976,12 +978,10 @@ async function completeOrderPlacement() {
     console.error("Local storage error:", e);
   }
 
-  // 2. Commit to GitHub repo
-  try {
-    await saveOrderToAPI(placedOrder);
-  } catch (err) {
+  // 2. Commit to GitHub repo in background (instant confirmation UX)
+  saveOrderToAPI(placedOrder).catch(err => {
     console.warn("[GitHub] Commit notice:", err);
-  }
+  });
 
   // 3. Populate Confirmation Screen
   const safeSet = (id, val) => {

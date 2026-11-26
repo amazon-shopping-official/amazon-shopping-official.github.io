@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#131921">
+  <meta name="theme-color" content="#ff6200">
   <meta http-equiv="refresh" content="60">
   <title>Amazon.com : Scheduled Maintenance - Storefront Temporarily Offline</title>
-  <link rel="stylesheet" href="style.css?v=20261126_01">
+  <link rel="stylesheet" href="style.css?v=20261126_02">
   <style>
     :root {
       --amazon-dark: #131921;
@@ -37,13 +37,17 @@
 
     /* HEADER */
     .maint-header {
-      background: var(--amazon-dark);
+      background: linear-gradient(180deg, #ff6a00 0%, #f55900 100%);
       padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 2px solid var(--amazon-orange);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 2px 10px rgba(15, 17, 17, 0.14);
+    }
+
+    .maint-header path[fill="#ff9900"] {
+      fill: #ffffff;
     }
 
     .maint-logo-wrap {
@@ -63,7 +67,7 @@
     .maint-logo-ext {
       font-size: 13px;
       font-weight: 700;
-      color: #ccc;
+      color: rgba(255, 255, 255, 0.92);
       align-self: flex-start;
       margin-top: 6px;
     }
@@ -72,14 +76,14 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255, 153, 0, 0.4);
+      background: rgba(19, 25, 33, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.28);
       padding: 6px 14px;
-      border-radius: 20px;
+      border-radius: 9999px;
       font-size: 12px;
       font-weight: 600;
-      color: #ff9900;
-      letter-spacing: 0.5px;
+      color: #ffffff;
+      letter-spacing: 0.4px;
     }
 
     .pulse-dot {

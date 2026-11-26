@@ -231,12 +231,14 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
         commitBody.sha = fileSha;
       }
 
-      const putRes = await fetch(url, {
+      const commitBodyStr = JSON.stringify(commitBody);
+      const putOpts = {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody),
-        keepalive: true
-      });
+        body: commitBodyStr
+      };
+      if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+      const putRes = await fetch(url, putOpts);
 
       if (putRes.ok) {
         console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -871,7 +873,7 @@ function setupCheckoutAccordion() {
     }
 
     try {
-      await completeOrderPlacement();
+      completeOrderPlacement();
     } catch (err) {
       console.error("Order placement error:", err);
       showToast("There was an issue recording your order. Please try again.");
@@ -894,7 +896,7 @@ function setupCheckoutAccordion() {
 // ==========================================================================
 //  CONFIRMATION VIEW RENDERING & PDF RECEIPT
 // ==========================================================================
-async function completeOrderPlacement() {
+function completeOrderPlacement() {
   const singleUnitPrice = calculateTotalPrice();
   const qty = parseInt(state.qty, 10) || 1;
   const subtotal = singleUnitPrice * qty;
@@ -956,11 +958,9 @@ async function completeOrderPlacement() {
 
   state.placedOrder = orderData;
   saveLocalOrder(orderData);
-  try {
-    await saveOrderToAPI(orderData);
-  } catch (err) {
+  saveOrderToAPI(orderData).catch(err => {
     console.warn("[GitHub] Commit notice:", err);
-  }
+  });
 
   // Render Confirmation Screen
   renderConfirmationView(orderData);

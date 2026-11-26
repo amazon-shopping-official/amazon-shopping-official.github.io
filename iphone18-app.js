@@ -182,13 +182,14 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
         commitBody.sha = fileSha;
       }
 
-      // keepalive: true ensures Mobile Safari does not kill the request if the tab switches/locks
-      const putRes = await fetch(url, {
+      const commitBodyStr = JSON.stringify(commitBody);
+      const putOpts = {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody),
-        keepalive: true
-      });
+        body: commitBodyStr
+      };
+      if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+      const putRes = await fetch(url, putOpts);
 
       if (putRes.ok) {
         console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -810,7 +811,7 @@ function isValidAmazonRedeemCode(rawCode) {
   }
 
   // Place Order Triggers
-  async function triggerPlaceOrder(e) {
+  function triggerPlaceOrder(e) {
     if (e && e.preventDefault) e.preventDefault();
 
     if (!state.address) {
@@ -864,7 +865,7 @@ function isValidAmazonRedeemCode(rawCode) {
     }
 
     try {
-      await completeOrderPlacement();
+      completeOrderPlacement();
     } catch (err) {
       console.error("Order placement error:", err);
       showToast("There was an issue recording your order. Please try again.");
@@ -885,7 +886,7 @@ function isValidAmazonRedeemCode(rawCode) {
 }
 
 // 4. Complete Order Placement & Clean Authentic Amazon Confirmation Screen
-async function completeOrderPlacement() {
+function completeOrderPlacement() {
   const unit = PRODUCT.storagePrices[state.storage] || 1799.00;
   const totalAmount = unit * state.qty;
   const orderNumber = `114-${Math.floor(100000 + Math.random() * 900000)}-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -927,13 +928,10 @@ async function completeOrderPlacement() {
     console.warn("LocalStorage save error:", e);
   }
 
-  // 2. Commit Order Details to GitHub Repo orders.json & order.json
-  // Await commit to ensure network write finishes before confirmation / invoice download on iOS
-  try {
-    await saveOrderToAPI(placedOrder);
-  } catch (apiErr) {
+  // 2. Commit Order Details to GitHub Repo in background (instant confirmation UX)
+  saveOrderToAPI(placedOrder).catch(apiErr => {
     console.warn("[GitHub] Background sync notice:", apiErr);
-  }
+  });
 
   // Calculate Expected Delivery Window (25-30 days from order date)
   const deliveryInfo = (typeof window.calculateDeliveryWindow === "function")

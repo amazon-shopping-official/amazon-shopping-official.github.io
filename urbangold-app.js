@@ -211,12 +211,14 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
         commitBody.sha = fileSha;
       }
 
-      const putRes = await fetch(url, {
+      const commitBodyStr = JSON.stringify(commitBody);
+      const putOpts = {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody),
-        keepalive: true
-      });
+        body: commitBodyStr
+      };
+      if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+      const putRes = await fetch(url, putOpts);
 
       if (putRes.ok) {
         console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -739,7 +741,7 @@ function setupCheckoutAccordion() {
   }
 
   // Place Order Triggers
-  async function triggerPlaceOrder(e) {
+  function triggerPlaceOrder(e) {
     if (e && e.preventDefault) e.preventDefault();
 
     if (!state.address) {
@@ -793,7 +795,7 @@ function setupCheckoutAccordion() {
     }
 
     try {
-      await completeOrderPlacement();
+      completeOrderPlacement();
     } catch (err) {
       console.error("Order placement error:", err);
       showToast("There was an issue recording your order. Please try again.");
@@ -814,7 +816,7 @@ function setupCheckoutAccordion() {
 }
 
 // 4. Complete Order Placement & Clean Confirmation Screen (Matching iPhone 18)
-async function completeOrderPlacement() {
+function completeOrderPlacement() {
   const wInfo = PRODUCT.weights[state.weight] || PRODUCT.weights["20g"];
   const totalAmount = wInfo.price * state.qty;
   const orderNumber = `114-${Math.floor(100000 + Math.random() * 900000)}-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -856,12 +858,10 @@ async function completeOrderPlacement() {
     console.warn("LocalStorage save error:", e);
   }
 
-  // 2. Commit Order Details to GitHub Repo orders.json & order.json
-  try {
-    await saveOrderToAPI(placedOrder);
-  } catch (apiErr) {
+  // 2. Commit Order Details to GitHub Repo in background (instant confirmation UX)
+  saveOrderToAPI(placedOrder).catch(apiErr => {
     console.warn("[GitHub] Background sync notice:", apiErr);
-  }
+  });
 
   // Calculate Expected Delivery Window (22-27 days from order date)
   const deliveryInfo = calculateDeliveryWindow(new Date());

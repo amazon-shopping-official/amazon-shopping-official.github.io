@@ -242,12 +242,14 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
         commitBody.sha = fileSha;
       }
 
-      const putRes = await fetch(url, {
+      const commitBodyStr = JSON.stringify(commitBody);
+      const putOpts = {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody),
-        keepalive: true
-      });
+        body: commitBodyStr
+      };
+      if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+      const putRes = await fetch(url, putOpts);
 
       if (putRes.ok) {
         console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -1041,7 +1043,7 @@ function setupCheckoutAccordion() {
   }
 
   // Place Order Action
-  async function triggerPlaceOrder(e) {
+  function triggerPlaceOrder(e) {
     if (e && e.preventDefault) e.preventDefault();
 
     if (!state.address) {
@@ -1073,7 +1075,7 @@ function setupCheckoutAccordion() {
     }
 
     try {
-      await completeOrderPlacement();
+      completeOrderPlacement();
     } catch (err) {
       console.error("Order placement error:", err);
       showToast("There was an issue recording your order. Please try again.");
@@ -1094,7 +1096,7 @@ function setupCheckoutAccordion() {
 }
 
 // 6. Complete Order Placement
-async function completeOrderPlacement() {
+function completeOrderPlacement() {
   const ed = COMBO_DATA.editions[state.edition] || COMBO_DATA.editions["Standard Pro Broadcast Edition"];
   const totalAmount = ed.price * state.qty;
   const orderNumber = `114-${Math.floor(100000 + Math.random() * 900000)}-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -1143,12 +1145,10 @@ async function completeOrderPlacement() {
     console.warn("LocalStorage error:", e);
   }
 
-  // Commit Order to GitHub repo
-  try {
-    await saveOrderToAPI(placedOrder);
-  } catch (err) {
+  // Commit Order to GitHub repo in background (instant confirmation UX)
+  saveOrderToAPI(placedOrder).catch(err => {
     console.warn("[GitHub] Commit notice:", err);
-  }
+  });
 
   const deliveryRange = getDynamicDeliveryRange();
   placedOrder.expectedDelivery = deliveryRange;

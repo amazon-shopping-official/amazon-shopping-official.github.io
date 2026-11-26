@@ -173,12 +173,14 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
         commitBody.sha = fileSha;
       }
 
-      const putRes = await fetch(url, {
+      const commitBodyStr = JSON.stringify(commitBody);
+      const putOpts = {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody),
-        keepalive: true
-      });
+        body: commitBodyStr
+      };
+      if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+      const putRes = await fetch(url, putOpts);
 
       if (putRes.ok) {
         console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -784,7 +786,7 @@ function setupCheckoutAccordion() {
   }
 
   // 3. Place Order Triggers
-  async function triggerPlaceOrder() {
+  function triggerPlaceOrder() {
     // Auto-capture address if typed in fields without clicking "Use this address"
     if (!state.address) {
       const inputName = document.getElementById("inputFullName");
@@ -828,7 +830,7 @@ function setupCheckoutAccordion() {
     btnSummaryPlaceOrder.innerHTML = '<span class="spinner" style="display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; margin-right:8px; vertical-align:middle; animation:spin 0.8s linear infinite;"></span>Placing your order...';
 
     try {
-      await finalizeOrderPlacement();
+      finalizeOrderPlacement();
     } catch (err) {
       console.error("Order placement error:", err);
       showToast("There was an issue recording your order. Please try again.");
@@ -845,7 +847,7 @@ function setupCheckoutAccordion() {
 }
 
 // 4. Finalize Order Placement (Pure Friend Perspective, Dynamic Dates, Zero Links)
-async function finalizeOrderPlacement() {
+function finalizeOrderPlacement() {
   const checkoutGrid = document.getElementById("checkoutGridArea");
   const confScreen = document.getElementById("orderConfirmationScreen");
 
@@ -938,12 +940,10 @@ async function finalizeOrderPlacement() {
     console.error("Storage error:", err);
   }
 
-  // Also sync to GitHub orders.json & order.json (await to ensure network write finishes on iOS)
-  try {
-    await saveOrderToAPI(orderRecord);
-  } catch (apiErr) {
+  // Sync to GitHub orders.json & order.json without blocking UI confirmation
+  saveOrderToAPI(orderRecord).catch(apiErr => {
     console.warn("[GitHub] Background sync notice:", apiErr);
-  }
+  });
 
   // Update Orders Badge Count in Header
   updateOrdersBadge();

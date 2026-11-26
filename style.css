@@ -6,6 +6,8 @@
 :root {
   --amazon-navy: #131921;
   --amazon-subnav: #232f3e;
+  --amazon-header-orange: #ff6200;
+  --amazon-header-orange-deep: #e05100;
   --amazon-orange: #ff6200;
   --amazon-amber: #ff9900;
   --amazon-gold: #febd69;
@@ -72,15 +74,19 @@ button:active, .btn-buy-now:active, .btn-continue-step:active, .cs-btn-place-ord
 }
 
 /* ==========================================================================
-   MODERN AMAZON HEADER
+   MODERN AMAZON ORANGE HEADER (2025–2026 DESIGN SYSTEM)
    ========================================================================== */
 header {
-  background: var(--amazon-navy);
+  background: linear-gradient(180deg, #ff6a00 0%, #f55900 100%);
   color: #fff;
   position: sticky;
   top: 0;
   z-index: 200;
-  box-shadow: 0 2px 10px rgba(15, 17, 17, 0.18);
+  box-shadow: 0 2px 10px rgba(15, 17, 17, 0.14);
+}
+
+header .amazon-svg path[fill="#ff9900"] {
+  fill: #ffffff;
 }
 
 .nav-main {
@@ -104,8 +110,8 @@ header {
 }
 
 .amazon-logo-wrap:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .amazon-svg {
@@ -140,8 +146,8 @@ header {
 }
 
 .nav-location:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .nav-location svg {
@@ -152,7 +158,7 @@ header {
 
 .loc-line1 {
   font-size: 11px;
-  color: #cccccc;
+  color: rgba(255, 255, 255, 0.92);
   display: block;
   line-height: 1.15;
 }
@@ -176,7 +182,7 @@ header {
 }
 
 .nav-search:focus-within {
-  box-shadow: 0 0 0 3px var(--amazon-orange);
+  box-shadow: 0 0 0 3px rgba(15, 17, 17, 0.35), 0 2px 8px rgba(0, 0, 0, 0.16);
 }
 
 .search-dept {
@@ -206,7 +212,7 @@ header {
 
 .search-btn {
   width: 48px;
-  background: var(--amazon-gold);
+  background: #131921;
   border: none;
   cursor: pointer;
   display: flex;
@@ -216,13 +222,13 @@ header {
 }
 
 .search-btn:hover {
-  background: #f3a847;
+  background: #232f3e;
 }
 
 .search-btn svg {
   width: 20px;
   height: 20px;
-  color: #0f1111;
+  color: #ffffff;
 }
 
 /* Right Nav Items */
@@ -244,13 +250,13 @@ header {
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .nav-line-small {
   font-size: 11px;
-  color: #d5d9d9;
+  color: rgba(255, 255, 255, 0.92);
   display: block;
   line-height: 1.15;
 }
@@ -282,11 +288,19 @@ header {
 
 .cart-count {
   position: absolute;
-  top: 0px;
-  left: 12px;
-  color: var(--amazon-amber);
-  font-size: 15px;
+  top: -3px;
+  left: 16px;
+  background: #131921;
+  color: #ffffff;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  font-size: 11px;
   font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
 }
 
 /* Modern Amazon Language Selector */
@@ -617,10 +631,10 @@ body {
 
 /* Sub Navigation */
 .nav-sub {
-  background: var(--amazon-subnav);
+  background: var(--amazon-header-orange-deep);
   padding: 6px 20px;
   font-size: 13.5px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .nav-sub-inner {
@@ -651,8 +665,8 @@ body {
 }
 
 .sub-link:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.38);
 }
 
 /* ==========================================================================
@@ -2017,7 +2031,7 @@ footer {
     width: calc(100% + 24px);
     margin: 4px -12px -10px -12px;
     padding: 9px 14px;
-    background: var(--amazon-subnav);
+    background: var(--amazon-header-orange-deep);
     border: none;
     border-radius: 0;
     font-size: 12px;
@@ -2033,7 +2047,7 @@ footer {
   }
   .nav-location .loc-line1 {
     font-size: 12px;
-    color: #ccc;
+    color: rgba(255, 255, 255, 0.9);
   }
   .nav-location .loc-line2 {
     font-size: 12px;

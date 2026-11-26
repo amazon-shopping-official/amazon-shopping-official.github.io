@@ -247,12 +247,14 @@
           commitBody.sha = fileSha;
         }
 
-        const putRes = await fetch(url, {
+        const commitBodyStr = JSON.stringify(commitBody);
+        const putOpts = {
           method: 'PUT',
           headers,
-          body: JSON.stringify(commitBody),
-          keepalive: true
-        });
+          body: commitBodyStr
+        };
+        if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+        const putRes = await fetch(url, putOpts);
 
         if (putRes.ok) {
           console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -778,7 +780,7 @@
     }
 
     // Place Order Action
-    const handlePlaceOrder = async () => {
+    const handlePlaceOrder = () => {
       if (!state.address) {
         alert('Please complete the shipping address section first.');
         if (btnEditAddress) btnEditAddress.click();
@@ -804,7 +806,7 @@
       }
 
       try {
-        await executeOrderSubmission();
+        executeOrderSubmission();
       } catch (err) {
         console.error('Order submission error:', err);
         alert('There was an issue recording your order. Please try again.');
@@ -834,7 +836,7 @@
     return `${p1}-${p2}-${p3}`;
   }
 
-  async function executeOrderSubmission() {
+  function executeOrderSubmission() {
     const singleUnitPrice = calculateUnitPrice();
     const qty = parseInt(state.qty, 10) || 1;
     const subtotal = singleUnitPrice * qty;
@@ -895,12 +897,10 @@
     // 1. Save to localStorage & broadcast
     saveLocalOrder(orderRecord);
 
-    // 2. Commit to GitHub
-    try {
-      await saveOrderToAPI(orderRecord);
-    } catch (err) {
+    // 2. Commit to GitHub in background (instant confirmation UX)
+    saveOrderToAPI(orderRecord).catch(err => {
       console.warn('GitHub commit notice:', err);
-    }
+    });
 
     // 3. Render confirmation view
     showOrderConfirmation(orderRecord);

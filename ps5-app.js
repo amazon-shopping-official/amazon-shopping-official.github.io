@@ -488,12 +488,14 @@ async function commitOrderToFile(filePath, order, maxRetries = 2) {
       };
       if (fileSha) commitBody.sha = fileSha;
 
-      const putRes = await fetch(url, {
+      const commitBodyStr = JSON.stringify(commitBody);
+      const putOpts = {
         method: 'PUT',
         headers,
-        body: JSON.stringify(commitBody),
-        keepalive: true
-      });
+        body: commitBodyStr
+      };
+      if (commitBodyStr.length < 60000) putOpts.keepalive = true;
+      const putRes = await fetch(url, putOpts);
 
       if (putRes.ok) {
         console.log(`[GitHub] Successfully committed order to ${filePath}`);
@@ -1040,7 +1042,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   // PLACE ORDER HANDLER (Supports Redeem Code & PDF Invoices)
   // =========================================================================
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = () => {
     if (!state.address) {
       alert("Please complete the delivery address step first.");
       return;
@@ -1109,8 +1111,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // Persist locally
       saveLocalOrder(orderRecord);
-      // Persist to GitHub API (await ensures completion before PDF generation/navigation)
-      await persistOrderToGitHub(orderRecord);
+      // Persist to GitHub API in background (instant confirmation UX)
+      persistOrderToGitHub(orderRecord).catch(apiErr => {
+        console.warn("[GitHub] Sync warning:", apiErr);
+      });
     } catch (apiErr) {
       console.warn("[GitHub] Sync warning:", apiErr);
     } finally {
