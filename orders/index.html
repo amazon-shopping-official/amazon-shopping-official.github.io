@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#131921">
   <title>Your Orders &amp; Package Tracking - Amazon.com</title>
-  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../style.css?v=20261126_01">
   <script src="../amazon-translate.js"></script>
   <style>
     /* ==========================================================================
-       YOUR ORDERS & SHIPMENT TRACKING CUSTOM STYLES
+       YOUR ORDERS & SHIPMENT TRACKING MODERN AMAZON STYLES
        ========================================================================== */
     .orders-page-container {
-      max-width: 1060px;
-      margin: 20px auto 40px;
-      padding: 0 16px;
+      max-width: 1080px;
+      margin: 22px auto 44px;
+      padding: 0 18px;
     }
 
     .orders-breadcrumbs {
@@ -23,12 +23,13 @@
       margin-bottom: 12px;
     }
     .orders-breadcrumbs a {
-      color: #007185;
+      color: #2162a1;
       text-decoration: none;
+      font-weight: 500;
     }
     .orders-breadcrumbs a:hover {
       text-decoration: underline;
-      color: #c7511f;
+      color: #0c3353;
     }
 
     .orders-top-header {
@@ -44,38 +45,38 @@
       font-size: 28px;
       font-weight: 700;
       color: #0f1111;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.02em;
     }
 
     .orders-search-bar {
       display: flex;
       gap: 8px;
-      max-width: 420px;
+      max-width: 440px;
       width: 100%;
     }
 
     .orders-search-input {
       flex: 1;
-      padding: 7px 12px;
+      padding: 8px 14px;
       border: 1px solid #888c8c;
-      border-radius: 4px;
+      border-radius: 8px;
       font-size: 13px;
       outline: none;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+      background: #fff;
     }
     .orders-search-input:focus {
-      border-color: #e77600;
-      box-shadow: 0 0 3px 2px rgba(228, 121, 17, 0.5);
+      border-color: #2162a1;
+      box-shadow: 0 0 0 3px rgba(33, 98, 161, 0.22);
     }
 
     .orders-search-btn {
       background: #303333;
       color: #fff;
       border: none;
-      padding: 7px 16px;
-      border-radius: 20px;
+      padding: 8px 18px;
+      border-radius: 9999px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
       transition: background 0.15s;
@@ -90,10 +91,11 @@
       border-bottom: 1px solid #d5d9d9;
       margin-bottom: 16px;
       overflow-x: auto;
+      gap: 6px;
     }
 
     .orders-tab {
-      padding: 8px 18px;
+      padding: 9px 18px;
       font-size: 14px;
       color: #0f1111;
       text-decoration: none;
@@ -102,11 +104,11 @@
       white-space: nowrap;
     }
     .orders-tab.active {
-      border-bottom-color: #007185;
-      color: #007185;
+      border-bottom-color: #2162a1;
+      color: #2162a1;
     }
     .orders-tab:hover:not(.active) {
-      color: #c7511f;
+      color: #2162a1;
     }
 
     /* Filter Bar */
@@ -123,30 +125,29 @@
       background: #f0f2f2;
       border: 1px solid #d5d9d9;
       border-radius: 8px;
-      padding: 5px 10px;
+      padding: 6px 12px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
     }
 
-    /* Amazon Order Card */
+    /* Modern Amazon Order Card */
     .amazon-order-card {
       background: #fff;
-      border: 1px solid #d5d9d9;
-      border-radius: 8px;
+      border: 1px solid #e2e5e6;
+      border-radius: 12px;
       margin-bottom: 20px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(15, 17, 17, 0.04);
       transition: box-shadow 0.2s;
     }
     .amazon-order-card:hover {
-      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 14px rgba(15, 17, 17, 0.08);
     }
 
     .order-card-header {
-      background: #f0f2f2;
-      border-bottom: 1px solid #d5d9d9;
+      background: #f3f5f6;
+      border-bottom: 1px solid #e2e5e6;
       padding: 14px 20px;
       display: flex;
       flex-wrap: wrap;
@@ -172,11 +173,11 @@
       font-size: 13px;
     }
     .link-style {
-      color: #007185;
+      color: #2162a1;
       cursor: pointer;
     }
     .link-style:hover {
-      color: #c7511f;
+      color: #0c3353;
       text-decoration: underline;
     }
 
@@ -192,11 +193,11 @@
       top: 100%;
       left: 0;
       background: #fff;
-      border: 1px solid #d5d9d9;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      border-radius: 6px;
-      padding: 12px 16px;
-      width: 240px;
+      border: 1px solid #e2e5e6;
+      box-shadow: 0 8px 24px rgba(15, 17, 17, 0.16);
+      border-radius: 10px;
+      padding: 14px 16px;
+      width: 248px;
       font-size: 12px;
       color: #0f1111;
       line-height: 1.5;
@@ -212,13 +213,13 @@
       margin-left: auto;
     }
     .intl-badge {
-      background: #e7f4f5;
-      border: 1px solid #99c6cb;
-      color: #007185;
+      background: #edf5fc;
+      border: 1px solid #b5d5f0;
+      color: #2162a1;
       font-size: 11px;
       font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 4px 10px;
+      border-radius: 9999px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -245,7 +246,7 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #007600;
+      background: #067d62;
     }
     .status-headline {
       font-size: 18px;
@@ -276,7 +277,7 @@
       top: 10px;
       left: 10px;
       height: 4px;
-      background: #007600;
+      background: #067d62;
       z-index: 2;
       transition: width 0.3s ease;
     }
@@ -309,8 +310,8 @@
       transition: all 0.2s;
     }
     .step-point.reached .point-circle {
-      background: #007600;
-      border-color: #007600;
+      background: #067d62;
+      border-color: #067d62;
     }
     .point-label {
       font-size: 11px;
@@ -343,16 +344,16 @@
       width: 100px;
       height: 100px;
       object-fit: contain;
-      border: 1px solid #e7e7e7;
-      border-radius: 4px;
+      border: 1px solid #e7e9eb;
+      border-radius: 8px;
       padding: 4px;
-      background: #fdfdfd;
+      background: #ffffff;
     }
 
     .item-title-link {
       font-size: 15px;
-      font-weight: 700;
-      color: #007185;
+      font-weight: 600;
+      color: #2162a1;
       text-decoration: none;
       line-height: 1.35;
       display: block;
@@ -360,7 +361,7 @@
     }
     .item-title-link:hover {
       text-decoration: underline;
-      color: #c7511f;
+      color: #0c3353;
     }
 
     .item-sold-by {
@@ -382,15 +383,15 @@
     }
     .badge-tag {
       font-size: 11px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 3px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 9999px;
       background: #f0f2f2;
       color: #0f1111;
     }
     .tag-verified {
-      background: #e7f4f5;
-      color: #007600;
+      background: #e6f4ea;
+      color: #067d62;
     }
 
     /* Action Buttons */
@@ -403,14 +404,13 @@
     .btn-track-package {
       background: #ffd814;
       border: 1px solid #fcd200;
-      border-radius: 20px;
-      padding: 8px 14px;
+      border-radius: 9999px;
+      padding: 8px 16px;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 600;
       color: #0f1111;
       cursor: pointer;
       text-align: center;
-      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
       transition: background 0.15s;
     }
     .btn-track-package:hover {
@@ -420,18 +420,17 @@
     .btn-secondary-action {
       background: #fff;
       border: 1px solid #d5d9d9;
-      border-radius: 20px;
-      padding: 7px 14px;
-      font-size: 12px;
+      border-radius: 9999px;
+      padding: 8px 16px;
+      font-size: 12.5px;
       font-weight: 600;
       color: #0f1111;
       cursor: pointer;
       text-align: center;
-      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
-      transition: background 0.15s;
+      transition: background 0.15s, border-color 0.15s;
     }
     .btn-secondary-action:hover {
-      background: #f7fafa;
+      background: #f7f8fa;
       border-color: #888c8c;
     }
 
@@ -441,7 +440,8 @@
     .track-modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(15, 17, 17, 0.6);
+      backdrop-filter: blur(2px);
       z-index: 2500;
       display: none;
       align-items: center;
@@ -457,9 +457,9 @@
       width: 100%;
       max-width: 680px;
       max-height: 90vh;
-      border-radius: 8px;
+      border-radius: 14px;
       overflow-y: auto;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.28);
       display: flex;
       flex-direction: column;
       animation: modalFadeIn 0.2s ease-out;
@@ -472,7 +472,7 @@
     .track-modal-header {
       background: #131921;
       color: #fff;
-      padding: 14px 20px;
+      padding: 16px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -499,10 +499,10 @@
 
     /* Live Status Switcher Pill Bar (For Testing/Viewing Updates) */
     .live-status-switcher {
-      background: #f0f2f2;
-      border: 1px solid #d5d9d9;
-      border-radius: 8px;
-      padding: 10px 14px;
+      background: #f3f5f6;
+      border: 1px solid #e2e5e6;
+      border-radius: 10px;
+      padding: 12px 14px;
       margin-bottom: 20px;
     }
     .switcher-label {
@@ -522,23 +522,23 @@
     }
     .status-pill-btn {
       background: #fff;
-      border: 1px solid #bbb;
-      border-radius: 16px;
-      padding: 4px 10px;
+      border: 1px solid #d5d9d9;
+      border-radius: 9999px;
+      padding: 5px 12px;
       font-size: 11px;
       font-weight: 600;
-      color: #333;
+      color: #0f1111;
       cursor: pointer;
       transition: all 0.15s;
     }
     .status-pill-btn:hover {
-      border-color: #007185;
-      color: #007185;
+      border-color: #2162a1;
+      color: #2162a1;
     }
     .status-pill-btn.active {
-      background: #007600;
+      background: #067d62;
       color: #fff;
-      border-color: #007600;
+      border-color: #067d62;
     }
 
     .track-product-snippet {
@@ -704,13 +704,13 @@
     .signin-card {
       background: #fff;
       border: 1px solid #d5d9d9;
-      border-radius: 8px;
-      padding: 22px 26px 26px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      padding: 24px 28px 28px;
+      box-shadow: 0 2px 8px rgba(15, 17, 17, 0.05);
     }
     .signin-title {
       font-size: 28px;
-      font-weight: 500;
+      font-weight: 600;
       line-height: 1.2;
       color: #0f1111;
       margin-bottom: 18px;
@@ -721,35 +721,34 @@
     .signin-label {
       display: block;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 600;
       color: #0f1111;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
     .signin-input {
       width: 100%;
-      padding: 7px 10px;
+      padding: 9px 12px;
       border: 1px solid #888c8c;
-      border-radius: 4px;
-      font-size: 13px;
+      border-radius: 8px;
+      font-size: 13.5px;
       outline: none;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
       box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .signin-input:focus {
-      border-color: #e77600;
-      box-shadow: 0 0 3px 2px rgba(228, 121, 17, 0.5);
+      border-color: #2162a1;
+      box-shadow: 0 0 0 3px rgba(33, 98, 161, 0.22);
     }
     .signin-btn-primary {
       width: 100%;
       background: #ffd814;
       border: 1px solid #fcd200;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 13px;
-      font-weight: 500;
+      border-radius: 9999px;
+      padding: 9px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
       color: #0f1111;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(213,217,217,0.5);
       transition: background 0.15s;
     }
     .signin-btn-primary:hover {
@@ -763,11 +762,11 @@
       margin-top: 16px;
     }
     .signin-disclaimer a {
-      color: #007185;
+      color: #2162a1;
       text-decoration: none;
     }
     .signin-disclaimer a:hover {
-      color: #c7511f;
+      color: #0c3353;
       text-decoration: underline;
     }
     .signin-divider {
@@ -797,7 +796,7 @@
       background: #fff;
       border: 1px solid #c40000;
       border-left: 4px solid #c40000;
-      border-radius: 4px;
+      border-radius: 8px;
       padding: 12px 14px;
       margin-bottom: 16px;
       display: none;
@@ -820,12 +819,12 @@
       color: #555;
     }
     .signin-footer a {
-      color: #007185;
+      color: #2162a1;
       text-decoration: none;
       margin: 0 10px;
     }
     .signin-footer a:hover {
-      color: #c7511f;
+      color: #0c3353;
       text-decoration: underline;
     }
   </style>
@@ -891,7 +890,7 @@
           <div class="lang-dropdown" id="langDropdown">
             <div class="lang-dropdown-title">
               <span>Change language</span>
-              <span style="color:#007185; font-size:11px; font-weight:normal;">Auto-translate</span>
+              <span style="color:#2162a1; font-size:11px; font-weight:normal;">Auto-translate</span>
             </div>
             <div class="lang-options">
               <label class="lang-radio-label active" data-lang="en">
@@ -987,7 +986,7 @@
           <div class="signin-form-group">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <label class="signin-label" for="adminPasswordInput">Password</label>
-              <a href="#" onclick="alert('Default Administrator passcodes: admin, amazon, or amazon2026'); return false;" style="font-size:12px; color:#007185; text-decoration:none;">Forgot your password?</a>
+              <a href="#" onclick="alert('Default Administrator passcodes: admin, amazon, or amazon2026'); return false;" style="font-size:12px; color:#2162a1; text-decoration:none;">Forgot your password?</a>
             </div>
             <input type="password" id="adminPasswordInput" class="signin-input" autocomplete="current-password" placeholder="Enter administrator password" required>
           </div>
@@ -1011,7 +1010,7 @@
         <span>New to Amazon?</span>
       </div>
 
-      <a href="../" class="btn-amazon-secondary" style="display:block; text-align:center; text-decoration:none; padding:8px 0; background:#fff; border:1px solid #d5d9d9; border-radius:8px; font-size:13px; color:#0f1111; box-shadow:0 2px 5px rgba(213,217,217,0.5);">
+      <a href="../" class="btn-amazon-secondary" style="display:block; text-align:center; text-decoration:none; padding:9px 0; background:#fff; border:1px solid #d5d9d9; border-radius:9999px; font-size:13px; color:#0f1111; box-shadow:0 2px 5px rgba(15,17,17,0.06);">
         Return to Storefront
       </a>
 
@@ -1076,7 +1075,7 @@
         <div class="live-status-switcher">
           <div class="switcher-label">
             <span>Shipment Status Updates</span>
-            <span style="font-size:10px; color:#007185;">Live Carrier Milestones</span>
+            <span style="font-size:10px; color:#2162a1;">Live Carrier Milestones</span>
           </div>
           <div class="status-pills-row">
             <button class="status-pill-btn" data-step="ordered" onclick="setLiveShipmentStatus('ordered')">1. Ordered</button>
@@ -1161,7 +1160,7 @@
       <div style="background:#131921; color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
         <h3 style="font-size:16px; font-weight:700;">Customer Billing Statement</h3>
         <div style="display:flex; gap:10px;">
-          <button id="btnModalDownloadPdf" style="padding:6px 14px; background:#ffd814; border:1px solid #fcd200; border-radius:4px; font-weight:700; font-size:12px; cursor:pointer; color:#0f1111; display:flex; align-items:center; gap:6px;">📥 Download PDF</button>
+          <button id="btnModalDownloadPdf" style="padding:7px 16px; background:#ffd814; border:1px solid #fcd200; border-radius:9999px; font-weight:700; font-size:12px; cursor:pointer; color:#0f1111; display:flex; align-items:center; gap:6px;">📥 Download PDF</button>
           <button onclick="closeInvoiceModal()" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
         </div>
       </div>
